@@ -7,4 +7,6 @@ type:
 weight:
   mandatory: True
   type: double
-# is_base: True # Put to true if there are derived classes from this
+# doc:
+#   mandatory: True
+#   type:

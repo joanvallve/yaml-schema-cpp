@@ -5,7 +5,7 @@
 namespace yaml_schema_cpp
 {
 
-SchemaValidator::SchemaValidator(const std::string& schema_path, const std::string& input_path, bool is_derived)
+YamlServer::YamlServer(const std::string& schema_path, const std::string& input_path, bool is_derived)
     : is_derived_(is_derived)
 {
     input_node_  = YAML::LoadFile(input_path);
@@ -14,10 +14,10 @@ SchemaValidator::SchemaValidator(const std::string& schema_path, const std::stri
     std::filesystem::path p_s(schema_path);
     parent_schema_path_ = p_s.parent_path();
 
-    // SchemaValidator(schema_path, is_derived);
+    // YamlServer(schema_path, is_derived);
 }
 
-SchemaValidator::SchemaValidator(const std::string& schema_path, const YAML::Node& input_node, bool is_derived)
+YamlServer::YamlServer(const std::string& schema_path, const YAML::Node& input_node, bool is_derived)
     : is_derived_(is_derived)
 {
     input_node_  = input_node;
@@ -27,7 +27,7 @@ SchemaValidator::SchemaValidator(const std::string& schema_path, const YAML::Nod
     parent_schema_path_ = p_s.parent_path();
 }
 
-SchemaValidator::SchemaValidator(const std::string& schema_path, bool is_derived) : is_derived_(is_derived)
+YamlServer::YamlServer(const std::string& schema_path, bool is_derived) : is_derived_(is_derived)
 {
     // std::cout << "Constructor 2:" << schema_path << std::endl;
 
@@ -36,7 +36,7 @@ SchemaValidator::SchemaValidator(const std::string& schema_path, bool is_derived
     // parent_input_path_  = p_i.parent_path();
 }
 
-void SchemaValidator::print()
+void YamlServer::print()
 {
     std::cout << "Printing schema:" << std::endl;
     std::cout << parent_schema_path_ << std::endl;
@@ -52,7 +52,7 @@ void SchemaValidator::print()
     }
 }
 
-bool SchemaValidator::isValid(std::stringstream& log)
+bool YamlServer::isValid(std::stringstream& log)
 {
     preProcess(schema_node_);  // follow substitution
 
@@ -71,7 +71,7 @@ bool SchemaValidator::isValid(std::stringstream& log)
     return isValidBase(log);
 }
 
-bool SchemaValidator::isValidBase(std::stringstream& log)
+bool YamlServer::isValidBase(std::stringstream& log)
 {
     bool is_valid = true;
 
@@ -106,7 +106,7 @@ bool SchemaValidator::isValidBase(std::stringstream& log)
     return is_valid;
 }
 
-bool SchemaValidator::isValidDerived(std::stringstream& log)
+bool YamlServer::isValidDerived(std::stringstream& log)
 {
     // Check the base case
     bool is_valid = true;
@@ -139,7 +139,7 @@ bool SchemaValidator::isValidDerived(std::stringstream& log)
     return is_valid && isValidBase(log);
 }
 
-bool SchemaValidator::correctType(const YAML::Node& schema_node, const YAML::Node& input_node, std::stringstream& log)
+bool YamlServer::correctType(const YAML::Node& schema_node, const YAML::Node& input_node, std::stringstream& log)
 {
     const std::string& type = schema_node["type"].as<std::string>();
 
@@ -190,7 +190,7 @@ bool SchemaValidator::correctType(const YAML::Node& schema_node, const YAML::Nod
         {
             std::string schema_path_own_type =
                 parent_schema_path_ + "/" + schema_node["own_type_location"].as<std::string>() + "/base.yaml";
-            SchemaValidator validator(schema_path_own_type, input_node[i], schema_node["polymorphism"].as<bool>());
+            YamlServer validator(schema_path_own_type, input_node[i], schema_node["polymorphism"].as<bool>());
             is_valid = is_valid && validator.isValid(log);
         }
         return is_valid;
@@ -199,7 +199,7 @@ bool SchemaValidator::correctType(const YAML::Node& schema_node, const YAML::Nod
     return true;
 }
 
-void SchemaValidator::preProcess(YAML::Node& yaml_node)
+void YamlServer::preProcess(YAML::Node& yaml_node)
 {
     // Substitute 'follow' in the schema node
     // TODO: recursively

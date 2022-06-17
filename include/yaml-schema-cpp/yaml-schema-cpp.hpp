@@ -11,12 +11,12 @@
 namespace yaml_schema_cpp
 {
 
-class SchemaValidator
+class YamlServer
 {
   public:
-    SchemaValidator(const std::string& schema_path, const std::string& input_path, bool is_derived);
-    SchemaValidator(const std::string& schema_path, const YAML::Node& input_node, bool is_derived);
-    SchemaValidator(const std::string& schema_path, bool is_derived);
+    YamlServer(const std::string& schema_path, const std::string& input_path, bool is_derived);
+    YamlServer(const std::string& schema_path, const YAML::Node& input_node, bool is_derived);
+    YamlServer(const std::string& schema_path, bool is_derived);
 
     bool isValid(std::stringstream& log);
 

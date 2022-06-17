@@ -9,7 +9,7 @@ costs:
     weights: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
   - name: "reg_control"
-    type: "state"
+    type: "control"
     weight: 1e-1
     reference: [0, 0, 0, 0]
     weights: [1, 1, 1, 1]
