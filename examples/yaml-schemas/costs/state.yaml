@@ -1,0 +1,8 @@
+follow: base.yaml
+reference:
+  type: eigen_vector
+  mandatory: True
+weights:
+  type: eigen_vector
+  mandatory: False
+  default: [1,1,1,1,1]

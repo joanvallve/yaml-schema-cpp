@@ -1,0 +1,14 @@
+name:
+  mandatory: True
+  type: string
+duration:
+  mandatory: True
+  type: string
+transition:
+  mandatory: True
+  type: string
+costs:
+  mandatory: True
+  type: sequence_own_type
+  own_type_location: ../costs/
+  polymorphism: True

@@ -1,0 +1,6 @@
+name: "reg_state"
+type: state
+weight: 1.65e-1
+reference: [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+activation: "ActivationModelWeightedQuad"
+weights: [1, 1e-2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
