@@ -81,18 +81,26 @@ void YamlServer::flattenMap(YAML::Node& node, const filesystem::path& root_path)
 
 bool YamlServer::isValid(const std::string& name_schema, bool polymorphism)
 {
+    log_.clear();
+    
+    log_ << "-------------------------------------- \n";
     log_ << "Log of YAML parsing procedure of file: \n";
     log_ << "-------------------------------------- \n";
 
+    std::stringstream header_log;
+    header_log << "[" << name_schema << "]";
     if (polymorphism)
     {
-        return isValidDerived(name_schema, node_input_);
+        return isValidDerived(name_schema, node_input_, header_log.str());
     }
 
-    return isValidBase(name_schema, node_input_);
+    bool base = isValidBase(name_schema, node_input_, header_log.str());
+    return base;
 }
 
-bool YamlServer::isValidBase(const std::string& name_schema, const YAML::Node& node_input)
+bool YamlServer::isValidBase(const std::string& name_schema,
+                             const YAML::Node&  node_input,
+                             const std::string& header_log)
 {
     filesystem::path path_schema;
     getPathSchema(name_schema, path_schema);
@@ -119,14 +127,19 @@ bool YamlServer::isValidBase(const std::string& name_schema, const YAML::Node& n
                 const YAML::Node& sch_node = it->second;
                 if (!correctType(sch_node, i_node, log_))
                 {
-                    log_ << "Field '" << it->first.as<std::string>() << "' of wrong type. Should be "
-                         << it->second["type"].as<std::string>() << std::endl;
+                    std::stringstream message;
+                    message << "Field '" << it->first.as<std::string>() << "' of wrong type. Should be "
+                            << it->second["type"].as<std::string>();
+                    writeToLog(header_log, message.str());
                     is_valid = false;
                 }
             }
             else
             {
-                log_ << "Input yaml does not contain field: " << it->first.as<std::string>();
+                std::stringstream message;
+                message << "Input yaml does not contain field: " << it->first.as<std::string>();
+                writeToLog(header_log, message.str());
+
                 is_valid = false;
             }
         }
@@ -139,24 +152,24 @@ bool YamlServer::isValidBase(const std::string& name_schema, const YAML::Node& n
     return is_valid;
 }
 
-bool YamlServer::isValidDerived(const std::string& name_schema, const YAML::Node& node_input)
+bool YamlServer::isValidDerived(const std::string& name_schema,
+                                const YAML::Node&  node_input,
+                                const std::string& header_log)
 {
     // Check the base case
     bool is_valid = true;
-    is_valid      = is_valid && isValidBase(name_schema, node_input);
 
-    // Check if the derived schema exists
-    filesystem::path path_derived;
-    try
+    if (!node_input["type"])
     {
-        const std::string& type = node_input["type"].as<std::string>();
-    }
-    catch (const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
+        std::stringstream message;
+        message << "Derived input yaml does not contain field: "
+                << "type";
+        writeToLog(header_log, message.str());
+
+        return false;
     }
 
-    return is_valid && isValidBase(node_input["type"].as<std::string>(), node_input);
+    return isValidBase(node_input["type"].as<std::string>(), node_input, header_log) && is_valid;
 }
 
 void YamlServer::getPathSchema(const std::string& name_schema, filesystem::path& path_schema)
@@ -262,13 +275,29 @@ bool YamlServer::correctType(const YAML::Node& schema_node, const YAML::Node& no
         bool is_valid = true;
         for (std::size_t i = 0; i < node_input.size(); i++)
         {
-            filesystem::path path_schema_own_type;
-            is_valid = is_valid && isValid(schema_node["schema"].as<std::string>(), node_input[i]);
+            filesystem::path  path_schema_own_type;
+            std::stringstream header_log;
+            header_log << "[own_type/element_" << i << ": " << schema_node["schema"].as<std::string>() << "]";
+            if (schema_node["polymorphism"].as<bool>())
+            {
+                is_valid = isValidDerived(schema_node["schema"].as<std::string>(), node_input[i], header_log.str()) &&
+                           is_valid;
+            }
+            else
+            {
+                is_valid =
+                    isValidBase(schema_node["schema"].as<std::string>(), node_input[i], header_log.str()) && is_valid;
+            }
         }
         return is_valid;
     }
 
     return true;
+}
+
+void YamlServer::writeToLog(const std::string& header, const std::string& message)
+{
+    log_ << header << ": " <<message << std::endl;
 }
 
 const std::stringstream& YamlServer::get_log() const

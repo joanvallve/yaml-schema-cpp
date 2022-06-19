@@ -14,28 +14,21 @@ Stage::Stage() {}
 
 std::shared_ptr<Stage> createStage(const std::string& yaml_path)
 {
-    // std::shared_ptr<Stage> stage;
-    // std::string            stage_path = YAML_SCHEMA_EXAMPLE_STAGE;
+    std::shared_ptr<Stage>   stage;
+    std::vector<std::string> stage_folder_path = {YAML_SCHEMA_EXAMPLE_STAGE, YAML_SCHEMA_EXAMPLE_COSTS};
 
-    // // Check the type to create the schema
-    // std::string yaml_schema_path = YAML_SCHEMA_EXAMPLE_STAGE "/base.yaml";
+    yaml_schema_cpp::YamlServer yaml_server(stage_folder_path, yaml_path);
+    std::stringstream           log_parse;
 
-    // YAML::Node node = YAML::LoadFile(yaml_path);
+    if (!yaml_server.isValid("stage_schema"))
+    {
+        std::cout << yaml_server.get_log().str() << std::endl;
+        throw std::runtime_error("Error parsing the yaml file");
 
-    // yaml_schema_cpp::SchemaValidator validator(yaml_schema_path, yaml_path, false);
-    // std::stringstream                log_parse;
+        return nullptr;
+    }
 
-    // // If we are here, we have the schema and we can validate the input yaml
-    // if (!validator.isValid(log_parse))
-    // {
-    //     std::cout << log_parse.str() << std::endl;
-
-    //     throw std::runtime_error("Error parsing the yaml file");
-
-    //     return nullptr;
-    // }
-
-    // return stage;
+    return stage;
 }
 
 std::ostream& operator<<(std::ostream& os, const Stage& stage)

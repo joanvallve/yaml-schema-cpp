@@ -1,15 +1,11 @@
-name: "nav_wp1"
+name: "stage 1"
 duration: 1000 #ms
 transition: true
 costs:
-  - name: "reg_state"
-    type: "state"
-    weight: 1e-1
-    reference: [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
-    weights: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+  - follow: cost-state-input.yaml
 
   - name: "reg_control"
-    type: "control"
+    type: "state"
     weight: 1e-1
     reference: [0, 0, 0, 0]
     weights: [1, 1, 1, 1]

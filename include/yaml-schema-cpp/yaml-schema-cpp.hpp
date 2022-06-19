@@ -34,10 +34,12 @@ class YamlServer
 
     void flattenSchemaNode(YAML::Node& node);
 
-    bool isValidBase(const std::string& name_schema, const YAML::Node& node_input);
-    bool isValidDerived(const std::string& name_schema, const YAML::Node& node_input);
+    bool isValidBase(const std::string& name_schema, const YAML::Node& node_input, const std::string& header_log = "");
+    bool isValidDerived(const std::string& name_schema, const YAML::Node& node_input, const std::string& header_log = "");
 
     void getPathSchema(const std::string& name_schema, filesystem::path& path_schema);
+
+    void writeToLog(const std::string& header, const std::string& message);
 
   private:
     std::vector<std::string> folders_schema_;
