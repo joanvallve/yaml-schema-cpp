@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
+#include <experimental/filesystem>
 
 #include <Eigen/Dense>
 
@@ -11,30 +12,42 @@
 namespace yaml_schema_cpp
 {
 
+namespace filesystem = std::experimental::filesystem;
+
 class YamlServer
 {
   public:
-    YamlServer(const std::string& schema_path, const std::string& input_path, bool is_derived);
-    YamlServer(const std::string& schema_path, const YAML::Node& input_node, bool is_derived);
-    YamlServer(const std::string& schema_path, bool is_derived);
+    YamlServer(const std::vector<std::string>& folders_schema, const std::string& path_input);
 
-    bool isValid(std::stringstream& log);
+    bool isValid(const std::string& name_schema, bool polymorphism = false);
 
-    bool correctType(const YAML::Node& schema_node, const YAML::Node& input_node, std::stringstream& log);
-    void print();
+    bool correctType(const YAML::Node& schema_node, const YAML::Node& node_input, std::stringstream& log);
+
+    const std::stringstream& get_log() const;
+
+    const YAML::Node& get_node_input() const;
+
   private:
-    bool isValidDerived(std::stringstream& log);
-    bool isValidBase(std::stringstream& log);
+    void flattenInputNode(YAML::Node& node, const filesystem::path& root_path);
+    void flattenMap(YAML::Node& node, const filesystem::path& root_path);
+    void flattenSequence(YAML::Node& node, const filesystem::path& root_path);
 
-    void preProcess(YAML::Node& yaml_node);
+    void flattenSchemaNode(YAML::Node& node);
 
-    bool is_derived_;
+    bool isValidBase(const std::string& name_schema, const YAML::Node& node_input);
+    bool isValidDerived(const std::string& name_schema, const YAML::Node& node_input);
 
-    YAML::Node schema_node_;
-    YAML::Node input_node_;
+    void getPathSchema(const std::string& name_schema, filesystem::path& path_schema);
 
-    std::string parent_schema_path_;
-    // std::string parent_input_path_;
+  private:
+    std::vector<std::string> folders_schema_;
+
+    filesystem::path path_input_;
+    filesystem::path path_input_parent_;
+
+    std::stringstream log_;
+
+    YAML::Node node_input_;
 };
 
 }  // namespace yaml_schema_cpp
@@ -64,6 +77,11 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
         if (_Rows == Eigen::Dynamic && _Cols == Eigen::Dynamic)
         {
             // ROS_ERROR("Double Dynamic Matrices are not supported! Matrices may only be dynamic in one dimension!");
+            return false;
+        }
+
+        if (!node.IsSequence())
+        {
             return false;
         }
 

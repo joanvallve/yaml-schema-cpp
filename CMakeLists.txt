@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10.0)
 project(yaml-schema-cpp VERSION 0.0.0)
 
 # ------ PROJECT REQUIREMENTS ------
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -32,6 +32,7 @@ target_include_directories(${PROJECT_NAME}_example PUBLIC examples/include)
 
 target_link_libraries(${PROJECT_NAME}_example PUBLIC ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}_example PUBLIC Eigen3::Eigen)
+target_link_libraries(${PROJECT_NAME}_example PUBLIC stdc++fs)
 
 # ------ EXECUTABLES ------
 set(COST_EX_NAME cost-example)

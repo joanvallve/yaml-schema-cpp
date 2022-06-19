@@ -1,4 +1,4 @@
-follow: base.yaml
+follow: cost
 reference:
   type: eigen_vector
   mandatory: True

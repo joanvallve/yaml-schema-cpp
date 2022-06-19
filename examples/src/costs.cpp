@@ -11,29 +11,24 @@ namespace yaml_schema_example
 std::shared_ptr<CostBase> createCost(const std::string& yaml_path)
 {
     std::shared_ptr<CostBase> cost;
-    std::string               cost_path = YAML_SCHEMA_EXAMPLE_COSTS;
+    std::vector<std::string>  cost_folders_path = {YAML_SCHEMA_EXAMPLE_COSTS};
 
-    YAML::Node node = YAML::LoadFile(yaml_path);
+    yaml_schema_cpp::YamlServer yaml_server(cost_folders_path, yaml_path);
 
-    std::string yaml_schema_path = YAML_SCHEMA_EXAMPLE_COSTS "/base.yaml";
-
-    yaml_schema_cpp::SchemaValidator validator{yaml_schema_path, yaml_path, true};
-    std::stringstream                log_parse;
-
-    if (!validator.isValid(log_parse))
+    if (!yaml_server.isValid("cost", true))
     {
-        std::cout << log_parse.str() << std::endl;
-
+        std::cout << yaml_server.get_log().str() << std::endl;
         throw std::runtime_error("Error parsing the yaml file");
 
         return nullptr;
     }
 
-    const CostTypes cost_type = CostTypes_map.at(node["type"].as<std::string>());
+    const YAML::Node& node_input = yaml_server.get_node_input();
+    const CostTypes   cost_type  = CostTypes_map.at(node_input["type"].as<std::string>());
     switch (cost_type)
     {
         case CostTypes::CostState: {
-            cost = std::make_shared<CostState>(node.as<CostState>());
+            cost = std::make_shared<CostState>(node_input.as<CostState>());
             break;
         }
         case CostTypes::CostFramePlacement:

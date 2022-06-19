@@ -7,6 +7,3 @@ type:
 weight:
   mandatory: True
   type: double
-# doc:
-#   mandatory: True
-#   type:

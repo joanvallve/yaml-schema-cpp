@@ -10,5 +10,5 @@ transition:
 costs:
   mandatory: True
   type: sequence_own_type
-  own_type_location: ../costs/
+  schema: cost
   polymorphism: True
