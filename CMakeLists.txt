@@ -49,7 +49,6 @@ target_link_libraries(${STAGE_EX_NAME} PUBLIC ${PROJECT_NAME}_example)
 
 # ------ INSTALL ------
 install(DIRECTORY include/${PROJECT_NAME} DESTINATION include)
-include(GNUInstallDirs)
 install(
     TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}-targets
@@ -59,4 +58,42 @@ install(
     FILE ${PROJECT_NAME}-targets.cmake
     NAMESPACE YamlSchemaCpp::
     DESTINATION lib/cmake/${PROJECT_NAME})
-install(FILES cmake/${PROJECT_NAME}Config.cmake DESTINATION lib/cmake/cmake_test)
+
+# ------ Find ------
+include(CMakePackageConfigHelpers)
+
+# generate the config file that is includes the exports
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    INSTALL_DESTINATION "lib/cmake/${PROJECT_NAME}"
+    NO_SET_AND_CHECK_MACRO
+    NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    VERSION "${yaml-schema-cpp_VERSION_MAJOR}.${yaml-schema-cpp_VERSION_MINOR}"
+    COMPATIBILITY AnyNewerVersion
+)
+
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+    DESTINATION lib/cmake/${PROJECT_NAME}
+)
+
+# So that it can be used without installing
+export(EXPORT ${PROJECT_NAME}-targets
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-targets.cmake"
+)
+
+# ---- UNINSTALL ----
+if(NOT TARGET uninstall)
+    configure_file(
+        "${PROJECT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+        IMMEDIATE @ONLY)
+
+    add_custom_target(uninstall
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
+endif()
