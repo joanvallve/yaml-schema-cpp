@@ -1,0 +1,235 @@
+//--------LICENSE_START--------
+//
+// Copyright (C) 2020,2021,2022 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
+// Authors: Joan Solà Ortega (jsola@iri.upc.edu)
+// All rights reserved.
+//
+// This file is part of WOLF
+// WOLF is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+//--------LICENSE_END--------
+/**
+ * \file yaml_conversion.h
+ *
+ *  Created on: May 12, 2016
+ *      \author: jsola
+ */
+
+#ifndef YAML_YAML_CONVERSION_H_
+#define YAML_YAML_CONVERSION_H_
+
+// Yaml
+#include <yaml-cpp/yaml.h>
+
+// Eigen
+#include <eigen3/Eigen/Dense>
+#include <eigen3/Eigen/Geometry>
+
+// stl
+#include <iostream>
+
+namespace YAML
+{
+
+/**\brief Bridge YAML to and from Eigen::Matrix< >.
+ *
+ */
+template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
+{
+        /** \brief Encode a YAML Sequence from an Eigen::Matrix< >
+         */
+        static Node encode(const Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>& matrix)
+        {
+            Node node; //(NodeType::Sequence);
+
+            int nValues = matrix.rows() * matrix.cols();
+
+            for (int i = 0; i < nValues; ++i)
+            {
+                node.push_back(matrix(i / matrix.cols(), i % matrix.cols()));
+            }
+
+            return node;
+        }
+
+        /** \brief Decode a YAML sequence into a ````Eigen::Matrix<typename _Scalar, int _Rows, int _Cols>````
+         *
+         * Two YAML formats are accepted:
+         *
+         *  - For matrices where at least one dimension is not Dynamic:
+         *  We use a single sequence of matrix entries: the matrix dimensions are inferred
+         *  ````
+         *  [ v1, v2, v3, ...]
+         *  ````
+         *  - For all kinds of matrices. We use a sequence of two sequences.
+         *  The first sequence is a vector of dimensions; the second sequence contains the matrix entries
+         *  ````
+         *  [ [ rows, cols ], [v1, v2, v3, ...] ]
+         *  ````
+         */
+        static bool decode(const Node& node, Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>& matrix)
+        {
+            YAML::Node values;
+
+            // ==========================================================================================
+            if (node[0].Type() == NodeType::Sequence) // sizes given by YAML
+            {
+                if (node.size() == 2 && node[0].size() == 2 && node[1].Type() == NodeType::Sequence
+                        && node[1].size() == node[0][0].as<unsigned int>() * node[0][1].as<unsigned int>()) // YAML string is well formed
+                {
+                    int rows = node[0][0].as<int>();
+                    int cols = node[0][1].as<int>();
+                    values = node[1];
+                    if (_Rows == Eigen::Dynamic && _Cols == Eigen::Dynamic) // full dynamic
+                    {
+                        matrix.resize(rows, cols);
+                    }
+                    else if (_Rows == Eigen::Dynamic) // rows dynamic
+                    {
+                        if (_Cols != cols)
+                        {
+                            std::cout << "Wrong number of cols" << std::endl;
+                            return false;
+                        }
+                        matrix.resize(rows, Eigen::NoChange);
+                    }
+                    else if (_Cols == Eigen::Dynamic) // cols dynamic
+                    {
+                        if (_Rows != rows)
+                        {
+                            std::cout << "Wrong number of rows" << std::endl;
+                            return false;
+                        }
+                        matrix.resize(Eigen::NoChange, cols);
+                    }
+                    else // fixed size
+                    {
+                        if (_Rows != rows || _Cols != cols)
+                        {
+                            std::cout << "Wrong size" << std::endl;
+                            return false;
+                        }
+                    }
+                }
+                else
+                {
+                    std::cout << "Bad matrix specification" << std::endl;
+                    return false;
+                }
+            }
+            else // sizes given by Matrix
+            {
+                // If full dynamic -> error
+                if (_Rows == Eigen::Dynamic && _Cols == Eigen::Dynamic)
+                {
+                    std::cout << "Bad yaml format. A full dynamic matrix requires [ [rows, cols], [... values ...] ]"
+                            << std::endl;
+                    return false;
+                }
+                values = node;
+
+                // If one dimension is dynamic -> calculate and resize
+
+                // _Rows is Dynamic
+                if (_Rows == Eigen::Dynamic)
+                {
+                    if (values.size() % _Cols != 0)
+                    {
+                        std::cout << "Input size of dynamic row matrix is not a multiple of fixed column size"
+                                << std::endl;
+                        return false;
+                    }
+
+                    int nDynRows = values.size() / _Cols;
+                    matrix.resize(nDynRows, Eigen::NoChange);
+                }
+
+                // _Cols is Dynamic
+                if (_Cols == Eigen::Dynamic)
+                {
+                    if (values.size() % _Rows != 0)
+                    {
+                        std::cout << "Input size of dynamic column matrix is not a multiple of fixed row size"
+                                << std::endl;
+                        return false;
+                    }
+
+                    int nDynCols = values.size() / _Rows;
+                    matrix.resize(Eigen::NoChange, nDynCols);
+                }
+            }
+
+            // final check for good size
+            if (values.size() != (unsigned int)(matrix.rows() * matrix.cols()))
+            {
+                std::cout << "Wrong input size" << std::endl;
+                return false;
+            }
+            else // Fill the matrix
+            {
+                for (int i = 0; i < matrix.rows(); i++)
+                    for (int j = 0; j < matrix.cols(); j++)
+                        matrix(i, j) = values[(int)(i * matrix.cols() + j)].as<_Scalar>();
+            }
+            return true;
+        }
+};
+
+/**\brief Bridge YAML <--> Eigen::Quaternion with real component last
+ *
+ * WARNING: Beware of Eigen constructor order!
+ *
+ * We use the x-y-z-w order, with the real part at the end. This is consistent with ROS Quaternion.msg,
+ * which is good for compatibility against ROS messages and YAML configuration.
+ *
+ */
+template<typename _Scalar, int _Options>
+struct convert<Eigen::Quaternion<_Scalar, _Options> >
+{
+        static Node encode(const Eigen::Quaternion<_Scalar, _Options>& quaternion)
+        {
+            Node node(NodeType::Sequence);
+
+            node[0] = quaternion.x();
+            node[1] = quaternion.y();
+            node[2] = quaternion.z();
+            node[3] = quaternion.w();
+
+            return node;
+        }
+
+        static bool decode(const Node& node, Eigen::Quaternion<_Scalar, _Options>& quaternion)
+        {
+
+            int nSize = node.size(); // Sequence check is implicit
+            if (nSize != 4)
+            {
+                std::cout << "Wrong quaternion input size!" << std::endl;
+                return false;
+            }
+            else
+            {
+                quaternion.x() = node[0].as<_Scalar>();
+                quaternion.y() = node[1].as<_Scalar>();
+                quaternion.z() = node[2].as<_Scalar>();
+                quaternion.w() = node[3].as<_Scalar>();
+            }
+            return true;
+        }
+};
+
+} // namespace YAML
+
+#endif /* YAML_YAML_CONVERSION_H_ */

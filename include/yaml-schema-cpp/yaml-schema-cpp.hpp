@@ -8,6 +8,7 @@
 #include <Eigen/Dense>
 
 #include "yaml-cpp/yaml.h"
+#include "yaml-schema-cpp/yaml_conversion.h"
 
 namespace yaml_schema_cpp
 {
@@ -54,7 +55,7 @@ class YamlServer
 
 }  // namespace yaml_schema_cpp
 
-namespace YAML
+/*namespace YAML
 {
 template <typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
@@ -145,4 +146,4 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
         return true;
     }
 };
-}  // namespace YAML
+}  // namespace YAML*/
