@@ -4,8 +4,16 @@ project(yaml-schema-cpp VERSION 0.0.0)
 # ------ PROJECT REQUIREMENTS ------
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# ------ PROJECT OPTIONS ------
+IF(NOT BUILD_TESTS)
+  OPTION(BUILD_TESTS "Build Unit tests" ON)
+ENDIF(NOT BUILD_TESTS)
+
+IF(NOT BUILD_EXAMPLES)
+  OPTION(BUILD_EXAMPLES "Build examples" ON)
+ENDIF(NOT BUILD_EXAMPLES)
 
 # ------ DEPENDENCIES ------
 find_package(yaml-cpp REQUIRED)
@@ -25,29 +33,38 @@ target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 target_link_libraries(${PROJECT_NAME} PUBLIC Boost::filesystem)
 
 # ------ EXAMPLE LIBRARY ------
-list(APPEND LIB_EXAMPLE_SRCS examples/src/costs.cpp)
-list(APPEND LIB_EXAMPLE_SRCS examples/src/stage.cpp)
+IF(BUILD_EXAMPLES)
+    list(APPEND LIB_EXAMPLE_SRCS examples/src/costs.cpp)
+    list(APPEND LIB_EXAMPLE_SRCS examples/src/stage.cpp)
 
-add_library(${PROJECT_NAME}_example SHARED ${LIB_EXAMPLE_SRCS})
+    add_library(${PROJECT_NAME}_example SHARED ${LIB_EXAMPLE_SRCS})
 
-target_include_directories(${PROJECT_NAME}_example PUBLIC examples/include)
+    target_include_directories(${PROJECT_NAME}_example PUBLIC examples/include)
 
-target_link_libraries(${PROJECT_NAME}_example PUBLIC ${PROJECT_NAME})
-target_link_libraries(${PROJECT_NAME}_example PUBLIC Eigen3::Eigen)
-target_link_libraries(${PROJECT_NAME}_example PUBLIC Boost::filesystem)
+    target_link_libraries(${PROJECT_NAME}_example PUBLIC ${PROJECT_NAME})
+    target_link_libraries(${PROJECT_NAME}_example PUBLIC Eigen3::Eigen)
+    target_link_libraries(${PROJECT_NAME}_example PUBLIC Boost::filesystem)
 
-# ------ EXECUTABLES ------
-set(COST_EX_NAME cost-example)
-add_executable(${COST_EX_NAME} examples/cost-example.cpp)
+    # ------ EXECUTABLES ------
+    set(COST_EX_NAME cost-example)
+    add_executable(${COST_EX_NAME} examples/cost-example.cpp)
 
-target_link_libraries(${COST_EX_NAME} PUBLIC ${PROJECT_NAME})
-target_link_libraries(${COST_EX_NAME} PUBLIC ${PROJECT_NAME}_example)
+    target_link_libraries(${COST_EX_NAME} PUBLIC ${PROJECT_NAME})
+    target_link_libraries(${COST_EX_NAME} PUBLIC ${PROJECT_NAME}_example)
 
-set(STAGE_EX_NAME stage-example)
-add_executable(${STAGE_EX_NAME} examples/stage-example.cpp)
+    set(STAGE_EX_NAME stage-example)
+    add_executable(${STAGE_EX_NAME} examples/stage-example.cpp)
 
-target_link_libraries(${STAGE_EX_NAME} PUBLIC ${PROJECT_NAME})
-target_link_libraries(${STAGE_EX_NAME} PUBLIC ${PROJECT_NAME}_example)
+    target_link_libraries(${STAGE_EX_NAME} PUBLIC ${PROJECT_NAME})
+    target_link_libraries(${STAGE_EX_NAME} PUBLIC ${PROJECT_NAME}_example)
+ENDIF(BUILD_EXAMPLES)
+
+# ------ TESTS ------
+IF(BUILD_TESTS)
+  MESSAGE(STATUS "Will build tests.")
+  enable_testing()
+  add_subdirectory(test)
+ENDIF(BUILD_TESTS)
 
 # ------ INSTALL ------
 install(DIRECTORY include/${PROJECT_NAME} DESTINATION include)
