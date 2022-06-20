@@ -20,3 +20,5 @@ add_gtest(gtest_example gtest_example.cpp)              #
 # target_link_libraries(gtest_example dummy)            #
 #                                                       #
 #########################################################
+
+add_gtest(gtest_duplicated_keys gtest_duplicated_keys.cpp)

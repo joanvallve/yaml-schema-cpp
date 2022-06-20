@@ -15,6 +15,23 @@ IF(NOT BUILD_EXAMPLES)
   OPTION(BUILD_EXAMPLES "Build examples" ON)
 ENDIF(NOT BUILD_EXAMPLES)
 
+# ============ config.h ============ 
+# Define the directory where will be the configured config.h
+SET(YAML_SCHEMA_CONFIG_DIR ${PROJECT_BINARY_DIR}/conf/${PROJECT_NAME}/internal)
+# Create the specified output directory if it does not exist.
+IF(NOT EXISTS "${YAML_SCHEMA_CONFIG_DIR}")
+  message(STATUS "Creating config output directory: ${YAML_SCHEMA_CONFIG_DIR}")
+  file(MAKE_DIRECTORY "${YAML_SCHEMA_CONFIG_DIR}")
+ENDIF()
+IF(EXISTS "${YAML_SCHEMA_CONFIG_DIR}" AND NOT IS_DIRECTORY "${YAML_SCHEMA_CONFIG_DIR}")
+  message(FATAL_ERROR "Bug: Specified CONFIG_DIR: "
+    "${YAML_SCHEMA_CONFIG_DIR} exists, but is not a directory.")
+ENDIF()
+# Configure config.h
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/internal/config.h.in "${YAML_SCHEMA_CONFIG_DIR}/config.h")
+include_directories("${PROJECT_BINARY_DIR}/conf")
+
+
 # ------ DEPENDENCIES ------
 find_package(yaml-cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
@@ -26,6 +43,7 @@ add_library(${PROJECT_NAME} SHARED src/yaml-schema-cpp.cpp)
 target_include_directories(
     ${PROJECT_NAME}
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    PUBLIC $<BUILD_INTERFACE:${YAML_SCHEMA_CONFIG_DIR}>
     $<INSTALL_INTERFACE:include>)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC yaml-cpp)
