@@ -2,3 +2,6 @@
 
 include( "${CMAKE_CURRENT_LIST_DIR}/yaml-schema-cpp-targets.cmake")
 
+find_dependency(yaml-cpp REQUIRED)
+find_dependency(Eigen3 REQUIRED)
+find_dependency(Boost REQUIRED COMPONENTS filesystem)

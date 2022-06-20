@@ -1,5 +1,4 @@
 #include <stdexcept>
-#include <filesystem>
 
 #include "yaml-schema-example/costs.hpp"
 #include "yaml-schema-example/path.hpp"
