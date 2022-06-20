@@ -10,6 +10,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # ------ DEPENDENCIES ------
 find_package(yaml-cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED COMPONENTS filesystem)
 
 # ------ LIBRARY ------
 add_library(${PROJECT_NAME} SHARED src/yaml-schema-cpp.cpp)
@@ -21,6 +22,7 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PUBLIC yaml-cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
+target_link_libraries(${PROJECT_NAME} PUBLIC Boost::filesystem)
 
 # ------ EXAMPLE LIBRARY ------
 list(APPEND LIB_EXAMPLE_SRCS examples/src/costs.cpp)
@@ -32,7 +34,7 @@ target_include_directories(${PROJECT_NAME}_example PUBLIC examples/include)
 
 target_link_libraries(${PROJECT_NAME}_example PUBLIC ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}_example PUBLIC Eigen3::Eigen)
-target_link_libraries(${PROJECT_NAME}_example PUBLIC stdc++fs)
+target_link_libraries(${PROJECT_NAME}_example PUBLIC Boost::filesystem)
 
 # ------ EXECUTABLES ------
 set(COST_EX_NAME cost-example)

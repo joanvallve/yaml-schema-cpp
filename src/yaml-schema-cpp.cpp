@@ -5,7 +5,7 @@
 namespace yaml_schema_cpp
 {
 
-namespace filesystem = std::experimental::filesystem;
+namespace filesystem = boost::filesystem;
 
 YamlServer::YamlServer(const std::vector<std::string>& folders_schema, const std::string& path_input)
     : folders_schema_(folders_schema),

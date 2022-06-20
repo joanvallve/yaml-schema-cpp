@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
-#include <experimental/filesystem>
+#include <boost/filesystem.hpp>
 
 #include <Eigen/Dense>
 
@@ -13,7 +13,7 @@
 namespace yaml_schema_cpp
 {
 
-namespace filesystem = std::experimental::filesystem;
+namespace filesystem = boost::filesystem;
 
 class YamlServer
 {
