@@ -1,6 +1,4 @@
-map1:
-  param1: 1
-  param2: "string"
 another_param: [0, 0.3, 1e5]
 map1:
   param3: 4.5
+follow: "base_input.yaml"

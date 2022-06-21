@@ -11,10 +11,15 @@ TEST(DuplicatedKeys, test1)
 
   auto input_node = yaml_server.get_node_input();
 
-  //EXPECT_EQ(input_node["map1"].size(), 3);
-  EXPECT_EQ(input_node["map1"]["param1"].as<int>(), 1);
-  EXPECT_EQ(input_node["map1"]["param2"].as<std::string>(), "string");
-  auto node_aux = input_node["map1"]["param3"];
+  EXPECT_EQ(input_node["map1"].size(), 3);
+  EXPECT_TRUE(input_node["map1"]["param1"]);
+  EXPECT_TRUE(input_node["map1"]["param2"]);
+  EXPECT_TRUE(input_node["map1"]["param3"]);
+
+  //EXPECT_NEAR(input_node["map1"]["param3"].as<double>(), 4.5, 1e-12);
+  // EXPECT_EQ(input_node["map1"]["param1"].as<int>(), 1);
+  // EXPECT_EQ(input_node["map1"]["param2"].as<std::string>(), "string");
+  // auto node_aux = input_node["map1"]["param3"];
   //EXPECT_NEAR(input_node["map1"]["param3"].as<double>(), 4.5, 1e-12);
 
 }
