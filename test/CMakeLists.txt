@@ -22,3 +22,5 @@ add_gtest(gtest_example gtest_example.cpp)              #
 #########################################################
 
 add_gtest(gtest_duplicated_keys gtest_duplicated_keys.cpp)
+add_gtest(gtest_add_node gtest_add_node.cpp)
+add_gtest(gtest_flatten gtest_flatten.cpp)

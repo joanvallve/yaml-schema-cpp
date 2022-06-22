@@ -20,43 +20,44 @@ class YamlServer
   public:
     YamlServer(const std::vector<std::string>& folders_schema, const std::string& path_input);
 
-    bool isValid(const std::string& name_schema, bool polymorphism = false);
-
-    bool correctType(const YAML::Node& schema_node, const YAML::Node& node_input, std::stringstream& log);
+    bool isValid(const std::string& name_schema);
 
     const std::stringstream& getLog() const;
 
     const YAML::Node& getNodeInput() const;
 
   private:
-    void flattenInputNode(YAML::Node& node, const filesystem::path& root_path="");
-    void flattenMap(YAML::Node& node, const filesystem::path& root_path="");
-    void flattenSequence(YAML::Node& node, const filesystem::path& root_path="");
+    filesystem::path getPathSchema(const std::string& name_schema) const;
 
-    // void flattenSchemaNode(YAML::Node& node);
+  public:
+    void flattenNode(YAML::Node node, const filesystem::path& root_path="") const;
+    void flattenMap(YAML::Node node, const filesystem::path& root_path="") const;
+    void flattenSequence(YAML::Node node, const filesystem::path& root_path="") const;
 
-    bool isValidBase(const std::string& name_schema, const YAML::Node& node_input, const std::string& header_log = "");
-    bool isValidDerived(const std::string& name_schema, const YAML::Node& node_input, const std::string& header_log = "");
-    bool isValidNode(const std::string& field,
-                     const YAML::Node& node_schema,
+    bool isValidBase(const std::string& name_schema, 
+                     const YAML::Node& node_input, 
+                     std::stringstream& log) const;
+    bool isValidNode(const YAML::Node& node_schema,
                      const YAML::Node& node_input,
-                     std::string& header_log);
+                     std::stringstream& log,
+                     const std::string& field = "") const;
 
-    filesystem::path getPathSchema(const std::string& name_schema);
     
-    void writeToLog(const std::string& header, const std::string& message);
+    static void writeToLog(std::stringstream& log, const std::string& message);
 
-    void checkSchema(const YAML::Node node_schema, bool first_level) const;
-    bool checkType(const YAML::Node& node, const std::string& type) const;
+    static void checkSchema(const YAML::Node& node_schema, const std::string& field = "");
+    static bool checkType(const YAML::Node& node, const std::string& type);
 
-    bool isParamSchema(const YAML::Node& node_schema) const;
-    bool isSequenceOwnType(const YAML::Node& node_schema) const;
+    static bool isScalarSchema(const YAML::Node& node_schema);
+    static bool isMapSchema(const YAML::Node& node_schema);
+    static bool isSequenceSchema(const YAML::Node& node_schema);
+
+    static void addNode(YAML::Node node, const std::string& key, const YAML::Node& value);
 
   private:
     std::vector<std::string> folders_schema_;
 
     filesystem::path path_input_;
-    filesystem::path path_input_parent_;
 
     std::stringstream log_;
 

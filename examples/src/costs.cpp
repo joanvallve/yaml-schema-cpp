@@ -14,15 +14,15 @@ std::shared_ptr<CostBase> createCost(const std::string& yaml_path)
 
     yaml_schema_cpp::YamlServer yaml_server(cost_folders_path, yaml_path);
 
-    if (!yaml_server.isValid("cost", true))
+    if (!yaml_server.isValid("cost"))
     {
-        std::cout << yaml_server.get_log().str() << std::endl;
+        std::cout << yaml_server.getLog().str() << std::endl;
         throw std::runtime_error("Error parsing the yaml file");
 
         return nullptr;
     }
 
-    const YAML::Node& node_input = yaml_server.get_node_input();
+    const YAML::Node& node_input = yaml_server.getNodeInput();
     const CostTypes   cost_type  = CostTypes_map.at(node_input["type"].as<std::string>());
     switch (cost_type)
     {

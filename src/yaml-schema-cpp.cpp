@@ -7,18 +7,27 @@ namespace yaml_schema_cpp
 
 namespace filesystem = boost::filesystem;
 
-std::string SEQUENCE_OWN_TYPE = "sequence_own_type";
+std::string SCHEMA_EXTENSION = ".schema";
 
 YamlServer::YamlServer(const std::vector<std::string>& folders_schema, const std::string& path_input)
     : folders_schema_(folders_schema),
-      path_input_(filesystem::path(path_input)),
-      path_input_parent_(path_input_.parent_path()),
-      node_input_(YAML::LoadFile(path_input))
+      path_input_(filesystem::path(path_input))
 {
-    flattenInputNode(node_input_, path_input_parent_);
+    // Check file exists
+    if (not filesystem::exists(path_input_))
+    {
+        throw std::runtime_error("YAML file does not exists. Non-existing path: " + path_input_.string() );
+    }
+    // load yamlfile
+    node_input_ = YAML::LoadFile(path_input);
+    std::cout << "YamlServer::YamlServer: node_input_\n" << node_input_ << std::endl;
+
+    // flatten
+    flattenNode(node_input_, path_input_.parent_path());
+    std::cout << "YamlServer::YamlServer: flattened node_input_\n" << node_input_ << std::endl;
 }
 
-void YamlServer::flattenNode(YAML::Node& node, const filesystem::path& root_path)
+void YamlServer::flattenNode(YAML::Node node, const filesystem::path& root_path) const
 {
     switch (node.Type())
     {
@@ -34,61 +43,113 @@ void YamlServer::flattenNode(YAML::Node& node, const filesystem::path& root_path
     }
 }
 
-void YamlServer::flattenSequence(YAML::Node& node, const filesystem::path& root_path)
+void YamlServer::flattenSequence(YAML::Node node, const filesystem::path& root_path) const
 {
-    for (std::size_t i = 0; i < node.size(); ++i)
+    for (auto node_i : node)
     {
-        YAML::Node n = node[i];
-        flattenInputNode(n, root_path);
+        flattenNode(node_i, root_path);
     }
 }
 
-void YamlServer::flattenMap(YAML::Node& node, const filesystem::path& root_path)
+void YamlServer::flattenMap(YAML::Node node, const filesystem::path& root_path) const
 {
     YAML::Node node_aux;  // Done using copy to preserve order of follow
-    for (YAML::iterator n = node.begin(); n != node.end(); ++n)
+    for (auto n : node)
     {
-        if (n->first.as<std::string>() == "follow")
+        if (n.first.as<std::string>() == "follow")
         {
             filesystem::path path_follow, path_follow_parent;
             
             // Case input yaml
-            if (root_path == "")
+            if (root_path != "")
             {
-                path_follow        = root_path / filesystem::path(n->second.as<std::string>());
+                path_follow        = root_path / filesystem::path(n.second.as<std::string>());
                 path_follow_parent = path_follow.parent_path();
             }
             // Case schema yaml
             else
-                path_follow = getPathSchema(n->second.as<std::string>());
+                path_follow = getPathSchema(n.second.as<std::string>());
 
             // Check file exists
-            if (!filesystem::exists(path_follow))
+            if (not filesystem::exists(path_follow))
             {
                 throw std::runtime_error("YAML file does not exists. Non-existing path '" + 
                                          path_follow.string() + 
                                          "' included in '" + 
-                                         root_path + "'\n");
+                                         root_path.string() + "'\n");
             }
 
             YAML::Node node_child = YAML::LoadFile(path_follow.string());
 
-            flattenInputNode(node_child, path_follow_parent);
+            std::cout << __LINE__ << std::endl << node_child << std::endl;
+            flattenNode(node_child, path_follow_parent);
 
-            for (auto nc = node_child.begin(); nc != node_child.end(); ++nc)
+            std::cout << __LINE__ << std::endl << node_child << std::endl;
+            for (auto nc : node_child)
             {
-                node_aux.force_insert(nc->first, nc->second);
+                addNode(node_aux,nc.first.as<std::string>(),nc.second);
             }
+            std::cout << __LINE__ << std::endl << node_aux << std::endl;
         }
         else
         {
-            flattenInputNode(n->second, root_path);
-            node_aux[n->first] = n->second;
+            std::cout << __LINE__ << std::endl << n.second << std::endl;
+            flattenNode(n.second, root_path);
+            std::cout << __LINE__ << std::endl << n.second << std::endl;
+            addNode(node_aux,n.first.as<std::string>(),n.second);
+            std::cout << __LINE__ << std::endl << node_aux << std::endl;
         }
+        std::cout << __LINE__ << std::endl << node_aux << std::endl;
     }
 
+    std::cout << __LINE__ << std::endl << node_aux << std::endl;
     node = node_aux;
+    std::cout << __LINE__ << std::endl << node << std::endl;
 }
+
+void YamlServer::addNode(YAML::Node node, const std::string& key, const YAML::Node& value)
+{
+    std::cout << __LINE__ << std::endl << node << std::endl;
+    if (node[key])
+    {
+        switch (value.Type()) 
+        {
+            case YAML::NodeType::Scalar:
+            {
+                throw std::runtime_error("Trying to add an already existing scalar node.");
+                break;
+            }
+            case YAML::NodeType::Sequence:
+            {
+                for (auto value_seq_node : value)
+                {
+                    node[key].push_back(value_seq_node);
+                }
+                break;
+            }
+            case YAML::NodeType::Map:
+            {
+                for (auto value_map_node : value)
+                {
+                    addNode(node[key], value_map_node.first.as<std::string>(), value_map_node.second);
+                }
+                break;
+            }
+            default:
+            {
+                throw std::runtime_error("Trying to add a node of type not known.");
+                break;
+            }
+            
+        }
+    }
+    else
+    {
+        node.force_insert(key,value);
+    }
+    std::cout << __LINE__ << std::endl << node << std::endl;
+}
+
 
 bool YamlServer::isValid(const std::string& name_schema)
 {
@@ -98,15 +159,25 @@ bool YamlServer::isValid(const std::string& name_schema)
     log_ << "Log of YAML parsing procedure of file: \n";
     log_ << "-------------------------------------- \n";
 
-    return isValidBase(name_schema, node_input_, header_log.str());
+    return isValidBase(name_schema, node_input_, log_);
 }
 
 bool YamlServer::isValidBase(const std::string& name_schema,
                              const YAML::Node&  node_input,
-                             std::string& header_log)
+                             std::stringstream& log) const
 {
+    // Check extension
+    if (filesystem::extension(name_schema) != SCHEMA_EXTENSION)
+    {
+        throw std::runtime_error("Wrong schema file extension " + 
+                                 name_schema + 
+                                 ", it should be '." + 
+                                 SCHEMA_EXTENSION + 
+                                 "'.");
+    }
+
     // Load schema node
-    YAML::Node node_schema
+    YAML::Node node_schema;
     try
     {
         filesystem::path path_schema = getPathSchema(name_schema);
@@ -114,7 +185,7 @@ bool YamlServer::isValidBase(const std::string& name_schema,
     }
     catch(const std::exception& e)
     {
-        header_log << e.what() << '\n';
+        log << e.what() << '\n';
         return false;
     }
 
@@ -123,239 +194,209 @@ bool YamlServer::isValidBase(const std::string& name_schema,
     checkSchema(node_schema);
 
     // Check node_input against node_schema
-    return isValidNode(node_schema, node_input, header_log);
+    return isValidNode(node_schema, node_input, log);
 }
 
-void YamlServer::checkSchema(const YAML::Node node_schema, bool first_level) const
+void YamlServer::checkSchema(const YAML::Node& node_schema, const std::string& node_field)
 {
+    // skip scalars
+    if (node_schema.IsScalar())
+        return;
+
     // Check that node_schema is map
-    if (first_level and not node_schema.IsMap())
+    if (not node_schema.IsMap())
     {
-        throw std::runtime_error("The first level of a YAML schema should contain a map.");
+        throw std::runtime_error("YAML schema: " + node_field + " should be a map.");
     }
-    if (node_schema.IsMap())
+
+    // scalar
+    if (isScalarSchema(node_schema))
     {
-        // Param schema (has mandatory and type)
-        if (node_schema.isParamSchema())
+        // Check 'type'
+        if (not node_schema["type"])
         {
-            // not mandatory params should have a default of correct type
-            if (not node_schema["mandatory"].as<bool>())
+            throw std::runtime_error("YAML schema: " + node_field + " does not contain 'type'.");
+        }
+        // Check 'mandatory'
+        if (not node_schema["mandatory"])
+        {
+            throw std::runtime_error("YAML schema: " + node_field + " does not contain 'mandatory'.");
+        }
+        // not mandatory params should have a default of correct type
+        if (not node_schema["mandatory"].as<bool>())
+        {
+            if (not node_schema["default"])
             {
-                if (not node_schema["default"])
-                {
-                    throw std::runtime_error("YAML schema: does not contain default value for a non mandatory parameter.");
-                }
-                if (not checkType(node_schema["default"], node_schema["type"].as<std::string>()))
-                {
-                    throw std::runtime_error("YAML schema: Default value wrong type.");
-                }
+                throw std::runtime_error("YAML schema: " + node_field + " does not contain default value for a non mandatory parameter.");
+            }
+            if (not checkType(node_schema["default"], node_schema["type"].as<std::string>()))
+            {
+                throw std::runtime_error("YAML schema: " + node_field + " default value wrong type.");
             }
         }
-        // sequence of maps defined by schemas
-        else if (isSequenceOwnType(node_schema))
+    }
+    // sequence
+    else if (isSequenceSchema(node_schema))
+    {
+        // Check 'type'
+        if (not node_schema["type"])
         {
-            if (not node_schema["schema"])
-            {
-                throw std::runtime_error("YAML schema: for type " +
-                                         SEQUENCE_OWN_TYPE + 
-                                         " the yaml should contain the key 'schema' with the value 'derived' or the yaml file.");
-            }
+            throw std::runtime_error("YAML schema: " + node_field + " does not contain 'type'.");
         }
-        // Map
-        else
+        // Check 'mandatory'
+        if (not node_schema["mandatory"])
         {
-            for (auto node_schema_child : node_schema)
-            {
-                checkSchema(node_schema_child, false);
-            }
+            throw std::runtime_error("YAML schema: " + node_field + " does not contain 'mandatory'.");
         }
+    }
+    // Map
+    else if (isMapSchema(node_schema))
+    {
+        for (auto node_schema_child : node_schema)
+        {
+            checkSchema(node_schema_child.second, node_schema_child.first.as<std::string>());
+        }
+    }
+    else
+    {
+        throw std::runtime_error("YAML schema: " + node_field + " has unknown structure.");
     }
 }
 
-bool YamlServer::isValidNode(const std::string& field,
-                             const YAML::Node& node_schema,
+bool YamlServer::isValidNode(const YAML::Node& node_schema,
                              const YAML::Node& node_input,
-                             std::string& header_log)
+                             std::stringstream& log,
+                             const std::string& field) const
 {
     bool is_valid = true;
     
     // Param schema (has mandatory and type)
-    if (isParamSchema(node_schema))
+    if (isScalarSchema(node_schema))
     {
-        if (YAML::Node i_node = node_input[field])// TODO Change by node_input.isValid() or something like this
+        if (node_input.IsDefined())
         {
-            if (not checkType(node_schema, i_node, log_))
+            if (not checkType(node_input, node_schema["type"].as<std::string>()))
             {
-                std::stringstream message;
-                message << "Field '" << field << "' of wrong type. Should be "
-                        << node_schema["type"].as<std::string>();
-                writeToLog(header_log, message.str());
+                writeToLog(log, 
+                           "Field '" + field + "' of wrong type. Should be " + node_schema["type"].as<std::string>());
                 is_valid = false;
             }
         }
-        else if(node_schema["mandatory"]) // complain inexistence if mandatory
+        else if(node_schema["mandatory"].as<bool>()) // complain inexistence if mandatory
         {
-            writeToLog(header_log, "Input yaml does not contain field: " + field);
+            writeToLog(log, "Input yaml does not contain field: " + field);
             is_valid = false;
         }
     }
-    // sequence of maps defined by schemas
-    else if (isSequenceOwnType(node_schema))
+    // sequence
+    else if (isSequenceSchema(node_schema))
     {
-        // First check that the node it is really a sequence
-        if (!node_input.IsSequence())
+        if(node_input.IsDefined())
         {
-            writeToLog(header_log, "Input yaml does not contain a sequence in: " + field);
-            is_valid = false;
-        }
-        // Then check the validity of each element in the sequence
-        else
-        {
-            for (std::size_t i = 0; i < node_input.size(); i++)
+            // First check that the node it is really a sequence
+            if (not node_input.IsSequence())
             {
-                if (node_schema["schema"].as<std::string>() == "derived")
+                writeToLog(log, "Input yaml does not contain a sequence in: " + field);
+                is_valid = false;
+            }
+            // Then check the validity of each element in the sequence
+            else
+            {
+                for (auto i = 0; i < node_input.size(); i++)
                 {
+                    auto type = node_schema["type"].as<std::string>();
 
-                }
-                else
+                    // Find derived type
+                    if (type == "derived")
+                    {
+                        // check existence of key type
+                        if (not node_input[i]["type"])
+                        {
+                            writeToLog(log, 
+                                       "Sequence " + 
+                                       field + 
+                                       ", element " + 
+                                       std::to_string(i) + 
+                                       ": does not contain key 'type'");
+                            is_valid = false; 
+                            continue;
+                        }
+                        else
+                        {
+                            type = node_input[i]["type"].as<std::string>();
+                        }
+                    }
+                     
+                    // If check for trivial types doesn't succeed, try to load a schema of this type
+                    if (not checkType(node_input[i], type))
+                    {
+                        auto file_schema = getPathSchema(type + SCHEMA_EXTENSION);
 
-                filesystem::path  path_schema_own_type;
-                std::stringstream header_log;
-                header_log << "[own_type/element_" << i << ": " << schema_node["schema"].as<std::string>() << "]";
-                if (schema_node["polymorphism"].as<bool>())
-                {
-                    is_valid = isValidDerived(schema_node["schema"].as<std::string>(), node_input[i], header_log.str()) &&
-                            is_valid;
-                }
-                else
-                {
-                    is_valid =
-                        isValidBase(schema_node["schema"].as<std::string>(), node_input[i], header_log.str()) && is_valid;
+                        // Check file exists
+                        if (not filesystem::exists(file_schema))
+                        {
+                            writeToLog(log, 
+                                       "Sequence " + field + 
+                                       ", element " + std::to_string(i) + 
+                                       " of type" + type +
+                                       ": couldn't check against trivial types and " + 
+                                       type + SCHEMA_EXTENSION + " file was not found.");
+                            is_valid = false;
+                            continue;
+                        }
+                        // Validate with the schema file
+                        is_valid = is_valid and isValidBase(file_schema.string(), 
+                                                            node_input[i],
+                                                            log);
+                  
+                    }
                 }
             }
         }
+        else if (node_schema["mandatory"]) // complain inexistence if mandatory
+        {
+            writeToLog(log, "Input yaml does not contain field: " + field);
+            is_valid = false;
+        }
     }
     // map of params
-    else
+    else if (isMapSchema(node_schema))
     {
         for (auto node_schema_child : node_schema)
         {
-            YAML::Node node_input_child = node_input[field_child];
-            is_valid = is_valid and isValidNode(node_schema_child.first.as<std::string>(), 
-                                                node_schema_child.second, 
+            const YAML::Node& node_input_child = (node_input.IsDefined() ? 
+                                                  node_input[node_schema_child.first.as<std::string>()] : 
+                                                  node_input);
+
+            is_valid = is_valid and isValidNode(node_schema_child.second, 
                                                 node_input_child,
-                                                header_log);
+                                                log,
+                                                node_schema_child.first.as<std::string>());
         }
+    }
+    else
+    {
+        throw std::runtime_error("unknown schema");
     }
 
     return is_valid;
 }
 
-bool YamlServer::isValidDerived(const std::string& name_schema,
-                                const YAML::Node&  node_input,
-                                const std::string& header_log)
+filesystem::path YamlServer::getPathSchema(const std::string& name_schema) const
 {
-    // Check the base case
-    bool is_valid = true;
-
-    if (!node_input["type"])
+    for (auto base_p : folders_schema_)
     {
-        std::stringstream message;
-        message << "Derived input yaml does not contain field: "
-                << "type";
-        writeToLog(header_log, message.str());
-
-        return false;
-    }
-
-    return isValidBase(node_input["type"].as<std::string>() + ".yaml", node_input, header_log) && is_valid;
-}
-
-filesystem::path YamlServer::getPathSchema(const std::string& name_schema)
-{
-    filesystem::path file_schema = filesystem::path(name_schema);
-    for (auto base_p = folders_schema_.begin(); base_p != folders_schema_.end(); ++base_p)
-    {
-        path_schema = filesystem::path(*base_p) / file_schema;
+        filesystem::path path_schema = filesystem::path(base_p) / filesystem::path(name_schema);
         if (filesystem::exists(path_schema))
         {
-            return file_schema;
+            return path_schema;
         }
     }
 
     throw std::runtime_error("Schema with the name '" + name_schema + "' not found inside the YamlServer folders");
 }
 
-bool YamlServer::correctType(const YAML::Node& schema_node, const YAML::Node& node_input, std::stringstream& log)
-{
-    const std::string& type = schema_node["type"].as<std::string>();
-
-    if (type == "string")
-    {
-        try
-        {
-            node_input.as<std::string>();
-        }
-        catch (const std::exception& e)
-        {
-            return false;
-        }
-    }
-    else if (type == "double")
-    {
-        try
-        {
-            node_input.as<double>();
-        }
-        catch (const std::exception& e)
-        {
-            return false;
-        }
-    }
-    else if (type == "eigen_vector")
-    {
-        try
-        {
-            node_input.as<Eigen::VectorXd>();
-        }
-        catch (const std::exception& e)
-        {
-            return false;
-        }
-    }
-    else if (type == "sequence_own_type")
-    {
-        // First check that the node it is really a sequence
-        if (!node_input.IsSequence())
-        {
-            return false;
-        }
-
-        // Then check the validity of each element in the sequence
-        bool is_valid = true;
-        for (std::size_t i = 0; i < node_input.size(); i++)
-        {
-            filesystem::path  path_schema_own_type;
-            std::stringstream header_log;
-            header_log << "[own_type/element_" << i << ": " << schema_node["schema"].as<std::string>() << "]";
-            if (schema_node["polymorphism"].as<bool>())
-            {
-                is_valid = isValidDerived(schema_node["schema"].as<std::string>(), node_input[i], header_log.str()) &&
-                           is_valid;
-            }
-            else
-            {
-                is_valid =
-                    isValidBase(schema_node["schema"].as<std::string>(), node_input[i], header_log.str()) && is_valid;
-            }
-        }
-        return is_valid;
-    }
-
-    return true;
-}
-
-bool YamlServer::checkType(const YAML::Node& node, const std::string& type) const
+bool YamlServer::checkType(const YAML::Node& node, const std::string& type)
 {
     if (node.IsMap())
     {
@@ -395,11 +436,13 @@ bool YamlServer::checkType(const YAML::Node& node, const std::string& type) cons
             return false;
         }
     }
+
+    return false;
 }
 
-void YamlServer::writeToLog(const std::string& header, const std::string& message)
+void YamlServer::writeToLog(std::stringstream& log, const std::string& message)
 {
-    log_ << header << ": " << message << std::endl;
+    log << message << std::endl;
 }
 
 const std::stringstream& YamlServer::getLog() const
@@ -412,17 +455,19 @@ const YAML::Node& YamlServer::getNodeInput() const
     return node_input_;
 }
 
-bool YamlServer::isParamSchema(const YAML::Node& node_schema) const
+bool YamlServer::isScalarSchema(const YAML::Node& node_schema)
 {
-    return node_schema["mandatory"] and 
-           node_schema["type"] and 
-           node_schema["type"].as<std::string>() != SEQUENCE_OWN_TYPE;
+    return node_schema["yaml_type"] and node_schema["yaml_type"].as<std::string>() != "scalar";
 }
 
-bool YamlServer::isSequenceOwnType(const YAML::Node& node_schema) const
+bool YamlServer::isSequenceSchema(const YAML::Node& node_schema)
 {
-    return node_schema["type"] and 
-           node_schema["type"].as<std::string>() == SEQUENCE_OWN_TYPE;
+    return node_schema["yaml_type"] and node_schema["yaml_type"].as<std::string>() == "sequence";
+}
+
+bool YamlServer::isMapSchema(const YAML::Node& node_schema)
+{
+    return node_schema.IsMap() and not node_schema["yaml_type"];
 }
 
 }  // namespace yaml_schema_cpp
