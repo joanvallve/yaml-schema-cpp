@@ -1,7 +1,7 @@
 #include <memory>
 
 #include "yaml-schema-example/costs.hpp"
-#include "yaml-schema-cpp/yaml-schema-cpp.hpp"
+#include "yaml-schema-cpp/yaml_server.h"
 
 int main()
 {

@@ -1,6 +1,6 @@
 
 #include "gtest/utils_gtest.h"
-#include "yaml-schema-cpp/yaml-schema-cpp.hpp"
+#include "yaml-schema-cpp/yaml_schema.h"
 #include "yaml-schema-cpp/internal/config.h"
 
 std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
@@ -9,12 +9,12 @@ using namespace yaml_schema_cpp;
 
 TEST(schema, plain_yaml)
 {
-  YamlServer::loadSchema("test2.schema",{ROOT_DIR + "/test/yaml/schema", ROOT_DIR + "/test/yaml/other_schema"});
+  loadSchema("test2.schema",{ROOT_DIR + "/test/yaml/schema", ROOT_DIR + "/test/yaml/other_schema"});
 }
 
 TEST(schema, follow)
 {
-  YamlServer::loadSchema("test2.schema",{ROOT_DIR + "/test/yaml/schema", ROOT_DIR + "/test/yaml/other_schema"});
+  loadSchema("test2.schema",{ROOT_DIR + "/test/yaml/schema", ROOT_DIR + "/test/yaml/other_schema"});
 }
 
 TEST(schema, wrong)
@@ -22,18 +22,20 @@ TEST(schema, wrong)
   std::list<std::string> wrong_schemas{"not_default",
                                        "not_mandatory",
                                        "not_type",
+                                       "not_doc",
                                        "wrong_default",
                                        "wrong_mandatory", 
                                        "wrong_yaml_type",
+                                       "wrong_doc",
                                        "same_param",
                                        "same_param_diff_type"};
 
   for (auto w_schema : wrong_schemas)
   {
     std::cout << "Checking " << w_schema << ".schema..." << std::endl;
-    ASSERT_THROW(YamlServer::loadSchema(w_schema + ".schema",
-                                        { ROOT_DIR + "/test/yaml/schema", 
-                                          ROOT_DIR + "/test/yaml/other_schema"}), 
+    ASSERT_THROW(loadSchema(w_schema + ".schema",
+                            { ROOT_DIR + "/test/yaml/schema", 
+                              ROOT_DIR + "/test/yaml/other_schema"}), 
                  std::runtime_error);
   }
 }

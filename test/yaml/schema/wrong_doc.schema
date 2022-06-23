@@ -9,7 +9,7 @@ namespace1:
     yaml_type: scalar
     type: Vector4d
     default: [0.1, 0, 1e4, 9]
-    doc: "some parameter"
+    doc:  [0.1, 0, 1e4, 9]
 param3:
   mandatory: true
   yaml_type: sequence

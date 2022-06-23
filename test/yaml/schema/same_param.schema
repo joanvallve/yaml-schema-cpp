@@ -4,3 +4,4 @@ namespace1:
     mandatory: true
     yaml_type: scalar
     type: double
+    doc: "some parameter"

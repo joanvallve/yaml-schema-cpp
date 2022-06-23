@@ -38,7 +38,10 @@ find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem)
 
 # ------ LIBRARY ------
-add_library(${PROJECT_NAME} SHARED src/yaml-schema-cpp.cpp)
+list(APPEND LIB_SRCS src/yaml_schema.cpp)
+list(APPEND LIB_SRCS src/yaml_utils.cpp)
+list(APPEND LIB_SRCS src/yaml_server.cpp)
+add_library(${PROJECT_NAME} SHARED ${LIB_SRCS})
 
 target_include_directories(
     ${PROJECT_NAME}

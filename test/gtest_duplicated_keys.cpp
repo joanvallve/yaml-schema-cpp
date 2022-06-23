@@ -1,7 +1,7 @@
 
 #include "gtest/utils_gtest.h"
-#include "yaml-schema-cpp/yaml-schema-cpp.hpp"
 #include "yaml-schema-cpp/internal/config.h"
+#include "yaml-schema-cpp/yaml_server.h"
 
 std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
 
@@ -9,7 +9,7 @@ TEST(DuplicatedKeys, test1)
 {
   yaml_schema_cpp::YamlServer yaml_server({ROOT_DIR + "/test/yaml"}, ROOT_DIR + "/test/yaml/duplicated_input.yaml");
 
-  auto input_node = yaml_server.getNodeInput();
+  auto input_node = yaml_server.getNode();
 
   EXPECT_EQ(input_node["map1"].size(), 3);
   EXPECT_TRUE(input_node["map1"]["param1"]);

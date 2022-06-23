@@ -1,6 +1,6 @@
-
 #include "gtest/utils_gtest.h"
-#include "yaml-schema-cpp/yaml-schema-cpp.hpp"
+#include "yaml-schema-cpp/yaml_utils.h"
+#include "yaml-schema-cpp/yaml_schema.h"
 #include "yaml-schema-cpp/internal/config.h"
 
 std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
@@ -29,7 +29,7 @@ TEST(addNodeSchema, add_scalars)
   ASSERT_TRUE(node2["param2"]["type"]);
   ASSERT_TRUE(node2["param2"]["yaml_type"]);
 
-  YamlServer::addNodeSchema(node2, "param1", node1["param1"]);
+  addNodeSchema(node2, "param1", node1["param1"]);
   
   std::cout << "node2: " << std::endl << node2 << std::endl;
 
@@ -65,7 +65,7 @@ TEST(addNodeSchema, merge_map)
   ASSERT_TRUE(node2["namespace"]["param2"]["type"]);
   ASSERT_TRUE(node2["namespace"]["param2"]["yaml_type"]);
 
-  YamlServer::addNodeSchema(node2, "namespace", node1["namespace"]);
+  addNodeSchema(node2, "namespace", node1["namespace"]);
   
   std::cout << "node2: " << std::endl << node2 << std::endl;
 
@@ -103,13 +103,13 @@ TEST(addNodeSchema, existing_scalar)
 
   try
   {
-    YamlServer::addNodeSchema(node1, "param1", node2["param2"]);
+    addNodeSchema(node1, "param1", node2["param2"]);
   }
   catch (const std::exception& e)
   {
     std::cout << "exception: " << e.what() << std::endl;
   }
-  ASSERT_THROW(YamlServer::addNodeSchema(node1, "param1", node2["param2"]), std::runtime_error);
+  ASSERT_THROW(addNodeSchema(node1, "param1", node2["param2"]), std::runtime_error);
 }
 
 TEST(addNodeSchema, existing_sequence)
@@ -136,13 +136,13 @@ TEST(addNodeSchema, existing_sequence)
 
   try
   {
-    YamlServer::addNodeSchema(node1, "param1", node2["param2"]);
+    addNodeSchema(node1, "param1", node2["param2"]);
   }
   catch (const std::exception& e)
   {
     std::cout << "exception: " << e.what() << std::endl;
   }
-  ASSERT_THROW(YamlServer::addNodeSchema(node1, "param1", node2["param2"]), std::runtime_error);
+  ASSERT_THROW(addNodeSchema(node1, "param1", node2["param2"]), std::runtime_error);
 }
 
 TEST(addNodeSchema, existing_map_scalar)
@@ -169,13 +169,13 @@ TEST(addNodeSchema, existing_map_scalar)
 
   try
   {
-    YamlServer::addNodeSchema(node1, "namespace", node2["namespace"]);
+    addNodeSchema(node1, "namespace", node2["namespace"]);
   }
   catch (const std::exception& e)
   {
     std::cout << "exception: " << e.what() << std::endl;
   }
-  ASSERT_THROW(YamlServer::addNodeSchema(node1, "namespace", node2["namespace"]), std::runtime_error);
+  ASSERT_THROW(addNodeSchema(node1, "namespace", node2["namespace"]), std::runtime_error);
 }
 
 TEST(addNodeSchema, existing_diff_types)
@@ -202,23 +202,23 @@ TEST(addNodeSchema, existing_diff_types)
 
   try
   {
-    YamlServer::addNodeSchema(node1, "namespace", node2["namespace"]);
+    addNodeSchema(node1, "namespace", node2["namespace"]);
   }
   catch (const std::exception& e)
   {
     std::cout << "exception: " << e.what() << std::endl;
   }
-  ASSERT_THROW(YamlServer::addNodeSchema(node1, "namespace", node2["namespace"]), std::runtime_error);
+  ASSERT_THROW(addNodeSchema(node1, "namespace", node2["namespace"]), std::runtime_error);
 
   try
   {
-    YamlServer::addNodeSchema(node2, "namespace", node1["namespace"]);
+    addNodeSchema(node2, "namespace", node1["namespace"]);
   }
   catch (const std::exception& e)
   {
     std::cout << "exception: " << e.what() << std::endl;
   }
-  ASSERT_THROW(YamlServer::addNodeSchema(node2, "namespace", node1["namespace"]), std::runtime_error);
+  ASSERT_THROW(addNodeSchema(node2, "namespace", node1["namespace"]), std::runtime_error);
 }
 
 int main(int argc, char **argv)

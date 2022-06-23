@@ -1,6 +1,7 @@
 
 #include "gtest/utils_gtest.h"
-#include "yaml-schema-cpp/yaml-schema-cpp.hpp"
+#include "yaml-schema-cpp/yaml_utils.h"
+#include "yaml-schema-cpp/yaml_server.h"
 #include "yaml-schema-cpp/internal/config.h"
 
 std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
@@ -11,7 +12,7 @@ TEST(flatten, plain_yaml)
 {
   yaml_schema_cpp::YamlServer yaml_server({ROOT_DIR + "/test/yaml"}, ROOT_DIR + "/test/yaml/base_input.yaml");
   
-  YAML::Node input_node = yaml_server.getNodeInput();
+  YAML::Node input_node = yaml_server.getNode();
 
   std::cout << "input_node: " << std::endl << input_node << std::endl;
 
@@ -27,7 +28,7 @@ TEST(flatten, flatten_independent)
 {
   yaml_schema_cpp::YamlServer yaml_server({ROOT_DIR + "/test/yaml"}, ROOT_DIR + "/test/yaml/flatten_independent.yaml");
   
-  YAML::Node input_node = yaml_server.getNodeInput();
+  YAML::Node input_node = yaml_server.getNode();
 
   std::cout << "input_node: " << std::endl << input_node << std::endl;
 
@@ -48,7 +49,7 @@ TEST(flatten, flatten_recursive)
 {
   yaml_schema_cpp::YamlServer yaml_server({ROOT_DIR + "/test/yaml"}, ROOT_DIR + "/test/yaml/flatten_recursive.yaml");
   
-  YAML::Node input_node = yaml_server.getNodeInput();
+  YAML::Node input_node = yaml_server.getNode();
 
   std::cout << "input_node: " << std::endl << input_node << std::endl;
 
@@ -74,7 +75,7 @@ TEST(flatten, flatten_merge)
 {
   YamlServer yaml_server({ROOT_DIR + "/test/yaml"}, ROOT_DIR + "/test/yaml/flatten_merge.yaml");
   
-  YAML::Node input_node = yaml_server.getNodeInput();
+  YAML::Node input_node = yaml_server.getNode();
 
   std::cout << "input_node: " << std::endl << input_node << std::endl;
 

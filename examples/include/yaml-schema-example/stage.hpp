@@ -7,7 +7,7 @@
 
 #include <Eigen/Dense>
 
-#include "yaml-schema-cpp/yaml-schema-cpp.hpp"
+#include "yaml-schema-cpp/yaml_server.h"
 
 #include "yaml-schema-example/costs.hpp"
 

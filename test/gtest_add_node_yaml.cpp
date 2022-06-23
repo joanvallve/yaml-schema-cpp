@@ -1,7 +1,7 @@
 
 #include "gtest/utils_gtest.h"
-#include "yaml-schema-cpp/yaml-schema-cpp.hpp"
 #include "yaml-schema-cpp/internal/config.h"
+#include "yaml-schema-cpp/yaml_utils.h"
 
 std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
 
@@ -19,7 +19,7 @@ TEST(addNodeYaml, empty)
   ASSERT_TRUE(node1["param1"]);
   ASSERT_TRUE(node1["param2"]);
 
-  YamlServer::addNodeYaml(node2, "namespace", node1);
+  addNodeYaml(node2, "namespace", node1);
   
   std::cout << "node2: " << std::endl << node2 << std::endl;
 
@@ -44,7 +44,7 @@ TEST(addNodeYaml, empty2)
   ASSERT_TRUE(node2["namespace"]["param1"]);
   ASSERT_TRUE(node2["namespace"]["param2"]);
 
-  YamlServer::addNodeYaml(node3, "namespace", node2["namespace"]);
+  addNodeYaml(node3, "namespace", node2["namespace"]);
   
   std::cout << "node3: " << std::endl << node3 << std::endl;
 
@@ -69,7 +69,7 @@ TEST(addNodeYaml, empty_sequence)
   ASSERT_TRUE(node2["namespace"][0]);
   ASSERT_TRUE(node2["namespace"][1]);
 
-  YamlServer::addNodeYaml(node3, "namespace", node2["namespace"]);
+  addNodeYaml(node3, "namespace", node2["namespace"]);
   
   std::cout << "node3: " << std::endl << node3 << std::endl;
 
@@ -104,7 +104,7 @@ TEST(addNodeYaml, add)
   ASSERT_TRUE(node4["namespace"]);
   ASSERT_TRUE(node4["namespace"]["param3"]);
 
-  YamlServer::addNodeYaml(node2, "namespace", node4["namespace"]);
+  addNodeYaml(node2, "namespace", node4["namespace"]);
   
   std::cout << "node2: " << std::endl << node2 << std::endl;
 
@@ -141,7 +141,7 @@ TEST(addNodeYaml, same_key)
   ASSERT_TRUE(node4["namespace"]);
   ASSERT_TRUE(node4["namespace"]["param1"]);
 
-  ASSERT_THROW(YamlServer::addNodeYaml(node2, "namespace", node4["namespace"]),std::runtime_error);
+  ASSERT_THROW(addNodeYaml(node2, "namespace", node4["namespace"]),std::runtime_error);
 }
 
 TEST(addNodeYaml, compose_sequence)
@@ -171,7 +171,7 @@ TEST(addNodeYaml, compose_sequence)
   ASSERT_TRUE(node4["namespace"][0]);
   ASSERT_TRUE(node4["namespace"][1]);
 
-  YamlServer::addNodeYaml(node2, "namespace", node4["namespace"]);
+  addNodeYaml(node2, "namespace", node4["namespace"]);
   
   std::cout << "node2: " << std::endl << node2 << std::endl;
 
