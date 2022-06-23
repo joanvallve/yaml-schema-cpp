@@ -5,7 +5,7 @@
 
 #include <Eigen/Dense>
 
-#include "yaml-schema-cpp/yaml_server.h"
+#include "yaml-schema-cpp/yaml_server.hpp"
 
 namespace yaml_schema_example
 {

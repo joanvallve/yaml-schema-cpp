@@ -1,7 +1,7 @@
 
 #include "gtest/utils_gtest.h"
 #include "yaml-schema-cpp/internal/config.h"
-#include "yaml-schema-cpp/yaml_server.h"
+#include "yaml-schema-cpp/yaml_server.hpp"
 
 std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
 

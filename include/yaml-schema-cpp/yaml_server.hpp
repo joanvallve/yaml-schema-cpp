@@ -2,16 +2,8 @@
 
 #include <iostream>
 #include <fstream>
-#include <memory>
-#include <boost/filesystem.hpp>
-
-#include <Eigen/Dense>
-
 #include "yaml-cpp/yaml.h"
-#include "yaml-schema-cpp/yaml_conversion.h"
-#include "yaml-schema-cpp/type_check.h"
-#include "yaml-schema-cpp/yaml_schema.h"
-#include "yaml-schema-cpp/yaml_utils.h"
+#include <boost/filesystem.hpp>
 
 namespace yaml_schema_cpp
 {

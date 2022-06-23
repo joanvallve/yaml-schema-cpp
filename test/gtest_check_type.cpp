@@ -1,7 +1,7 @@
 
 #include "gtest/utils_gtest.h"
-#include "yaml-schema-cpp/type_check.h"
 #include "yaml-schema-cpp/internal/config.h"
+#include "yaml-schema-cpp/type_check.hpp"
 
 std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
 

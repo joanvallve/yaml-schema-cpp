@@ -8,9 +8,9 @@
 #include <Eigen/Dense>
 
 #include "yaml-cpp/yaml.h"
-#include "yaml-schema-cpp/yaml_conversion.h"
-#include "yaml-schema-cpp/type_check.h"
-#include "yaml-schema-cpp/yaml_utils.h"
+#include "yaml-schema-cpp/yaml_conversion.hpp"
+#include "yaml-schema-cpp/type_check.hpp"
+#include "yaml-schema-cpp/yaml_utils.hpp"
 
 namespace yaml_schema_cpp
 {
@@ -22,16 +22,16 @@ namespace filesystem = boost::filesystem;
 YAML::Node loadSchema(const std::string& schema_file, const std::vector<std::string>& folders_schema);
 void checkSchema(const YAML::Node& node_schema, const std::string& field = "");
 
-bool isValidBase(const std::string& name_schema, 
-                 const YAML::Node& node_input, 
-                 const std::vector<std::string>& folders,
-                 std::stringstream& log);
+bool checkNode(const YAML::Node& node_input, 
+               const std::string& name_schema, 
+               const std::vector<std::string>& folders,
+               std::stringstream& log);
                  
-bool isValidNode(const YAML::Node& node_schema,
-                 const YAML::Node& node_input,
-                 const std::vector<std::string>& folders,
-                 std::stringstream& log,
-                 const std::string& field = "");
+bool compareNodesRecursive(const YAML::Node& node_schema,
+                           const YAML::Node& node_input,
+                           const std::vector<std::string>& folders,
+                           std::stringstream& log,
+                           const std::string& field = "");
 
 bool isScalarSchema(const YAML::Node& node_schema);
 bool isMapSchema(const YAML::Node& node_schema);

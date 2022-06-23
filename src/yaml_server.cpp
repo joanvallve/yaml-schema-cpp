@@ -1,6 +1,8 @@
-#include <stdexcept>
+#include "yaml-schema-cpp/yaml_server.hpp" 
 
-#include "yaml-schema-cpp/yaml_server.h"
+#include <stdexcept>
+#include "yaml-schema-cpp/yaml_schema.hpp"
+#include "yaml-schema-cpp/yaml_utils.hpp"
 
 namespace yaml_schema_cpp
 {
@@ -31,7 +33,7 @@ bool YamlServer::validate(const std::string& name_schema)
     log_ << "Log of YAML parsing procedure of file: \n";
     log_ << "-------------------------------------- \n";
 
-    return isValidBase(name_schema, node_input_, folders_schema_, log_);
+    return checkNode(node_input_, name_schema, folders_schema_, log_);
 }
 
 const std::stringstream& YamlServer::getLog() const

@@ -1,7 +1,7 @@
 #include <memory>
 
 #include "yaml-schema-example/stage.hpp"
-#include "yaml-schema-cpp/yaml_server.h"
+#include "yaml-schema-cpp/yaml_server.hpp"
 
 int main()
 {

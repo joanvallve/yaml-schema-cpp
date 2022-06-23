@@ -1,6 +1,13 @@
-#include <stdexcept>
+#include "yaml-schema-cpp/yaml_utils.hpp"
 
-#include "yaml-schema-cpp/yaml_utils.h"
+#include <stdexcept>
+#include <iostream>
+#include <fstream>
+#include <memory>
+#include <Eigen/Dense>
+
+#include "yaml-schema-cpp/type_check.hpp"
+#include "yaml-schema-cpp/yaml_schema.hpp"
 
 namespace yaml_schema_cpp
 {

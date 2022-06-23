@@ -3,7 +3,7 @@
 #include <Eigen/Dense>
 
 #include "yaml-cpp/yaml.h"
-#include "yaml-schema-cpp/yaml_conversion.h"
+#include "yaml-schema-cpp/yaml_conversion.hpp"
 
 namespace yaml_schema_cpp
 {

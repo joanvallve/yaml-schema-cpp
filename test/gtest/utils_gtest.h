@@ -31,6 +31,7 @@
 #define WOLF_UTILS_GTEST_H
 
 #include <gtest/gtest.h>
+#include <Eigen/Dense>
 
 // Macros for testing equalities and inequalities.
 //

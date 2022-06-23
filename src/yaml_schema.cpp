@@ -1,49 +1,11 @@
 #include <stdexcept>
 
-#include "yaml-schema-cpp/yaml_schema.h"
+#include "yaml-schema-cpp/yaml_schema.hpp"
 
 namespace yaml_schema_cpp
 {
 
 namespace filesystem = boost::filesystem;
-
-void addNodeSchema(YAML::Node& node, const std::string& key, const YAML::Node& value)
-{
-    if (node[key])
-    {
-        if (isScalarSchema(node[key]))
-        {
-            throw std::runtime_error("Trying to add something into an already existing scalar schema node.");
-        }
-        if (isSequenceSchema(node[key]))
-        {
-            throw std::runtime_error("Trying to add something into an already existing sequence schema node.");
-        }
-        if (isMapSchema(node[key]))
-        {
-            if (not isMapSchema(value))
-            {
-                throw std::runtime_error("Trying to add a sequence, scalar or unknown schema node into an already existing map schema node.");
-            }
-            else
-            {
-                for (auto value_map_node : value)
-                {
-                    YAML::Node node_key = node[key];
-                    addNodeSchema(node_key, value_map_node.first.as<std::string>(), value_map_node.second);
-                }
-            }
-        }
-        else
-        {
-            throw std::runtime_error("Trying to add something into an schema node of unknown yaml_type.");
-        }
-    }
-    else
-    {
-        node[key] = value;
-    }
-}
 
 YAML::Node loadSchema(const std::string& name_schema, const std::vector<std::string>& folders_schema)
 {
@@ -161,23 +123,23 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
     }
 }
 
-bool isValidBase(const std::string& name_schema,
-                 const YAML::Node&  node_input,
-                 const std::vector<std::string>& folders,
-                 std::stringstream& log)
+bool checkNode(const YAML::Node&  node_input,
+               const std::string& name_schema,
+               const std::vector<std::string>& folders,
+               std::stringstream& log)
 {
     // Load and check schema
     YAML::Node node_schema = loadSchema(name_schema, folders);
 
     // Check node_input against node_schema
-    return isValidNode(node_schema, node_input, folders, log);
+    return compareNodesRecursive(node_schema, node_input, folders, log);
 }
 
-bool isValidNode(const YAML::Node& node_schema,
-                 const YAML::Node& node_input,
-                 const std::vector<std::string>& folders,
-                 std::stringstream& log,
-                 const std::string& field)
+bool compareNodesRecursive(const YAML::Node& node_schema,
+                           const YAML::Node& node_input,
+                           const std::vector<std::string>& folders,
+                           std::stringstream& log,
+                           const std::string& field)
 {
     bool is_valid = true;
     
@@ -256,11 +218,7 @@ bool isValidNode(const YAML::Node& node_schema,
                             continue;
                         }
                         // Validate with the schema file
-                        is_valid = is_valid and isValidBase(file_schema.string(), 
-                                                            node_input[i],
-                                                            folders,
-                                                            log);
-                  
+                        is_valid = is_valid and checkNode(node_input[i], file_schema.string(), folders, log);
                     }
                 }
             }
@@ -280,7 +238,7 @@ bool isValidNode(const YAML::Node& node_schema,
                                                   node_input[node_schema_child.first.as<std::string>()] : 
                                                   node_input);
 
-            is_valid = is_valid and isValidNode(node_schema_child.second, 
+            is_valid = is_valid and compareNodesRecursive(node_schema_child.second, 
                                                 node_input_child,
                                                 folders,
                                                 log,
@@ -293,6 +251,44 @@ bool isValidNode(const YAML::Node& node_schema,
     }
 
     return is_valid;
+}
+
+void addNodeSchema(YAML::Node& node, const std::string& key, const YAML::Node& value)
+{
+    if (node[key])
+    {
+        if (isScalarSchema(node[key]))
+        {
+            throw std::runtime_error("Trying to add something into an already existing scalar schema node.");
+        }
+        if (isSequenceSchema(node[key]))
+        {
+            throw std::runtime_error("Trying to add something into an already existing sequence schema node.");
+        }
+        if (isMapSchema(node[key]))
+        {
+            if (not isMapSchema(value))
+            {
+                throw std::runtime_error("Trying to add a sequence, scalar or unknown schema node into an already existing map schema node.");
+            }
+            else
+            {
+                for (auto value_map_node : value)
+                {
+                    YAML::Node node_key = node[key];
+                    addNodeSchema(node_key, value_map_node.first.as<std::string>(), value_map_node.second);
+                }
+            }
+        }
+        else
+        {
+            throw std::runtime_error("Trying to add something into an schema node of unknown yaml_type.");
+        }
+    }
+    else
+    {
+        node[key] = value;
+    }
 }
 
 bool isScalarSchema(const YAML::Node& node_schema)
