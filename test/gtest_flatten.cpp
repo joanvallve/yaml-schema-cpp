@@ -72,7 +72,7 @@ TEST(flatten, flatten_recursive)
 
 TEST(flatten, flatten_merge)
 {
-  yaml_schema_cpp::YamlServer yaml_server({ROOT_DIR + "/test/yaml"}, ROOT_DIR + "/test/yaml/flatten_merge.yaml");
+  YamlServer yaml_server({ROOT_DIR + "/test/yaml"}, ROOT_DIR + "/test/yaml/flatten_merge.yaml");
   
   YAML::Node input_node = yaml_server.getNodeInput();
 

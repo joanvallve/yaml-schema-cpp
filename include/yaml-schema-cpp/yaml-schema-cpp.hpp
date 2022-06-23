@@ -31,9 +31,6 @@ class YamlServer
     filesystem::path getPathSchema(const std::string& name_schema) const;
 
   public:
-    void flattenNode(YAML::Node& node, const filesystem::path& root_path="") const;
-    void flattenMap(YAML::Node& node, const filesystem::path& root_path="") const;
-    void flattenSequence(YAML::Node& node, const filesystem::path& root_path="") const;
 
     bool isValidBase(const std::string& name_schema, 
                      const YAML::Node& node_input, 
@@ -43,15 +40,24 @@ class YamlServer
                      std::stringstream& log,
                      const std::string& field = "") const;
     
+    // STATIC METHODS
+    static void flattenNode    (YAML::Node& node, std::vector<std::string> folders, bool is_schema);
+    static void flattenMap     (YAML::Node& node, std::vector<std::string> folders, bool is_schema);
+    static void flattenSequence(YAML::Node& node, std::vector<std::string> folders, bool is_schema);
+    
     static void writeToLog(std::stringstream& log, const std::string& message);
 
+    static YAML::Node loadSchema(const std::string& schema_file, const std::vector<std::string>& folders_schema);
     static void checkSchema(const YAML::Node& node_schema, const std::string& field = "");
 
     static bool isScalarSchema(const YAML::Node& node_schema);
     static bool isMapSchema(const YAML::Node& node_schema);
     static bool isSequenceSchema(const YAML::Node& node_schema);
 
-    static void addNode(YAML::Node& node, const std::string& key, const YAML::Node& value);
+    static void addNodeYaml(YAML::Node& node, const std::string& key, const YAML::Node& value);
+    static void addNodeSchema(YAML::Node& node, const std::string& key, const YAML::Node& value);
+    
+    static filesystem::path findFile(const std::string& name, const std::vector<std::string>& folders);
 
   private:
     std::vector<std::string> folders_schema_;

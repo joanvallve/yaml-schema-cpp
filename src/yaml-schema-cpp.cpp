@@ -20,22 +20,20 @@ YamlServer::YamlServer(const std::vector<std::string>& folders_schema, const std
     }
     // load yamlfile
     node_input_ = YAML::LoadFile(path_input);
-    std::cout << "YamlServer::YamlServer: node_input_\n" << node_input_ << std::endl;
 
     // flatten
-    flattenNode(node_input_, path_input_.parent_path());
-    std::cout << "YamlServer::YamlServer: flattened node_input_\n" << node_input_ << std::endl;
+    flattenNode(node_input_, {path_input_.parent_path().string()}, false);
 }
 
-void YamlServer::flattenNode(YAML::Node& node, const filesystem::path& root_path) const
+void YamlServer::flattenNode(YAML::Node& node, std::vector<std::string> folders, bool is_schema)
 {
     switch (node.Type())
     {
         case YAML::NodeType::Map:
-            flattenMap(node, root_path);
+            flattenMap(node, folders, is_schema);
             break;
         case YAML::NodeType::Sequence:
-            flattenSequence(node, root_path);
+            flattenSequence(node, folders, is_schema);
             break;
         case YAML::NodeType::Scalar:
         default:
@@ -43,62 +41,72 @@ void YamlServer::flattenNode(YAML::Node& node, const filesystem::path& root_path
     }
 }
 
-void YamlServer::flattenSequence(YAML::Node& node, const filesystem::path& root_path) const
+void YamlServer::flattenSequence(YAML::Node& node, std::vector<std::string> folders, bool is_schema)
 {
     for (auto node_i : node)
     {
-        flattenNode(node_i, root_path);
+        flattenNode(node_i, folders, is_schema);
     }
 }
 
-void YamlServer::flattenMap(YAML::Node& node, const filesystem::path& root_path) const
+void YamlServer::flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_schema)
 {
     YAML::Node node_aux;  // Done using copy to preserve order of follow
     for (auto n : node)
     {
         if (n.first.as<std::string>() == "follow")
         {
-            filesystem::path path_follow, path_follow_parent;
+            // Try to find the file
+            filesystem::path path_follow = findFile(n.second.as<std::string>(), folders);
+
+            // Case input yaml, folders has to be modified to keep relative paths
+            if (not is_schema)
+            {
+                folders.front() = path_follow.parent_path().string();
+            }
             
-            // Case input yaml
-            if (root_path != "")
-            {
-                path_follow        = root_path / filesystem::path(n.second.as<std::string>());
-                path_follow_parent = path_follow.parent_path();
-            }
-            // Case schema yaml
-            else
-                path_follow = getPathSchema(n.second.as<std::string>());
-
-            // Check file exists
-            if (not filesystem::exists(path_follow))
-            {
-                throw std::runtime_error("YAML file does not exists. Non-existing path '" + 
-                                         path_follow.string() + 
-                                         "' included in '" + 
-                                         root_path.string() + "'\n");
-            }
-
+            // load "follow" file
             YAML::Node node_child = YAML::LoadFile(path_follow.string());
 
-            flattenNode(node_child, path_follow_parent);
+            // Recursively flatten the "follow" file
+            flattenNode(node_child, folders, is_schema);
 
             for (auto nc : node_child)
             {
-                addNode(node_aux,nc.first.as<std::string>(),nc.second);
+                // Case schema
+                if (is_schema)
+                {
+                    addNodeSchema(node_aux,nc.first.as<std::string>(),nc.second);
+                }
+                // Case input yaml
+                else
+                {
+                    addNodeYaml(node_aux,nc.first.as<std::string>(),nc.second);
+                }
             }
         }
         else
         {
-            flattenNode(n.second, root_path);
-            addNode(node_aux,n.first.as<std::string>(),n.second);
+            // Recursively flatten the "follow" file
+            flattenNode(n.second, folders, is_schema);
+
+            // Case schema
+            if (is_schema)
+            {
+                addNodeSchema(node_aux,n.first.as<std::string>(),n.second);
+            }
+            // Case input yaml
+            else
+            {
+                addNodeYaml(node_aux,n.first.as<std::string>(),n.second);
+            }
         }
     }
 
     node = node_aux;
 }
 
-void YamlServer::addNode(YAML::Node& node, const std::string& key, const YAML::Node& value)
+void YamlServer::addNodeYaml(YAML::Node& node, const std::string& key, const YAML::Node& value)
 {
     if (node[key])
     {
@@ -107,7 +115,6 @@ void YamlServer::addNode(YAML::Node& node, const std::string& key, const YAML::N
             case YAML::NodeType::Scalar:
             {
                 throw std::runtime_error("Trying to add an already existing scalar node.");
-                break;
             }
             case YAML::NodeType::Sequence:
             {
@@ -122,15 +129,52 @@ void YamlServer::addNode(YAML::Node& node, const std::string& key, const YAML::N
                 for (auto value_map_node : value)
                 {
                     YAML::Node node_key = node[key];
-                    addNode(node_key, value_map_node.first.as<std::string>(), value_map_node.second);
+                    addNodeYaml(node_key, value_map_node.first.as<std::string>(), value_map_node.second);
                 }
                 break;
             }
             default:
             {
                 throw std::runtime_error("Trying to add a node of type not known.");
-                break;
             }
+        }
+    }
+    else
+    {
+        node[key] = value;
+    }
+}
+
+void YamlServer::addNodeSchema(YAML::Node& node, const std::string& key, const YAML::Node& value)
+{
+    if (node[key])
+    {
+        if (isScalarSchema(node[key]))
+        {
+            throw std::runtime_error("Trying to add something into an already existing scalar schema node.");
+        }
+        if (isSequenceSchema(node[key]))
+        {
+            throw std::runtime_error("Trying to add something into an already existing sequence schema node.");
+        }
+        if (isMapSchema(node[key]))
+        {
+            if (not isMapSchema(value))
+            {
+                throw std::runtime_error("Trying to add a sequence, scalar or unknown schema node into an already existing map schema node.");
+            }
+            else
+            {
+                for (auto value_map_node : value)
+                {
+                    YAML::Node node_key = node[key];
+                    addNodeSchema(node_key, value_map_node.first.as<std::string>(), value_map_node.second);
+                }
+            }
+        }
+        else
+        {
+            throw std::runtime_error("Trying to add something into an schema node of unknown yaml_type.");
         }
     }
     else
@@ -155,6 +199,15 @@ bool YamlServer::isValidBase(const std::string& name_schema,
                              const YAML::Node&  node_input,
                              std::stringstream& log) const
 {
+    // Load and check schema
+    YAML::Node node_schema = loadSchema(name_schema, folders_schema_);
+
+    // Check node_input against node_schema
+    return isValidNode(node_schema, node_input, log);
+}
+
+YAML::Node YamlServer::loadSchema(const std::string& name_schema, const std::vector<std::string>& folders_schema)
+{
     // Check extension
     if (filesystem::extension(name_schema) != SCHEMA_EXTENSION)
     {
@@ -165,25 +218,17 @@ bool YamlServer::isValidBase(const std::string& name_schema,
                                  "'.");
     }
 
-    // Load schema node
-    YAML::Node node_schema;
-    try
-    {
-        filesystem::path path_schema = getPathSchema(name_schema);
-        node_schema = YAML::LoadFile(path_schema.string());
-    }
-    catch(const std::exception& e)
-    {
-        log << e.what() << '\n';
-        return false;
-    }
+    // Load schema yaml
+    filesystem::path path_schema = findFile(name_schema, folders_schema);
+    YAML::Node node_schema = YAML::LoadFile(path_schema.string());
 
     // Flatten yaml nodes (containing "follow") to a single YAML node containing all the information
-    flattenNode(node_schema);
+    flattenNode(node_schema, folders_schema, true);
+
+    // Check schema
     checkSchema(node_schema);
 
-    // Check node_input against node_schema
-    return isValidNode(node_schema, node_input, log);
+    return node_schema;
 }
 
 void YamlServer::checkSchema(const YAML::Node& node_schema, const std::string& node_field)
@@ -206,10 +251,18 @@ void YamlServer::checkSchema(const YAML::Node& node_schema, const std::string& n
         {
             throw std::runtime_error("YAML schema: " + node_field + " does not contain 'type'.");
         }
+        else if (not checkType(node_schema["type"],"string"))
+        {
+            throw std::runtime_error("YAML schema: In " + node_field + ", 'type' should be a string.");
+        }
         // Check 'mandatory'
         if (not node_schema["mandatory"])
         {
             throw std::runtime_error("YAML schema: " + node_field + " does not contain 'mandatory'.");
+        }
+        else if (not checkType(node_schema["mandatory"],"bool"))
+        {
+            throw std::runtime_error("YAML schema: In " + node_field + ", 'mandatory' should be a bool.");
         }
         // not mandatory params should have a default of correct type
         if (not node_schema["mandatory"].as<bool>())
@@ -232,10 +285,18 @@ void YamlServer::checkSchema(const YAML::Node& node_schema, const std::string& n
         {
             throw std::runtime_error("YAML schema: " + node_field + " does not contain 'type'.");
         }
+        else if (not checkType(node_schema["type"],"string"))
+        {
+            throw std::runtime_error("YAML schema: In " + node_field + ", 'type' should be a string.");
+        }
         // Check 'mandatory'
         if (not node_schema["mandatory"])
         {
             throw std::runtime_error("YAML schema: " + node_field + " does not contain 'mandatory'.");
+        }
+        else if (not checkType(node_schema["mandatory"],"bool"))
+        {
+            throw std::runtime_error("YAML schema: In " + node_field + ", 'mandatory' should be a bool.");
         }
     }
     // Map
@@ -248,7 +309,7 @@ void YamlServer::checkSchema(const YAML::Node& node_schema, const std::string& n
     }
     else
     {
-        throw std::runtime_error("YAML schema: " + node_field + " has unknown structure.");
+        throw std::runtime_error("YAML schema: " + node_field + " has unknown yaml_type.");
     }
 }
 
@@ -373,16 +434,30 @@ bool YamlServer::isValidNode(const YAML::Node& node_schema,
 
 filesystem::path YamlServer::getPathSchema(const std::string& name_schema) const
 {
-    for (auto base_p : folders_schema_)
+    filesystem::path schema_path;
+    try
     {
-        filesystem::path path_schema = filesystem::path(base_p) / filesystem::path(name_schema);
-        if (filesystem::exists(path_schema))
+        schema_path = findFile(name_schema, folders_schema_);
+    }
+    catch (const std::exception& e)
+    {
+        throw std::runtime_error("Schema with the name '" + name_schema + "' not found inside the YamlServer folders");
+    }
+    return schema_path;
+}
+
+filesystem::path YamlServer::findFile(const std::string& name, const std::vector<std::string>& folders)
+{
+    for (auto folder : folders)
+    {
+        filesystem::path file_path = filesystem::path(folder) / filesystem::path(name);
+        if (filesystem::exists(file_path))
         {
-            return path_schema;
+            return file_path;
         }
     }
 
-    throw std::runtime_error("Schema with the name '" + name_schema + "' not found inside the YamlServer folders");
+    throw std::runtime_error("File '" + name + "' not found in provided folters");
 }
 
 void YamlServer::writeToLog(std::stringstream& log, const std::string& message)
@@ -402,7 +477,7 @@ const YAML::Node& YamlServer::getNodeInput() const
 
 bool YamlServer::isScalarSchema(const YAML::Node& node_schema)
 {
-    return node_schema["yaml_type"] and node_schema["yaml_type"].as<std::string>() != "scalar";
+    return node_schema["yaml_type"] and node_schema["yaml_type"].as<std::string>() == "scalar";
 }
 
 bool YamlServer::isSequenceSchema(const YAML::Node& node_schema)
