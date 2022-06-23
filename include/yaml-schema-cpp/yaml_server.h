@@ -30,21 +30,6 @@ class YamlServer
     const YAML::Node& getNode() const;
 
   private:
-    filesystem::path getPathSchema(const std::string& name_schema) const;
-
-  public:
-
-    bool isValidBase(const std::string& name_schema, 
-                     const YAML::Node& node_input, 
-                     //std::vector<std::string> folders,
-                     std::stringstream& log) const;
-    bool isValidNode(const YAML::Node& node_schema,
-                     const YAML::Node& node_input,
-                     //std::vector<std::string> folders,
-                     std::stringstream& log,
-                     const std::string& field = "") const;
-    
-  private:
     std::vector<std::string> folders_schema_;
 
     filesystem::path path_input_;

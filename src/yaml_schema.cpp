@@ -161,6 +161,140 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
     }
 }
 
+bool isValidBase(const std::string& name_schema,
+                 const YAML::Node&  node_input,
+                 const std::vector<std::string>& folders,
+                 std::stringstream& log)
+{
+    // Load and check schema
+    YAML::Node node_schema = loadSchema(name_schema, folders);
+
+    // Check node_input against node_schema
+    return isValidNode(node_schema, node_input, folders, log);
+}
+
+bool isValidNode(const YAML::Node& node_schema,
+                 const YAML::Node& node_input,
+                 const std::vector<std::string>& folders,
+                 std::stringstream& log,
+                 const std::string& field)
+{
+    bool is_valid = true;
+    
+    // Param schema (has mandatory and type)
+    if (isScalarSchema(node_schema))
+    {
+        if (node_input.IsDefined())
+        {
+            if (not checkType(node_input, node_schema["type"].as<std::string>()))
+            {
+                writeToLog(log, 
+                           "Field '" + field + "' of wrong type. Should be " + node_schema["type"].as<std::string>());
+                is_valid = false;
+            }
+        }
+        else if(node_schema["mandatory"].as<bool>()) // complain inexistence if mandatory
+        {
+            writeToLog(log, "Input yaml does not contain field: " + field);
+            is_valid = false;
+        }
+    }
+    // sequence
+    else if (isSequenceSchema(node_schema))
+    {
+        if(node_input.IsDefined())
+        {
+            // First check that the node it is really a sequence
+            if (not node_input.IsSequence())
+            {
+                writeToLog(log, "Input yaml does not contain a sequence in: " + field);
+                is_valid = false;
+            }
+            // Then check the validity of each element in the sequence
+            else
+            {
+                for (auto i = 0; i < node_input.size(); i++)
+                {
+                    auto type = node_schema["type"].as<std::string>();
+
+                    // Find derived type
+                    if (type == "derived")
+                    {
+                        // check existence of key type
+                        if (not node_input[i]["type"])
+                        {
+                            writeToLog(log, 
+                                       "Sequence " + 
+                                       field + 
+                                       ", element " + 
+                                       std::to_string(i) + 
+                                       ": does not contain key 'type'");
+                            is_valid = false; 
+                            continue;
+                        }
+                        else
+                        {
+                            type = node_input[i]["type"].as<std::string>();
+                        }
+                    }
+                     
+                    // If check for trivial types doesn't succeed, try to load a schema of this type
+                    if (not checkType(node_input[i], type))
+                    {
+                        auto file_schema = findFile(type + ".schema", folders);
+
+                        // Check file exists
+                        if (not filesystem::exists(file_schema))
+                        {
+                            writeToLog(log, 
+                                       "Sequence " + field + 
+                                       ", element " + std::to_string(i) + 
+                                       " of type" + type +
+                                       ": couldn't check against trivial types and " + 
+                                       type + ".schema" + " file was not found.");
+                            is_valid = false;
+                            continue;
+                        }
+                        // Validate with the schema file
+                        is_valid = is_valid and isValidBase(file_schema.string(), 
+                                                            node_input[i],
+                                                            folders,
+                                                            log);
+                  
+                    }
+                }
+            }
+        }
+        else if (node_schema["mandatory"]) // complain inexistence if mandatory
+        {
+            writeToLog(log, "Input yaml does not contain field: " + field);
+            is_valid = false;
+        }
+    }
+    // map of params
+    else if (isMapSchema(node_schema))
+    {
+        for (auto node_schema_child : node_schema)
+        {
+            const YAML::Node& node_input_child = (node_input.IsDefined() ? 
+                                                  node_input[node_schema_child.first.as<std::string>()] : 
+                                                  node_input);
+
+            is_valid = is_valid and isValidNode(node_schema_child.second, 
+                                                node_input_child,
+                                                folders,
+                                                log,
+                                                node_schema_child.first.as<std::string>());
+        }
+    }
+    else
+    {
+        throw std::runtime_error("unknown schema");
+    }
+
+    return is_valid;
+}
+
 bool isScalarSchema(const YAML::Node& node_schema)
 {
     return node_schema["yaml_type"] and node_schema["yaml_type"].as<std::string>() == "scalar";
