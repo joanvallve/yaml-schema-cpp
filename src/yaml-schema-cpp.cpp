@@ -27,7 +27,7 @@ YamlServer::YamlServer(const std::vector<std::string>& folders_schema, const std
     std::cout << "YamlServer::YamlServer: flattened node_input_\n" << node_input_ << std::endl;
 }
 
-void YamlServer::flattenNode(YAML::Node node, const filesystem::path& root_path) const
+void YamlServer::flattenNode(YAML::Node& node, const filesystem::path& root_path) const
 {
     switch (node.Type())
     {
@@ -43,7 +43,7 @@ void YamlServer::flattenNode(YAML::Node node, const filesystem::path& root_path)
     }
 }
 
-void YamlServer::flattenSequence(YAML::Node node, const filesystem::path& root_path) const
+void YamlServer::flattenSequence(YAML::Node& node, const filesystem::path& root_path) const
 {
     for (auto node_i : node)
     {
@@ -51,7 +51,7 @@ void YamlServer::flattenSequence(YAML::Node node, const filesystem::path& root_p
     }
 }
 
-void YamlServer::flattenMap(YAML::Node node, const filesystem::path& root_path) const
+void YamlServer::flattenMap(YAML::Node& node, const filesystem::path& root_path) const
 {
     YAML::Node node_aux;  // Done using copy to preserve order of follow
     for (auto n : node)
@@ -81,35 +81,25 @@ void YamlServer::flattenMap(YAML::Node node, const filesystem::path& root_path) 
 
             YAML::Node node_child = YAML::LoadFile(path_follow.string());
 
-            std::cout << __LINE__ << std::endl << node_child << std::endl;
             flattenNode(node_child, path_follow_parent);
 
-            std::cout << __LINE__ << std::endl << node_child << std::endl;
             for (auto nc : node_child)
             {
                 addNode(node_aux,nc.first.as<std::string>(),nc.second);
             }
-            std::cout << __LINE__ << std::endl << node_aux << std::endl;
         }
         else
         {
-            std::cout << __LINE__ << std::endl << n.second << std::endl;
             flattenNode(n.second, root_path);
-            std::cout << __LINE__ << std::endl << n.second << std::endl;
             addNode(node_aux,n.first.as<std::string>(),n.second);
-            std::cout << __LINE__ << std::endl << node_aux << std::endl;
         }
-        std::cout << __LINE__ << std::endl << node_aux << std::endl;
     }
 
-    std::cout << __LINE__ << std::endl << node_aux << std::endl;
     node = node_aux;
-    std::cout << __LINE__ << std::endl << node << std::endl;
 }
 
-void YamlServer::addNode(YAML::Node node, const std::string& key, const YAML::Node& value)
+void YamlServer::addNode(YAML::Node& node, const std::string& key, const YAML::Node& value)
 {
-    std::cout << __LINE__ << std::endl << node << std::endl;
     if (node[key])
     {
         switch (value.Type()) 
@@ -131,7 +121,8 @@ void YamlServer::addNode(YAML::Node node, const std::string& key, const YAML::No
             {
                 for (auto value_map_node : value)
                 {
-                    addNode(node[key], value_map_node.first.as<std::string>(), value_map_node.second);
+                    YAML::Node node_key = node[key];
+                    addNode(node_key, value_map_node.first.as<std::string>(), value_map_node.second);
                 }
                 break;
             }
@@ -140,14 +131,12 @@ void YamlServer::addNode(YAML::Node node, const std::string& key, const YAML::No
                 throw std::runtime_error("Trying to add a node of type not known.");
                 break;
             }
-            
         }
     }
     else
     {
-        node.force_insert(key,value);
+        node[key] = value;
     }
-    std::cout << __LINE__ << std::endl << node << std::endl;
 }
 
 
@@ -394,50 +383,6 @@ filesystem::path YamlServer::getPathSchema(const std::string& name_schema) const
     }
 
     throw std::runtime_error("Schema with the name '" + name_schema + "' not found inside the YamlServer folders");
-}
-
-bool YamlServer::checkType(const YAML::Node& node, const std::string& type)
-{
-    if (node.IsMap())
-    {
-        return false;
-    }
-
-    if (type == "string")
-    {
-        try
-        {
-            node.as<std::string>();
-        }
-        catch (const std::exception& e)
-        {
-            return false;
-        }
-    }
-    else if (type == "double")
-    {
-        try
-        {
-            node.as<double>();
-        }
-        catch (const std::exception& e)
-        {
-            return false;
-        }
-    }
-    else if (type == "eigen_vector")
-    {
-        try
-        {
-            node.as<Eigen::VectorXd>();
-        }
-        catch (const std::exception& e)
-        {
-            return false;
-        }
-    }
-
-    return false;
 }
 
 void YamlServer::writeToLog(std::stringstream& log, const std::string& message)

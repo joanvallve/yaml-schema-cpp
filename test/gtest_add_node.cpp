@@ -9,6 +9,27 @@ using namespace yaml_schema_cpp;
 
 TEST(addNode, empty)
 {
+  YAML::Node node1, node2;
+  node1["param1"] = 1.0;
+  node1["param2"] = 2.0;
+
+  std::cout << "node1: " << std::endl << node1 << std::endl;
+  std::cout << "node2: " << std::endl << node2 << std::endl;
+
+  ASSERT_TRUE(node1["param1"]);
+  ASSERT_TRUE(node1["param2"]);
+
+  YamlServer::addNode(node2, "namespace", node1);
+  
+  std::cout << "node2: " << std::endl << node2 << std::endl;
+
+  ASSERT_TRUE(node2["namespace"]);
+  ASSERT_TRUE(node2["namespace"]["param1"]);
+  ASSERT_TRUE(node2["namespace"]["param2"]);
+}
+
+TEST(addNode, empty2)
+{
   YAML::Node node1, node2, node3;
   node1["param1"] = 1.0;
   node1["param2"] = 2.0;
@@ -30,6 +51,31 @@ TEST(addNode, empty)
   ASSERT_TRUE(node3["namespace"]);
   ASSERT_TRUE(node3["namespace"]["param1"]);
   ASSERT_TRUE(node3["namespace"]["param2"]);
+}
+
+TEST(addNode, empty_sequence)
+{
+  YAML::Node node1, node2, node3;
+  node1[0] = 1.0;
+  node1[1] = 2.0;
+  node2["namespace"] = node1;
+
+  std::cout << "node2: " << std::endl << node2 << std::endl;
+  std::cout << "node3: " << std::endl << node3 << std::endl;
+
+  ASSERT_TRUE(node1[0]);
+  ASSERT_TRUE(node1[1]);
+  ASSERT_TRUE(node2["namespace"]);
+  ASSERT_TRUE(node2["namespace"][0]);
+  ASSERT_TRUE(node2["namespace"][1]);
+
+  YamlServer::addNode(node3, "namespace", node2["namespace"]);
+  
+  std::cout << "node3: " << std::endl << node3 << std::endl;
+
+  ASSERT_TRUE(node3["namespace"]);
+  ASSERT_TRUE(node3["namespace"][0]);
+  ASSERT_TRUE(node3["namespace"][1]);
 }
 
 TEST(addNode, add)
@@ -96,6 +142,44 @@ TEST(addNode, same_key)
   ASSERT_TRUE(node4["namespace"]["param1"]);
 
   ASSERT_THROW(YamlServer::addNode(node2, "namespace", node4["namespace"]),std::runtime_error);
+}
+
+TEST(addNode, compose_sequence)
+{
+  YAML::Node node1, node2, node3, node4;
+  node1[0] = 1.0;
+  node1[1] = 2.0;
+  node2["namespace"] = node1;
+
+  std::cout << "node2: " << std::endl << node2 << std::endl;
+
+  ASSERT_TRUE(node1[0]);
+  ASSERT_TRUE(node1[1]);
+  ASSERT_TRUE(node2["namespace"]);
+  ASSERT_TRUE(node2["namespace"][0]);
+  ASSERT_TRUE(node2["namespace"][1]);
+  
+  node3[0] = 3.0;
+  node3[1] = 4.0;
+  node4["namespace"] = node3;
+
+  std::cout << "node3: " << std::endl << node3 << std::endl;
+
+  ASSERT_TRUE(node3[0]);
+  ASSERT_TRUE(node3[1]);
+  ASSERT_TRUE(node4["namespace"]);
+  ASSERT_TRUE(node4["namespace"][0]);
+  ASSERT_TRUE(node4["namespace"][1]);
+
+  YamlServer::addNode(node2, "namespace", node4["namespace"]);
+  
+  std::cout << "node2: " << std::endl << node2 << std::endl;
+
+  ASSERT_TRUE(node2["namespace"]);
+  ASSERT_TRUE(node2["namespace"][0]);
+  ASSERT_TRUE(node2["namespace"][1]);
+  ASSERT_TRUE(node2["namespace"][2]);
+  ASSERT_TRUE(node2["namespace"][3]);
 }
 
 int main(int argc, char **argv)

@@ -1,4 +1,4 @@
 follow: "base_input.yaml"
 another_param: [0, 0.3, 1e5]
 map2:
-  param3: 4.5
+  param1: 4.5

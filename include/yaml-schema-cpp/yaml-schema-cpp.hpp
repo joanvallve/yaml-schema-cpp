@@ -9,6 +9,7 @@
 
 #include "yaml-cpp/yaml.h"
 #include "yaml-schema-cpp/yaml_conversion.h"
+#include "yaml-schema-cpp/type_check.h"
 
 namespace yaml_schema_cpp
 {
@@ -30,9 +31,9 @@ class YamlServer
     filesystem::path getPathSchema(const std::string& name_schema) const;
 
   public:
-    void flattenNode(YAML::Node node, const filesystem::path& root_path="") const;
-    void flattenMap(YAML::Node node, const filesystem::path& root_path="") const;
-    void flattenSequence(YAML::Node node, const filesystem::path& root_path="") const;
+    void flattenNode(YAML::Node& node, const filesystem::path& root_path="") const;
+    void flattenMap(YAML::Node& node, const filesystem::path& root_path="") const;
+    void flattenSequence(YAML::Node& node, const filesystem::path& root_path="") const;
 
     bool isValidBase(const std::string& name_schema, 
                      const YAML::Node& node_input, 
@@ -41,18 +42,16 @@ class YamlServer
                      const YAML::Node& node_input,
                      std::stringstream& log,
                      const std::string& field = "") const;
-
     
     static void writeToLog(std::stringstream& log, const std::string& message);
 
     static void checkSchema(const YAML::Node& node_schema, const std::string& field = "");
-    static bool checkType(const YAML::Node& node, const std::string& type);
 
     static bool isScalarSchema(const YAML::Node& node_schema);
     static bool isMapSchema(const YAML::Node& node_schema);
     static bool isSequenceSchema(const YAML::Node& node_schema);
 
-    static void addNode(YAML::Node node, const std::string& key, const YAML::Node& value);
+    static void addNode(YAML::Node& node, const std::string& key, const YAML::Node& value);
 
   private:
     std::vector<std::string> folders_schema_;
