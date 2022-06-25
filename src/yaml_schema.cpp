@@ -218,7 +218,7 @@ bool compareNodesRecursive(const YAML::Node& node_schema,
                             continue;
                         }
                         // Validate with the schema file
-                        is_valid = is_valid and checkNode(node_input[i], file_schema.string(), folders, log);
+                        is_valid = checkNode(node_input[i], file_schema.filename().string(), folders, log) and is_valid;
                     }
                 }
             }
