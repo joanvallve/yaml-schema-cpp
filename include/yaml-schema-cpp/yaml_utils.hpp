@@ -1,5 +1,6 @@
 #pragma once
 
+#include <list>
 #include <boost/filesystem.hpp>
 #include "yaml-cpp/yaml.h"
 
@@ -17,5 +18,7 @@ void writeToLog(std::stringstream& log, const std::string& message);
 void addNodeYaml(YAML::Node& node, const std::string& key, const YAML::Node& value);
 
 filesystem::path findFile(const std::string& name, const std::vector<std::string>& folders);
+
+std::list<YAML::Node> findNodesWithKey(const YAML::Node root_node, const std::string& key);
 
 }  // namespace yaml_schema_cpp

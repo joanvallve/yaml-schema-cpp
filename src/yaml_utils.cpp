@@ -153,4 +153,33 @@ void writeToLog(std::stringstream& log, const std::string& message)
     log << message << std::endl;
 }
 
+std::list<YAML::Node> findNodesWithKey(const YAML::Node root_node, const std::string& key)
+{
+    std::list<YAML::Node> nodes_with_key;
+
+    if (root_node.IsSequence())
+    {
+        for (auto i = 0; i < root_node.size(); i++)
+        {
+            auto nodes_with_key_i = findNodesWithKey(root_node[i], key);
+            nodes_with_key.insert(nodes_with_key.end(),nodes_with_key_i.begin(),nodes_with_key_i.end());
+        }
+    }
+    if (root_node.IsMap())
+    {
+        if (root_node[key])
+        {
+            nodes_with_key.push_back(root_node[key]);
+        }
+        
+        for (auto node_child : root_node)
+        {
+            auto node_child_with_key = findNodesWithKey(node_child.second, key);
+            nodes_with_key.insert(nodes_with_key.end(),node_child_with_key.begin(),node_child_with_key.end());
+        }
+    }
+    return nodes_with_key;
+}
+
+
 }  // namespace yaml_schema_cpp
