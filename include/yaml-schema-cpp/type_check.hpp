@@ -85,4 +85,36 @@ static bool checkType(const YAML::Node& node, const std::string& type)
   return false;
 }
 
+#define COMPARE_STRING_TYPE(yaml_string, TypeName)        \
+  if (type == #yaml_string)                               \
+  {                                                       \
+    try                                                   \
+    {                                                     \
+      return node1.as<TypeName>() == node2.as<TypeName>();\
+    }                                                     \
+    catch (const std::exception& e)                       \
+    {                                                     \
+      return false;                                       \
+    }                                                     \
+  }                                                       \
+
+#define COMPARE_TYPE(TypeName)                      \
+  COMPARE_STRING_TYPE(TypeName,TypeName);           \
+  
+static bool compare(const YAML::Node& node1, const YAML::Node& node2, const std::string& type)
+{
+  COMPARE_TYPE(bool)
+  COMPARE_TYPE(char)
+  COMPARE_TYPE(int)
+  COMPARE_TYPE(unsigned int)
+  COMPARE_TYPE(long int)
+  COMPARE_TYPE(long unsigned int)
+  COMPARE_TYPE(float)
+  COMPARE_TYPE(double)
+  COMPARE_TYPE(std::string)
+
+  COMPARE_STRING_TYPE(string, std::string)
+  return false;
+}
+
 }  // namespace yaml_schema_cpp

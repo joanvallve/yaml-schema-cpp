@@ -27,6 +27,8 @@ TEST(schema, wrong)
                                        "wrong_mandatory", 
                                        "wrong_yaml_type",
                                        "wrong_doc",
+                                       "wrong_options",
+                                       "wrong_options2",
                                        "same_param",
                                        "same_param_diff_type"};
 

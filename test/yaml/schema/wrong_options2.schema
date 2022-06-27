@@ -15,10 +15,8 @@ param3:
   yaml_type: sequence
   type: string
   doc: "some parameter"
-  options:
-    - "yes"
-    - "no"
-    - "maybe"
+  options: 
+    - [0, 2] # Should be a string
 param4:
   mandatory: false
   yaml_type: scalar
