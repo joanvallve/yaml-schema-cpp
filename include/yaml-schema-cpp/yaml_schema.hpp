@@ -22,13 +22,13 @@ namespace filesystem = boost::filesystem;
 YAML::Node loadSchema(const std::string& schema_file, const std::vector<std::string>& folders_schema);
 void checkSchema(const YAML::Node& node_schema, const std::string& field = "");
 
-bool checkNode(const YAML::Node& node_input, 
+bool checkNode(YAML::Node& node_input, 
                const std::string& name_schema, 
                const std::vector<std::string>& folders,
                std::stringstream& log);
                  
 bool compareNodesRecursive(const YAML::Node& node_schema,
-                           const YAML::Node& node_input,
+                           YAML::Node& node_input,
                            const std::vector<std::string>& folders,
                            std::stringstream& log,
                            const std::string& field = "");

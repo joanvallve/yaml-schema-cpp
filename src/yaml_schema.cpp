@@ -163,7 +163,7 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
     }
 }
 
-bool checkNode(const YAML::Node&  node_input,
+bool checkNode(YAML::Node&  node_input,
                const std::string& name_schema,
                const std::vector<std::string>& folders,
                std::stringstream& log)
@@ -176,7 +176,7 @@ bool checkNode(const YAML::Node&  node_input,
 }
 
 bool compareNodesRecursive(const YAML::Node& node_schema,
-                           const YAML::Node& node_input,
+                           YAML::Node& node_input,
                            const std::vector<std::string>& folders,
                            std::stringstream& log,
                            const std::string& field)
