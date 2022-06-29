@@ -17,7 +17,8 @@ void writeToLog(std::stringstream& log, const std::string& message);
 
 void addNodeYaml(YAML::Node& node, const std::string& key, const YAML::Node& value);
 
-filesystem::path findFile(const std::string& name, const std::vector<std::string>& folders);
+filesystem::path findFileRecursive(const std::string& name_with_extension, 
+                                   const std::vector<std::string>& folders);
 
 std::list<YAML::Node> findNodesWithKey(const YAML::Node root_node, const std::string& key);
 

@@ -20,7 +20,7 @@ YAML::Node loadSchema(const std::string& name_schema, const std::vector<std::str
     }
 
     // Load schema yaml
-    filesystem::path path_schema = findFile(name_schema, folders_schema);
+    filesystem::path path_schema = findFileRecursive(name_schema, folders_schema);
     YAML::Node node_schema = YAML::LoadFile(path_schema.string());
 
     // Flatten yaml nodes (containing "follow") to a single YAML node containing all the information
@@ -299,7 +299,7 @@ bool compareNodesRecursive(const YAML::Node& node_schema,
                     // Trivial types didn't check, try to load an schema from 'type'
                     else
                     {
-                        auto file_schema = findFile(type + ".schema", folders);
+                        auto file_schema = findFileRecursive(type + SCHEMA_EXTENSION, folders);
 
                         // Check file exists
                         if (not filesystem::exists(file_schema))
@@ -309,7 +309,7 @@ bool compareNodesRecursive(const YAML::Node& node_schema,
                                        ", element " + std::to_string(i) + 
                                        " of type" + type +
                                        ": couldn't check against trivial types and " + 
-                                       type + ".schema" + " file was not found");
+                                       type + SCHEMA_EXTENSION + " file was not found");
                             is_valid = false;
                             continue;
                         }

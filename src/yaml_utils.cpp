@@ -46,7 +46,7 @@ void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_sche
         if (n.first.as<std::string>() == "follow")
         {
             // Try to find the file
-            filesystem::path path_follow = findFile(n.second.as<std::string>(), folders);
+            filesystem::path path_follow = findFileRecursive(n.second.as<std::string>(), folders);
 
             // Case input yaml, folders has to be modified to keep relative paths
             if (not is_schema)
@@ -134,18 +134,24 @@ void addNodeYaml(YAML::Node& node, const std::string& key, const YAML::Node& val
     }
 }
 
-filesystem::path findFile(const std::string& name, const std::vector<std::string>& folders)
+filesystem::path findFileRecursive(const std::string& name_with_extension, const std::vector<std::string>& folders)
 {
     for (auto folder : folders)
     {
-        filesystem::path file_path = filesystem::path(folder) / filesystem::path(name);
-        if (filesystem::exists(file_path))
+        if (filesystem::exists(folder) and filesystem::is_directory(folder))
         {
-            return file_path;
+            for (auto const & entry : filesystem::recursive_directory_iterator(folder))
+            {
+                if (filesystem::is_regular_file(entry) and 
+                    entry.path().filename().string() == name_with_extension)
+                {
+                    return entry;
+                }
+            }
         }
     }
 
-    throw std::runtime_error("File '" + name + "' not found in provided folters");
+    throw std::runtime_error("File '" + name_with_extension + "' not found in provided folders");
 }
 
 void writeToLog(std::stringstream& log, const std::string& message)
