@@ -9,7 +9,7 @@ using namespace yaml_schema_cpp;
 
 TEST(schema, plain_yaml)
 {
-  loadSchema("test2.schema",{ROOT_DIR + "/test/yaml/schema", ROOT_DIR + "/test/yaml/other_schema"});
+  loadSchema("test1.schema",{ROOT_DIR + "/test/yaml/schema", ROOT_DIR + "/test/yaml/other_schema"});
 }
 
 TEST(schema, follow)
@@ -24,6 +24,7 @@ TEST(schema, wrong)
                                        "not_type",
                                        "not_doc",
                                        "wrong_default",
+                                       "wrong_default_options",
                                        "wrong_mandatory", 
                                        "wrong_yaml_type",
                                        "wrong_doc",

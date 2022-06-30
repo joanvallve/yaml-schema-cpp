@@ -25,15 +25,23 @@ YamlServer::YamlServer(const std::vector<std::string>& folders_schema, const std
     flattenNode(node_input_, {path_input_.parent_path().string()}, false);
 }
 
-bool YamlServer::validate(const std::string& name_schema)
+bool YamlServer::applySchema(const std::string& name_schema)
 {
     log_.clear();
     
-    log_ << "-------------------------------------- \n";
-    log_ << "Log of YAML parsing procedure of file: \n";
-    log_ << "-------------------------------------- \n";
+    std::string header1 = "Log of applySchema to YAML file";
+    std::string header2 = "  yaml file: " + path_input_.string();
+    std::string header3 = "  schema: " + name_schema;
 
-    return checkNode(node_input_, name_schema, folders_schema_, log_);
+    auto max_size = std::max({header1.size(),header2.size(),header3.size()});
+
+    log_ << std::string(max_size,'-') << std::endl;
+    log_ << header1 << std::endl;
+    log_ << header2 << std::endl;
+    log_ << header3 << std::endl;
+    log_ << std::string(max_size,'-') << std::endl << std::endl;
+
+    return yaml_schema_cpp::applySchema(node_input_, name_schema, folders_schema_, log_);
 }
 
 const std::stringstream& YamlServer::getLog() const

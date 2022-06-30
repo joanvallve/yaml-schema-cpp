@@ -89,11 +89,12 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
         // OPTIONAL sequence 'options'
         if (node_schema["options"])
         {
-            // Check that it is a sequence and that all items have valid type
+            // Check that it is a sequence
             if (not node_schema["options"].IsSequence())
             {
                 throw std::runtime_error("YAML schema: " + node_field + ", 'options' should be a sequence");
             }
+            // check that all items have valid type
             for (auto n_i = 0; n_i < node_schema["options"].size(); n_i++)
             {
                 if (not checkType(node_schema["options"][n_i],node_schema["type"].as<std::string>()))
@@ -101,6 +102,24 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
                     throw std::runtime_error("YAML schema: " + node_field + 
                                              ", 'options'[" + std::to_string(n_i) + 
                                              "] has wrong type (should be " + node_schema["type"].as<std::string>() + ")");
+                }
+            }
+            // If default, check that it is in options
+            if (node_schema["default"])
+            {
+                bool option_found = false;
+                for (auto valid_n : node_schema["options"])
+                {
+                    if (compare(valid_n, node_schema["default"], node_schema["type"].as<std::string>()))
+                    {
+                        option_found = true;
+                        break;
+                    }
+                }
+                if (not option_found)
+                {
+                    throw std::runtime_error("YAML schema: " + node_field + 
+                                             ", 'default' value should be one of the specified in 'options'");
                 }
             }
         }
@@ -129,15 +148,12 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
         // OPTIONAL sequence 'options'
         if (node_schema["options"])
         {
-            std::cout << "valid options\n";
-            // Check that it is a sequence and that all items have valid type
+            // Check that it is a sequence
             if (not node_schema["options"].IsSequence())
             {
-                std::cout << "valid options not sequence\n";
                 throw std::runtime_error("YAML schema: " + node_field + ", 'options' should be a sequence");
             }
-            else
-                std::cout << "valid options sequence\n";
+            // Check that all items have valid type
             for (auto n_i = 0; n_i < node_schema["options"].size(); n_i++)
             {
                 if (not checkType(node_schema["options"][n_i],node_schema["type"].as<std::string>()))
@@ -163,23 +179,25 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
     }
 }
 
-bool checkNode(YAML::Node&  node_input,
-               const std::string& name_schema,
-               const std::vector<std::string>& folders,
-               std::stringstream& log)
+bool applySchema(YAML::Node&  node_input,
+                 const std::string& name_schema,
+                 const std::vector<std::string>& folders,
+                 std::stringstream& log,
+                 const std::string& acc_field)
 {
     // Load and check schema
     YAML::Node node_schema = loadSchema(name_schema, folders);
 
     // Check node_input against node_schema
-    return compareNodesRecursive(node_schema, node_input, folders, log);
+    return applySchemaRecursive(node_input, node_input, node_schema, folders, log, acc_field);
 }
 
-bool compareNodesRecursive(const YAML::Node& node_schema,
-                           YAML::Node& node_input,
-                           const std::vector<std::string>& folders,
-                           std::stringstream& log,
-                           const std::string& field)
+bool applySchemaRecursive(YAML::Node& node_input,
+                          YAML::Node& node_input_parent,
+                          const YAML::Node& node_schema,
+                          const std::vector<std::string>& folders,
+                          std::stringstream& log,
+                          const std::string& acc_field)
 {
     bool is_valid = true;
     
@@ -193,7 +211,7 @@ bool compareNodesRecursive(const YAML::Node& node_schema,
             if (not checkType(node_input, node_schema["type"].as<std::string>()))
             {
                 writeToLog(log, 
-                           "Field '" + field + "' of wrong type. Should be " + node_schema["type"].as<std::string>());
+                           acc_field + ": wrong type, it should be " + node_schema["type"].as<std::string>());
                 is_valid = false;
             }
             // Check "valid options"
@@ -212,22 +230,32 @@ bool compareNodesRecursive(const YAML::Node& node_schema,
                 {
                     std::stringstream options; 
                     options << node_schema["options"];
-                    writeToLog(log, "Field '" + field + "' wrong value. Should be one of the following: \n" + options.str());
+                    writeToLog(log, acc_field + ": Wrong value, it should be one of the following: \n" + options.str());
                     is_valid = false;
                 }
             }
         }
-        // Does not exist (complain if mandatory)
-        else if(node_schema["mandatory"].as<bool>())
+        // Does not exist
+        else 
         {
-            writeToLog(log, "Input yaml does not contain field: " + field);
-            is_valid = false;
+            // complain if mandatory)
+            if(node_schema["mandatory"].as<bool>())
+            {
+                writeToLog(log, "Input yaml does not contain field: " + acc_field);
+                is_valid = false;
+            }
+            // add node with default value (if parent is defined)
+            else if (node_input_parent.IsDefined())
+            {
+                auto field = filesystem::path(acc_field).filename().string();
+                node_input_parent[field] = node_schema["default"];
+            }
         }
 
         // If not valid, print the doc
         if (not is_valid)
         {
-            writeToLog(log, "-- See the documentation of " + field + ":\n\t" + node_schema["doc"].as<std::string>() + "\n");
+            writeToLog(log, "-- Documentation of '" + acc_field + "': " + node_schema["doc"].as<std::string>() + "\n\n");
         }
     }
     // sequence
@@ -238,7 +266,7 @@ bool compareNodesRecursive(const YAML::Node& node_schema,
             // First check that the node it is really a sequence
             if (not node_input.IsSequence())
             {
-                writeToLog(log, "Input yaml does not contain a sequence in: " + field);
+                writeToLog(log, "Input yaml does not contain a sequence in: " + acc_field);
                 is_valid = false;
             }
             // Then check the validity of each element in the sequence
@@ -255,11 +283,10 @@ bool compareNodesRecursive(const YAML::Node& node_schema,
                         if (not node_input[i]["type"])
                         {
                             writeToLog(log, 
-                                       "Sequence " + 
-                                       field + 
-                                       ", element " + 
+                                       acc_field + 
+                                       ": Element " + 
                                        std::to_string(i) + 
-                                       ": does not contain key 'type'");
+                                       " does not contain key 'type'");
                             is_valid = false; 
                             continue;
                         }
@@ -289,9 +316,9 @@ bool compareNodesRecursive(const YAML::Node& node_schema,
                                 std::stringstream options; 
                                 options << node_schema["options"];
                                 writeToLog(log,  
-                                           "Sequence " + field + 
-                                           ", element " + std::to_string(i) + 
-                                           " has wrong value. Should be one of the following: \n" + options.str());
+                                           acc_field + 
+                                           ": Element " + std::to_string(i) + 
+                                           " has wrong value, it should be one of the following: \n" + options.str());
                                 is_valid = false;
                             }
                         }
@@ -305,30 +332,35 @@ bool compareNodesRecursive(const YAML::Node& node_schema,
                         if (not filesystem::exists(file_schema))
                         {
                             writeToLog(log, 
-                                       "Sequence " + field + 
-                                       ", element " + std::to_string(i) + 
-                                       " of type" + type +
-                                       ": couldn't check against trivial types and " + 
+                                       acc_field + 
+                                       ": element " + std::to_string(i) + 
+                                       " the type " + type +
+                                       " couldn't be checked against trivial types and " + 
                                        type + SCHEMA_EXTENSION + " file was not found");
                             is_valid = false;
                             continue;
                         }
                         // Validate with the schema file
-                        is_valid = checkNode(node_input[i], file_schema.filename().string(), folders, log) and is_valid;
+                        YAML::Node node_input_i = node_input[i];
+                        is_valid = applySchema(node_input_i, 
+                                               file_schema.filename().string(), 
+                                               folders, 
+                                               log, acc_field + "[" + std::to_string(i) + "]") 
+                                   and is_valid;
                     }
                 }
             }
         }
         else if (node_schema["mandatory"]) // complain inexistence if mandatory
         {
-            writeToLog(log, "Input yaml does not contain field: " + field);
+            writeToLog(log, "Input yaml does not contain field: " + acc_field);
             is_valid = false;
         }
 
         // If not valid, print the doc
         if (not is_valid)
         {
-            writeToLog(log, "-- See the documentation of " + field + ":\n\t" + node_schema["doc"].as<std::string>() + "\n");
+            writeToLog(log, "-- Documentation of '" + acc_field + "': " + node_schema["doc"].as<std::string>() + "\n\n");
         }
     }
     // map of params
@@ -336,15 +368,16 @@ bool compareNodesRecursive(const YAML::Node& node_schema,
     {
         for (auto node_schema_child : node_schema)
         {
-            const YAML::Node& node_input_child = (node_input.IsDefined() ? 
-                                                  node_input[node_schema_child.first.as<std::string>()] : 
-                                                  node_input);
+            YAML::Node node_input_child = (node_input.IsDefined() ? 
+                                           node_input[node_schema_child.first.as<std::string>()] : 
+                                           node_input);
 
-            is_valid = is_valid and compareNodesRecursive(node_schema_child.second, 
-                                                node_input_child,
-                                                folders,
-                                                log,
-                                                node_schema_child.first.as<std::string>());
+            is_valid = is_valid and applySchemaRecursive(node_input_child,
+                                                         node_input,
+                                                         node_schema_child.second, 
+                                                         folders,
+                                                         log,
+                                                         (acc_field.empty() ? "" : acc_field + "/") + node_schema_child.first.as<std::string>());
         }
     }
     else

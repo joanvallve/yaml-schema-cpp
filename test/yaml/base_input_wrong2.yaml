@@ -1,0 +1,3 @@
+map1:
+  param1: sometext #should be int
+  param2: "string"

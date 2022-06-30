@@ -15,7 +15,7 @@ class YamlServer
   public:
     YamlServer(const std::vector<std::string>& folders_schema, const std::string& path_input);
 
-    bool validate(const std::string& name_schema);
+    bool applySchema(const std::string& name_schema);
 
     const std::stringstream& getLog() const;
 
