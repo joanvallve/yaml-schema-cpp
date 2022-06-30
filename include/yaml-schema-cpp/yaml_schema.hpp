@@ -19,7 +19,7 @@ static std::string SCHEMA_EXTENSION = ".schema";
 
 namespace filesystem = boost::filesystem;
 
-YAML::Node loadSchema(const std::string& schema_file, const std::vector<std::string>& folders_schema);
+YAML::Node loadSchema(std::string schema_file, const std::vector<std::string>& folders_schema);
 void checkSchema(const YAML::Node& node_schema, const std::string& field = "");
 
 bool applySchema(YAML::Node& node_input, 

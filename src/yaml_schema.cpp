@@ -7,14 +7,18 @@ namespace yaml_schema_cpp
 
 namespace filesystem = boost::filesystem;
 
-YAML::Node loadSchema(const std::string& name_schema, const std::vector<std::string>& folders_schema)
+YAML::Node loadSchema(std::string name_schema, const std::vector<std::string>& folders_schema)
 {
     // Check extension
-    if (filesystem::extension(name_schema) != SCHEMA_EXTENSION)
+    if (filesystem::extension(name_schema).empty() )
+    {
+        name_schema += SCHEMA_EXTENSION;
+    }
+    else if (filesystem::extension(name_schema) != SCHEMA_EXTENSION)
     {
         throw std::runtime_error("Wrong schema file extension " + 
                                  name_schema + 
-                                 ", it should be '." + 
+                                 ", it should be '" + 
                                  SCHEMA_EXTENSION + 
                                  "'");
     }
