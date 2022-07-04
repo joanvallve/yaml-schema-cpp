@@ -26,14 +26,16 @@ bool applySchema(YAML::Node& node_input,
                  const std::string& name_schema, 
                  const std::vector<std::string>& folders,
                  std::stringstream& log,
-                 const std::string& field = "");
+                 const std::string& acc_field = "");
                  
 bool applySchemaRecursive(YAML::Node& node_input,
                           YAML::Node& node_input_parent,
                           const YAML::Node& node_schema,
                           const std::vector<std::string>& folders,
                           std::stringstream& log,
-                          const std::string& field = "");
+                          const std::string& acc_field = "");
+
+bool checkOptions(const YAML::Node& input_node, const YAML::Node& options_node, const std::string& type);
 
 bool isScalarSchema(const YAML::Node& node_schema);
 bool isMapSchema(const YAML::Node& node_schema);

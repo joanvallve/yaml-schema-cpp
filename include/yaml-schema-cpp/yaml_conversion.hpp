@@ -55,7 +55,17 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
             YAML::Node values;
 
             // ==========================================================================================
-            if (node[0].Type() == NodeType::Sequence) // sizes given by YAML
+            // Special case empty vector/matrix
+            if (node.IsSequence() and node.size() == 0)
+            {
+                if (_Rows != Eigen::Dynamic and _Cols != Eigen::Dynamic)
+                {
+                    std::cout << "Empty input sequence with not dynamic matrix" << std::endl;
+                    return false;
+                }
+            }
+            // sizes given by YAML
+            else if (node[0].Type() == NodeType::Sequence) 
             {
                 if (node.size() == 2 && node[0].size() == 2 && node[1].Type() == NodeType::Sequence
                         && node[1].size() == node[0][0].as<unsigned int>() * node[0][1].as<unsigned int>()) // YAML string is well formed
@@ -63,11 +73,13 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
                     int rows = node[0][0].as<int>();
                     int cols = node[0][1].as<int>();
                     values = node[1];
-                    if (_Rows == Eigen::Dynamic && _Cols == Eigen::Dynamic) // full dynamic
+                    // full dynamic
+                    if (_Rows == Eigen::Dynamic && _Cols == Eigen::Dynamic)
                     {
                         matrix.resize(rows, cols);
                     }
-                    else if (_Rows == Eigen::Dynamic) // rows dynamic
+                    // only rows dynamic
+                    else if (_Rows == Eigen::Dynamic) 
                     {
                         if (_Cols != cols)
                         {
@@ -76,7 +88,8 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
                         }
                         matrix.resize(rows, Eigen::NoChange);
                     }
-                    else if (_Cols == Eigen::Dynamic) // cols dynamic
+                    // only cols dynamic
+                    else if (_Cols == Eigen::Dynamic) 
                     {
                         if (_Rows != rows)
                         {
@@ -100,7 +113,8 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
                     return false;
                 }
             }
-            else // sizes given by Matrix
+            // sizes deduced
+            else 
             {
                 // If full dynamic -> error
                 if (_Rows == Eigen::Dynamic && _Cols == Eigen::Dynamic)

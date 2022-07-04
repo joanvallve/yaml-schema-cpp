@@ -156,7 +156,7 @@ filesystem::path findFileRecursive(const std::string& name_with_extension, const
 
 void writeToLog(std::stringstream& log, const std::string& message)
 {
-    log << message << std::endl;
+    log << message;
 }
 
 std::list<YAML::Node> findNodesWithKey(const YAML::Node root_node, const std::string& key)

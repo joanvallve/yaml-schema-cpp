@@ -96,6 +96,33 @@ TEST(check_type, Eigen)
   EXPECT_FALSE(checkType(node, "MatrixXd"));
 }
 
+TEST(check_type, EigenEmpty)
+{
+  YAML::Node node_loaded = YAML::LoadFile(ROOT_DIR + "/test/yaml/empty_vectorXd.yaml");
+  
+  YAML::Node node = node_loaded["vector"];
+  EXPECT_TRUE(node.IsDefined());
+  EXPECT_EQ(node.size(),0);
+  EXPECT_TRUE(node.IsSequence());
+
+  EXPECT_FALSE(checkType(node, "unknown_class"));
+  EXPECT_FALSE(checkType(node, "bool"));
+  EXPECT_FALSE(checkType(node, "char"));
+  EXPECT_FALSE(checkType(node, "int"));
+  EXPECT_FALSE(checkType(node, "unsigned int"));
+  EXPECT_FALSE(checkType(node, "long int"));
+  EXPECT_FALSE(checkType(node, "long unsigned int"));
+  EXPECT_FALSE(checkType(node, "float"));
+  EXPECT_FALSE(checkType(node, "double"));
+  EXPECT_FALSE(checkType(node, "string"));
+  EXPECT_FALSE(checkType(node, "std::string"));
+  EXPECT_TRUE(checkType(node, "VectorXd"));
+  EXPECT_TRUE(checkType(node, "Eigen::VectorXd"));
+  EXPECT_FALSE(checkType(node, "Vector4d"));
+  EXPECT_FALSE(checkType(node, "Matrix2d"));
+  EXPECT_TRUE(checkType(node, "MatrixXd"));
+}
+
 TEST(check_type, Eigen_matrix)
 {
   YAML::Node node_sizes, node_values, node;
