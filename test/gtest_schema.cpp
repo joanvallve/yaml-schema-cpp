@@ -19,8 +19,7 @@ TEST(schema, follow)
 
 TEST(schema, wrong)
 {
-  std::list<std::string> wrong_schemas{"not_default",
-                                       "not_mandatory",
+  std::list<std::string> wrong_schemas{"not_mandatory",
                                        "not_type",
                                        "not_doc",
                                        "wrong_default",

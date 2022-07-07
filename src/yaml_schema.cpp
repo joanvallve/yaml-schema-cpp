@@ -26,13 +26,30 @@ YAML::Node loadSchema(std::string name_schema, const std::vector<std::string>& f
     filesystem::path path_schema = findFileRecursive(name_schema, folders_schema);
 
     // Load schema yaml
-    YAML::Node node_schema = YAML::LoadFile(path_schema.string());
+    YAML::Node node_schema;
+    try
+    {
+        node_schema = YAML::LoadFile(path_schema.string());
+    }
+    catch (const std::exception& e)
+    {
+        throw std::runtime_error("In yaml_schema_cpp::loadSchema: Couldn't load the yaml file " + 
+                                 path_schema.string() + ". The following error: " + e.what());
+    }
 
     // Flatten yaml nodes (containing "follow") to a single YAML node containing all the information
     flattenNode(node_schema, folders_schema, true, override);
 
     // Check schema
-    checkSchema(node_schema, "");
+    try
+    {
+        checkSchema(node_schema, "");
+    }
+    catch (const std::exception& e)
+    {
+        throw std::runtime_error("In yaml_schema_cpp::loadSchema: The schema file " + 
+                                 path_schema.string() + " is not valid. The following error: " + e.what());
+    }
 
     return node_schema;
 }
@@ -188,6 +205,7 @@ bool applySchema(YAML::Node&  node_input,
                  bool override)
 {
     // Load and check schema
+    std::cout << "load schema: " << name_schema << std::endl;
     YAML::Node node_schema = loadSchema(name_schema, folders, override);
 
     // Check node_input against node_schema
@@ -244,28 +262,25 @@ bool applySchemaRecursive(YAML::Node& node_input,
                 }
                 else
                 {
-                    auto derived_type = node_input["type"].as<std::string>();
-                    auto file_schema = findFileRecursive(derived_type + SCHEMA_EXTENSION, folders);
-
-                    // Check file exists
-                    if (not filesystem::exists(file_schema))
+                    // Validate with the base schema file
+                    if (node_schema["options"])
                     {
-                        writeToLog(log, acc_field + 
-                                   " has type " + derived_type +
-                                   " but " + derived_type + SCHEMA_EXTENSION + " file was not found\n");
-                        is_valid_current = false;
-                    }
-                    else
-                    {
-                        // Validate with the schema file
                         is_valid_children = applySchema(node_input, 
-                                                        file_schema.filename().string(), 
+                                                        node_schema["base"].as<std::string>(), 
                                                         folders, 
                                                         log, 
                                                         acc_field,
                                                         override)
                                             and is_valid_children;
                     }
+                    // Validate with the derived schema file
+                    is_valid_children = applySchema(node_input, 
+                                                    node_input["type"].as<std::string>(), 
+                                                    folders, 
+                                                    log, 
+                                                    acc_field,
+                                                    override)
+                                        and is_valid_children;
                 }
             }
         }
@@ -341,29 +356,26 @@ bool applySchemaRecursive(YAML::Node& node_input,
                         }
                         else
                         {
-                            auto derived_type = node_input[i]["type"].as<std::string>();
-                            auto file_schema = findFileRecursive(derived_type + SCHEMA_EXTENSION, folders);
-
-                            // Check file exists
-                            if (not filesystem::exists(file_schema))
+                            YAML::Node node_input_i = node_input[i];
+                            // Validate with the base schema file
+                            if (node_schema["options"])
                             {
-                                writeToLog(log, acc_field + 
-                                           ": element " + std::to_string(i) + " has type " + derived_type +
-                                           " but " + derived_type + SCHEMA_EXTENSION + " file was not found\n");
-                                is_valid_current = false;
-                            }
-                            else
-                            {
-                                // Validate with the schema file
-                                YAML::Node node_input_i = node_input[i];
                                 is_valid_children = applySchema(node_input_i, 
-                                                                file_schema.filename().string(), 
+                                                                node_schema["base"].as<std::string>(), 
                                                                 folders, 
                                                                 log, 
                                                                 acc_field + "[" + std::to_string(i) + "]",
                                                                 override)
                                                     and is_valid_children;
                             }
+                            // Validate with the derived schema file
+                            is_valid_children = applySchema(node_input_i, 
+                                                            node_input_i["type"].as<std::string>(), 
+                                                            folders, 
+                                                            log, 
+                                                            acc_field + "[" + std::to_string(i) + "]",
+                                                            override)
+                                                and is_valid_children;
                         }
                     }
                 }
