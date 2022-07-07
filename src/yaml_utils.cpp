@@ -14,15 +14,15 @@ namespace yaml_schema_cpp
 
 namespace filesystem = boost::filesystem;
 
-void flattenNode(YAML::Node& node, std::vector<std::string> folders, bool is_schema)
+void flattenNode(YAML::Node& node, std::vector<std::string> folders, bool is_schema, bool override)
 {
     switch (node.Type())
     {
         case YAML::NodeType::Map:
-            flattenMap(node, folders, is_schema);
+            flattenMap(node, folders, is_schema, override);
             break;
         case YAML::NodeType::Sequence:
-            flattenSequence(node, folders, is_schema);
+            flattenSequence(node, folders, is_schema, override);
             break;
         case YAML::NodeType::Scalar:
         default:
@@ -30,15 +30,15 @@ void flattenNode(YAML::Node& node, std::vector<std::string> folders, bool is_sch
     }
 }
 
-void flattenSequence(YAML::Node& node, std::vector<std::string> folders, bool is_schema)
+void flattenSequence(YAML::Node& node, std::vector<std::string> folders, bool is_schema, bool override)
 {
     for (auto node_i : node)
     {
-        flattenNode(node_i, folders, is_schema);
+        flattenNode(node_i, folders, is_schema, override);
     }
 }
 
-void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_schema)
+void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_schema, bool override)
 {
     YAML::Node node_aux;  // Done using copy to preserve order of follow
     for (auto n : node)
@@ -58,36 +58,36 @@ void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_sche
             YAML::Node node_child = YAML::LoadFile(path_follow.string());
 
             // Recursively flatten the "follow" file
-            flattenNode(node_child, folders, is_schema);
+            flattenNode(node_child, folders, is_schema, override);
 
             for (auto nc : node_child)
             {
                 // Case schema
                 if (is_schema)
                 {
-                    addNodeSchema(node_aux,nc.first.as<std::string>(),nc.second);
+                    addNodeSchema(node_aux, nc.first.as<std::string>(), nc.second, override);
                 }
                 // Case input yaml
                 else
                 {
-                    addNodeYaml(node_aux,nc.first.as<std::string>(),nc.second);
+                    addNodeYaml(node_aux, nc.first.as<std::string>(), nc.second, override);
                 }
             }
         }
         else
         {
             // Recursively flatten the "follow" file
-            flattenNode(n.second, folders, is_schema);
+            flattenNode(n.second, folders, is_schema, override);
 
             // Case schema
             if (is_schema)
             {
-                addNodeSchema(node_aux,n.first.as<std::string>(),n.second);
+                addNodeSchema(node_aux, n.first.as<std::string>(), n.second, override);
             }
             // Case input yaml
             else
             {
-                addNodeYaml(node_aux,n.first.as<std::string>(),n.second);
+                addNodeYaml(node_aux, n.first.as<std::string>(), n.second, override);
             }
         }
     }
@@ -95,7 +95,7 @@ void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_sche
     node = node_aux;
 }
 
-void addNodeYaml(YAML::Node& node, const std::string& key, const YAML::Node& value)
+void addNodeYaml(YAML::Node& node, const std::string& key, const YAML::Node& value, bool override)
 {
     if (node[key])
     {
@@ -103,7 +103,14 @@ void addNodeYaml(YAML::Node& node, const std::string& key, const YAML::Node& val
         {
             case YAML::NodeType::Scalar:
             {
-                throw std::runtime_error("Trying to add an already existing scalar node.");
+                if (override)
+                {
+                    node[key] = value;
+                }
+                else
+                {
+                    throw std::runtime_error("Trying to add an already existing scalar node.");
+                }
             }
             case YAML::NodeType::Sequence:
             {
@@ -118,7 +125,7 @@ void addNodeYaml(YAML::Node& node, const std::string& key, const YAML::Node& val
                 for (auto value_map_node : value)
                 {
                     YAML::Node node_key = node[key];
-                    addNodeYaml(node_key, value_map_node.first.as<std::string>(), value_map_node.second);
+                    addNodeYaml(node_key, value_map_node.first.as<std::string>(), value_map_node.second, override);
                 }
                 break;
             }

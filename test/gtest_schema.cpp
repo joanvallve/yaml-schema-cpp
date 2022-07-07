@@ -29,9 +29,7 @@ TEST(schema, wrong)
                                        "wrong_yaml_type",
                                        "wrong_doc",
                                        "wrong_options",
-                                       "wrong_options2",
-                                       "same_param",
-                                       "same_param_diff_type"};
+                                       "wrong_options2"};
 
   for (auto w_schema : wrong_schemas)
   {
@@ -39,6 +37,36 @@ TEST(schema, wrong)
     ASSERT_THROW(loadSchema(w_schema + ".schema",
                             { ROOT_DIR + "/test/yaml/schema", 
                               ROOT_DIR + "/test/yaml/other_schema"}), 
+                 std::runtime_error);
+  }
+}
+
+TEST(schema, override)
+{
+  std::list<std::string> wrong_schemas{"same_param",
+                                       "same_param_diff_type"};
+
+  for (auto w_schema : wrong_schemas)
+  {
+    std::cout << "Checking " << w_schema << ".schema..." << std::endl;
+    loadSchema(w_schema + ".schema",
+               {ROOT_DIR + "/test/yaml/schema", 
+                ROOT_DIR + "/test/yaml/other_schema"});
+  }
+}
+
+TEST(schema, dont_override)
+{
+  std::list<std::string> wrong_schemas{"same_param",
+                                       "same_param_diff_type"};
+
+  for (auto w_schema : wrong_schemas)
+  {
+    std::cout << "Checking " << w_schema << ".schema..." << std::endl;
+    ASSERT_THROW(loadSchema(w_schema + ".schema",
+                            { ROOT_DIR + "/test/yaml/schema", 
+                              ROOT_DIR + "/test/yaml/other_schema"},
+                            false), 
                  std::runtime_error);
   }
 }

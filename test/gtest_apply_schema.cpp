@@ -52,6 +52,7 @@ TEST(schema, wrong)
                                        ROOT_DIR + "/test/yaml/base_input_wrong5.yaml"};
   for (auto input : input_yamls)
   {
+    std::cout << "testing " << input << std::endl;
     YamlServer server = YamlServer({ROOT_DIR}, input);
 
     ASSERT_FALSE(server.applySchema("base_input.schema"));

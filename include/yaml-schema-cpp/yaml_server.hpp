@@ -13,9 +13,16 @@ namespace filesystem = boost::filesystem;
 class YamlServer
 {
   public:
-    YamlServer(const std::vector<std::string>& folders_schema, const std::string& path_input);
+    YamlServer(bool override=true);
+    YamlServer(const std::vector<std::string>& folders_schema, bool override=true);
+    YamlServer(const std::vector<std::string>& folders_schema, const std::string& path_input, bool override=true);
 
     bool applySchema(const std::string& name_schema);
+
+    void addFolderSchema(const std::vector<std::string>& folders_schema, bool before = false);
+    void addFolderSchema(const std::string& folder_schema, bool before = false);
+
+    void loadYaml(const std::string& path_input);
 
     const std::stringstream& getLog() const;
 
@@ -29,6 +36,8 @@ class YamlServer
     std::stringstream log_;
 
     YAML::Node node_input_;
+
+    bool override_;
 };
 
 }  // namespace yaml_schema_cpp

@@ -19,7 +19,7 @@ TEST(addNodeYaml, empty)
   ASSERT_TRUE(node1["param1"]);
   ASSERT_TRUE(node1["param2"]);
 
-  addNodeYaml(node2, "namespace", node1);
+  addNodeYaml(node2, "namespace", node1, true);
   
   std::cout << "node2: " << std::endl << node2 << std::endl;
 
@@ -44,7 +44,7 @@ TEST(addNodeYaml, empty2)
   ASSERT_TRUE(node2["namespace"]["param1"]);
   ASSERT_TRUE(node2["namespace"]["param2"]);
 
-  addNodeYaml(node3, "namespace", node2["namespace"]);
+  addNodeYaml(node3, "namespace", node2["namespace"], true);
   
   std::cout << "node3: " << std::endl << node3 << std::endl;
 
@@ -69,7 +69,7 @@ TEST(addNodeYaml, empty_sequence)
   ASSERT_TRUE(node2["namespace"][0]);
   ASSERT_TRUE(node2["namespace"][1]);
 
-  addNodeYaml(node3, "namespace", node2["namespace"]);
+  addNodeYaml(node3, "namespace", node2["namespace"], true);
   
   std::cout << "node3: " << std::endl << node3 << std::endl;
 
@@ -104,7 +104,7 @@ TEST(addNodeYaml, add)
   ASSERT_TRUE(node4["namespace"]);
   ASSERT_TRUE(node4["namespace"]["param3"]);
 
-  addNodeYaml(node2, "namespace", node4["namespace"]);
+  addNodeYaml(node2, "namespace", node4["namespace"], true);
   
   std::cout << "node2: " << std::endl << node2 << std::endl;
 
@@ -117,7 +117,39 @@ TEST(addNodeYaml, add)
   ASSERT_TRUE(node2["namespace"]["param3"]);
 }
 
-TEST(addNodeYaml, same_key)
+TEST(addNodeYaml, same_key_override)
+{
+  YAML::Node node1, node2, node3, node4;
+  node1["param1"] = 1;
+  node1["param2"] = 2;
+  node2["namespace"] = node1;
+
+  std::cout << "node2: " << std::endl << node2 << std::endl;
+
+  ASSERT_TRUE(node1["param1"]);
+  ASSERT_TRUE(node1["param2"]);
+  ASSERT_TRUE(node2["namespace"]);
+  ASSERT_TRUE(node2["namespace"]["param1"]);
+  ASSERT_TRUE(node2["namespace"]["param2"]);
+
+  node3["param1"] = 3;
+  node4["namespace"] = node3;
+
+  std::cout << "node4: " << std::endl << node4 << std::endl;
+
+  ASSERT_TRUE(node3["param1"]);
+  ASSERT_TRUE(node4["namespace"]);
+  ASSERT_TRUE(node4["namespace"]["param1"]);
+
+  addNodeYaml(node2, "namespace", node4["namespace"], true);
+
+  ASSERT_TRUE(node2["namespace"]);
+  ASSERT_TRUE(node2["namespace"]["param1"]);
+  ASSERT_TRUE(node2["namespace"]["param2"]);
+  ASSERT_EQ(node2["namespace"]["param1"].as<int>(), 3);
+}
+
+TEST(addNodeYaml, same_key_dont_override)
 {
   YAML::Node node1, node2, node3, node4;
   node1["param1"] = 1.0;
@@ -141,10 +173,10 @@ TEST(addNodeYaml, same_key)
   ASSERT_TRUE(node4["namespace"]);
   ASSERT_TRUE(node4["namespace"]["param1"]);
 
-  ASSERT_THROW(addNodeYaml(node2, "namespace", node4["namespace"]),std::runtime_error);
+  ASSERT_THROW(addNodeYaml(node2, "namespace", node4["namespace"], false),std::runtime_error);
 }
 
-TEST(addNodeYaml, compose_sequence)
+TEST(addNodeYaml, compose_sequence_override)
 {
   YAML::Node node1, node2, node3, node4;
   node1[0] = 1.0;
@@ -171,7 +203,45 @@ TEST(addNodeYaml, compose_sequence)
   ASSERT_TRUE(node4["namespace"][0]);
   ASSERT_TRUE(node4["namespace"][1]);
 
-  addNodeYaml(node2, "namespace", node4["namespace"]);
+  addNodeYaml(node2, "namespace", node4["namespace"], true);
+  
+  std::cout << "node2: " << std::endl << node2 << std::endl;
+
+  ASSERT_TRUE(node2["namespace"]);
+  ASSERT_TRUE(node2["namespace"][0]);
+  ASSERT_TRUE(node2["namespace"][1]);
+  ASSERT_TRUE(node2["namespace"][2]);
+  ASSERT_TRUE(node2["namespace"][3]);
+}
+
+TEST(addNodeYaml, compose_sequence_dont_override)
+{
+  YAML::Node node1, node2, node3, node4;
+  node1[0] = 1.0;
+  node1[1] = 2.0;
+  node2["namespace"] = node1;
+
+  std::cout << "node2: " << std::endl << node2 << std::endl;
+
+  ASSERT_TRUE(node1[0]);
+  ASSERT_TRUE(node1[1]);
+  ASSERT_TRUE(node2["namespace"]);
+  ASSERT_TRUE(node2["namespace"][0]);
+  ASSERT_TRUE(node2["namespace"][1]);
+  
+  node3[0] = 3.0;
+  node3[1] = 4.0;
+  node4["namespace"] = node3;
+
+  std::cout << "node3: " << std::endl << node3 << std::endl;
+
+  ASSERT_TRUE(node3[0]);
+  ASSERT_TRUE(node3[1]);
+  ASSERT_TRUE(node4["namespace"]);
+  ASSERT_TRUE(node4["namespace"][0]);
+  ASSERT_TRUE(node4["namespace"][1]);
+
+  addNodeYaml(node2, "namespace", node4["namespace"], false);
   
   std::cout << "node2: " << std::endl << node2 << std::endl;
 

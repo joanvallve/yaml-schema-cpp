@@ -7,7 +7,7 @@ namespace yaml_schema_cpp
 
 namespace filesystem = boost::filesystem;
 
-YAML::Node loadSchema(std::string name_schema, const std::vector<std::string>& folders_schema)
+YAML::Node loadSchema(std::string name_schema, const std::vector<std::string>& folders_schema, bool override)
 {
     // Check extension
     if (filesystem::extension(name_schema).empty() )
@@ -28,10 +28,10 @@ YAML::Node loadSchema(std::string name_schema, const std::vector<std::string>& f
     YAML::Node node_schema = YAML::LoadFile(path_schema.string());
 
     // Flatten yaml nodes (containing "follow") to a single YAML node containing all the information
-    flattenNode(node_schema, folders_schema, true);
+    flattenNode(node_schema, folders_schema, true, override);
 
     // Check schema
-    checkSchema(node_schema);
+    checkSchema(node_schema, "");
 
     return node_schema;
 }
@@ -191,13 +191,14 @@ bool applySchema(YAML::Node&  node_input,
                  const std::string& name_schema,
                  const std::vector<std::string>& folders,
                  std::stringstream& log,
-                 const std::string& acc_field)
+                 const std::string& acc_field,
+                 bool override)
 {
     // Load and check schema
-    YAML::Node node_schema = loadSchema(name_schema, folders);
+    YAML::Node node_schema = loadSchema(name_schema, folders, override);
 
     // Check node_input against node_schema
-    return applySchemaRecursive(node_input, node_input, node_schema, folders, log, acc_field);
+    return applySchemaRecursive(node_input, node_input, node_schema, folders, log, acc_field, override);
 }
 
 bool applySchemaRecursive(YAML::Node& node_input,
@@ -205,9 +206,11 @@ bool applySchemaRecursive(YAML::Node& node_input,
                           const YAML::Node& node_schema,
                           const std::vector<std::string>& folders,
                           std::stringstream& log,
-                          const std::string& acc_field)
+                          const std::string& acc_field,
+                          bool override)
 {
-    bool is_valid = true;
+    bool is_valid_current = true;
+    bool is_valid_children = true;
     
     // Param schema (has mandatory and type)
     if (isScalarSchema(node_schema))
@@ -222,7 +225,7 @@ bool applySchemaRecursive(YAML::Node& node_input,
                 if (not checkType(node_input, node_schema["type"].as<std::string>()))
                 {
                     writeToLog(log, acc_field + ": wrong type, it should be " + node_schema["type"].as<std::string>() + "\n");
-                    is_valid = false;
+                    is_valid_current = false;
                 }
                 // Check "valid options"
                 else if (node_schema["options"])
@@ -233,7 +236,7 @@ bool applySchemaRecursive(YAML::Node& node_input,
                         options << node_schema["options"];
                         writeToLog(log, acc_field + 
                                    " has wrong value, it should be one of the following: \n" + options.str() + "\n");
-                        is_valid = false;
+                        is_valid_current = false;
                     }
                 }
             }
@@ -244,7 +247,7 @@ bool applySchemaRecursive(YAML::Node& node_input,
                 if (not node_input["type"])
                 {
                     writeToLog(log, acc_field + ": does not contain key 'type'\n");
-                    is_valid = false;
+                    is_valid_current = false;
                 }
                 else
                 {
@@ -257,16 +260,18 @@ bool applySchemaRecursive(YAML::Node& node_input,
                         writeToLog(log, acc_field + 
                                    " has type " + derived_type +
                                    " but " + derived_type + SCHEMA_EXTENSION + " file was not found\n");
-                        is_valid = false;
+                        is_valid_current = false;
                     }
                     else
                     {
                         // Validate with the schema file
-                        is_valid = applySchema(node_input, 
-                                               file_schema.filename().string(), 
-                                               folders, 
-                                               log, acc_field) 
-                                   and is_valid;
+                        is_valid_children = applySchema(node_input, 
+                                                        file_schema.filename().string(), 
+                                                        folders, 
+                                                        log, 
+                                                        acc_field,
+                                                        override)
+                                            and is_valid_children;
                     }
                 }
             }
@@ -278,7 +283,7 @@ bool applySchemaRecursive(YAML::Node& node_input,
             if(node_schema["mandatory"].as<bool>())
             {
                 writeToLog(log, "Input yaml does not contain field: " + acc_field + "\n");
-                is_valid = false;
+                is_valid_current = false;
             }
             // add node with default value (if parent is defined)
             else if (node_schema["default"] and node_input_parent.IsDefined())
@@ -286,24 +291,6 @@ bool applySchemaRecursive(YAML::Node& node_input,
                 auto field = filesystem::path(acc_field).filename().string();
                 node_input_parent[field] = node_schema["default"];
             }
-        }
-
-        // If not valid, print the doc
-        if (not is_valid)
-        {
-            writeToLog(log, "-- '" + acc_field + "':\n");
-            writeToLog(log, "\tDoc: " + node_schema["doc"].as<std::string>() + "\n");
-            writeToLog(log, "\tType: " + node_schema["type"].as<std::string>() + "\n");
-            if (node_schema["options"])
-            {
-                writeToLog(log, "\tAccepted values: ");
-                for (auto option_n : node_schema["options"])
-                {
-                    writeToLog(log, option_n.as<std::string>() + ", ");
-                }
-                writeToLog(log, "\n");
-            }
-            writeToLog(log, "\n");
         }
     }
     // sequence
@@ -315,7 +302,7 @@ bool applySchemaRecursive(YAML::Node& node_input,
             if (not node_input.IsSequence())
             {
                 writeToLog(log, "Input yaml does not contain a sequence in: " + acc_field + "\n");
-                is_valid = false;
+                is_valid_current = false;
             }
             // Then check the validity of each element in the sequence
             else
@@ -331,7 +318,7 @@ bool applySchemaRecursive(YAML::Node& node_input,
                             writeToLog(log, acc_field + 
                                        ": Element " + std::to_string(i) + 
                                        ": wrong type, it should be " + node_schema["type"].as<std::string>() + "\n");
-                            is_valid = false;
+                            is_valid_current = false;
                         }
                         // Check "valid options"
                         else if (node_schema["options"])
@@ -343,7 +330,7 @@ bool applySchemaRecursive(YAML::Node& node_input,
                                 writeToLog(log, acc_field + 
                                            ": Element " + std::to_string(i) + 
                                            " has wrong value, it should be one of the following: \n" + options.str() + "\n");
-                                is_valid = false;
+                                is_valid_current = false;
                             }
                         }
                     }
@@ -356,7 +343,7 @@ bool applySchemaRecursive(YAML::Node& node_input,
                             writeToLog(log, acc_field + 
                                        ": Element " + std::to_string(i) + 
                                        " does not contain key 'type'\n");
-                            is_valid = false; 
+                            is_valid_current = false; 
                             continue;
                         }
                         else
@@ -370,17 +357,19 @@ bool applySchemaRecursive(YAML::Node& node_input,
                                 writeToLog(log, acc_field + 
                                            ": element " + std::to_string(i) + " has type " + derived_type +
                                            " but " + derived_type + SCHEMA_EXTENSION + " file was not found\n");
-                                is_valid = false;
+                                is_valid_current = false;
                             }
                             else
                             {
                                 // Validate with the schema file
                                 YAML::Node node_input_i = node_input[i];
-                                is_valid = applySchema(node_input_i, 
-                                                       file_schema.filename().string(), 
-                                                       folders, 
-                                                       log, acc_field + "[" + std::to_string(i) + "]") 
-                                           and is_valid;
+                                is_valid_children = applySchema(node_input_i, 
+                                                                file_schema.filename().string(), 
+                                                                folders, 
+                                                                log, 
+                                                                acc_field + "[" + std::to_string(i) + "]",
+                                                                override)
+                                                    and is_valid_children;
                             }
                         }
                     }
@@ -390,25 +379,7 @@ bool applySchemaRecursive(YAML::Node& node_input,
         else if (node_schema["mandatory"]) // complain inexistence if mandatory
         {
             writeToLog(log, "Input yaml does not contain field: " + acc_field + "\n");
-            is_valid = false;
-        }
-
-        // If not valid, print the doc
-        if (not is_valid)
-        {
-            writeToLog(log, "-- '" + acc_field + "':\n");
-            writeToLog(log, "\tDoc: " + node_schema["doc"].as<std::string>() + "\n");
-            writeToLog(log, "\tSequence of type: " + node_schema["type"].as<std::string>() + "\n");
-            if (node_schema["options"])
-            {
-                writeToLog(log, "\tAccepted values: ");
-                for (auto option_n : node_schema["options"])
-                {
-                    writeToLog(log, option_n.as<std::string>() + ", ");
-                }
-                writeToLog(log, "\n");
-            }
-            writeToLog(log, "\n");
+            is_valid_current = false;
         }
     }
     // map of params
@@ -420,12 +391,14 @@ bool applySchemaRecursive(YAML::Node& node_input,
                                            node_input[node_schema_child.first.as<std::string>()] : 
                                            node_input);
 
-            is_valid = is_valid and applySchemaRecursive(node_input_child,
-                                                         node_input,
-                                                         node_schema_child.second, 
-                                                         folders,
-                                                         log,
-                                                         (acc_field.empty() ? "" : acc_field + "/") + node_schema_child.first.as<std::string>());
+            is_valid_children = applySchemaRecursive(node_input_child,
+                                                     node_input,
+                                                     node_schema_child.second, 
+                                                     folders,
+                                                     log,
+                                                     (acc_field.empty() ? "" : acc_field + "/") + node_schema_child.first.as<std::string>(),
+                                                     override)
+                                and is_valid_children;
         }
     }
     else
@@ -433,7 +406,25 @@ bool applySchemaRecursive(YAML::Node& node_input,
         throw std::runtime_error("unknown schema node type!");
     }
 
-    return is_valid;
+    // If not valid, print the doc
+    if (not is_valid_current)
+    {
+        writeToLog(log, "-- '" + acc_field + "':\n");
+        writeToLog(log, "\tDoc: " + node_schema["doc"].as<std::string>() + "\n");
+        writeToLog(log, "\t" + node_schema["yaml_type"].as<std::string>() + " of type: " + node_schema["type"].as<std::string>() + "\n");
+        if (node_schema["options"])
+        {
+            writeToLog(log, "\tAccepted values: ");
+            for (auto option_n : node_schema["options"])
+            {
+                writeToLog(log, option_n.as<std::string>() + ", ");
+            }
+            writeToLog(log, "\n");
+        }
+        writeToLog(log, "\n");
+    }
+
+    return is_valid_current and is_valid_children;
 }
 
 bool checkOptions(const YAML::Node& input_node, const YAML::Node& options_node, const std::string& type)
@@ -448,19 +439,33 @@ bool checkOptions(const YAML::Node& input_node, const YAML::Node& options_node, 
     return false;
 }
 
-void addNodeSchema(YAML::Node& node, const std::string& key, const YAML::Node& value)
+void addNodeSchema(YAML::Node& node, const std::string& key, const YAML::Node& value, bool override)
 {
     if (node[key])
     {
         if (isScalarSchema(node[key]))
         {
-            throw std::runtime_error("Trying to add something into an already existing scalar schema node");
+            if (override)
+            {
+                node[key] = value;
+            }
+            else
+            {
+                throw std::runtime_error("Trying to add something into an already existing scalar schema node");
+            }
         }
-        if (isSequenceSchema(node[key]))
+        else if (isSequenceSchema(node[key]))
         {
-            throw std::runtime_error("Trying to add something into an already existing sequence schema node");
+            if (override)
+            {
+                node[key] = value;
+            }
+            else
+            {
+                throw std::runtime_error("Trying to add something into an already existing sequence schema node");
+            }
         }
-        if (isMapSchema(node[key]))
+        else if (isMapSchema(node[key]))
         {
             if (not isMapSchema(value))
             {
@@ -471,13 +476,13 @@ void addNodeSchema(YAML::Node& node, const std::string& key, const YAML::Node& v
                 for (auto value_map_node : value)
                 {
                     YAML::Node node_key = node[key];
-                    addNodeSchema(node_key, value_map_node.first.as<std::string>(), value_map_node.second);
+                    addNodeSchema(node_key, value_map_node.first.as<std::string>(), value_map_node.second, override);
                 }
             }
         }
         else
         {
-            throw std::runtime_error("Trying to add something into an schema node of unknown yaml_type");
+            throw std::runtime_error("Trying to add something into an schema node of unknown yaml_type: " + key);
         }
     }
     else
