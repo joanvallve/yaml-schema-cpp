@@ -22,9 +22,10 @@ YAML::Node loadSchema(std::string name_schema, const std::vector<std::string>& f
                                  SCHEMA_EXTENSION + 
                                  "'");
     }
+    // Find schema file
+    filesystem::path path_schema = findFileRecursive(name_schema, folders_schema);
 
     // Load schema yaml
-    filesystem::path path_schema = findFileRecursive(name_schema, folders_schema);
     YAML::Node node_schema = YAML::LoadFile(path_schema.string());
 
     // Flatten yaml nodes (containing "follow") to a single YAML node containing all the information
@@ -78,18 +79,10 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
         {
             throw std::runtime_error("YAML schema: In " + node_field + ", 'mandatory' should be a bool");
         }
-        // 'default'
-        if (node_schema["default"] and node_schema["mandatory"].as<bool>())
+        // OPTIONAL 'default'
+        if (not node_schema["mandatory"].as<bool>() and node_schema["default"])
         {
-            throw std::runtime_error("YAML schema: " + node_field + " defines default value for a mandatory parameter (useless)");
-        }
-        if (not node_schema["mandatory"].as<bool>())
-        {
-            if (not node_schema["default"])
-            {
-                throw std::runtime_error("YAML schema: " + node_field + " does not contain 'default' in a scalar defined as not mandatory");
-            }
-            else if (not checkType(node_schema["default"], node_schema["type"].as<std::string>()))
+            if (not checkType(node_schema["default"], node_schema["type"].as<std::string>()))
             {
                 throw std::runtime_error("YAML schema: " + node_field + " default value wrong type");
             }
