@@ -12,20 +12,20 @@ TEST(check_type, num)
   YAML::Node node;
   node = 3;
   
-  EXPECT_FALSE(checkType(node, "unknown_class"));
-  EXPECT_FALSE(checkType(node, "bool"));
-  EXPECT_TRUE(checkType(node, "char"));
-  EXPECT_TRUE(checkType(node, "int"));
-  EXPECT_TRUE(checkType(node, "unsigned int"));
-  EXPECT_TRUE(checkType(node, "long int"));
-  EXPECT_TRUE(checkType(node, "long unsigned int"));
-  EXPECT_TRUE(checkType(node, "float"));
-  EXPECT_TRUE(checkType(node, "double"));
-  EXPECT_TRUE(checkType(node, "string"));
-  EXPECT_TRUE(checkType(node, "std::string"));
-  EXPECT_FALSE(checkType(node, "VectorXd"));
-  EXPECT_FALSE(checkType(node, "Eigen::VectorXd"));
-  EXPECT_FALSE(checkType(node, "MatrixXd"));
+  EXPECT_FALSE(checkTrivialType(node, "unknown_class"));
+  EXPECT_FALSE(checkTrivialType(node, "bool"));
+  EXPECT_TRUE(checkTrivialType(node, "char"));
+  EXPECT_TRUE(checkTrivialType(node, "int"));
+  EXPECT_TRUE(checkTrivialType(node, "unsigned int"));
+  EXPECT_TRUE(checkTrivialType(node, "long int"));
+  EXPECT_TRUE(checkTrivialType(node, "long unsigned int"));
+  EXPECT_TRUE(checkTrivialType(node, "float"));
+  EXPECT_TRUE(checkTrivialType(node, "double"));
+  EXPECT_TRUE(checkTrivialType(node, "string"));
+  EXPECT_TRUE(checkTrivialType(node, "std::string"));
+  EXPECT_FALSE(checkTrivialType(node, "VectorXd"));
+  EXPECT_FALSE(checkTrivialType(node, "Eigen::VectorXd"));
+  EXPECT_FALSE(checkTrivialType(node, "MatrixXd"));
 }
 
 TEST(check_type, char)
@@ -33,20 +33,20 @@ TEST(check_type, char)
   YAML::Node node;
   node = 'g';
   
-  EXPECT_FALSE(checkType(node, "unknown_class"));
-  EXPECT_FALSE(checkType(node, "bool"));
-  EXPECT_TRUE(checkType(node, "char"));
-  EXPECT_FALSE(checkType(node, "int"));
-  EXPECT_FALSE(checkType(node, "unsigned int"));
-  EXPECT_FALSE(checkType(node, "long int"));
-  EXPECT_FALSE(checkType(node, "long unsigned int"));
-  EXPECT_FALSE(checkType(node, "float"));
-  EXPECT_FALSE(checkType(node, "double"));
-  EXPECT_TRUE(checkType(node, "string"));
-  EXPECT_TRUE(checkType(node, "std::string"));
-  EXPECT_FALSE(checkType(node, "VectorXd"));
-  EXPECT_FALSE(checkType(node, "Eigen::VectorXd"));
-  EXPECT_FALSE(checkType(node, "MatrixXd"));
+  EXPECT_FALSE(checkTrivialType(node, "unknown_class"));
+  EXPECT_FALSE(checkTrivialType(node, "bool"));
+  EXPECT_TRUE(checkTrivialType(node, "char"));
+  EXPECT_FALSE(checkTrivialType(node, "int"));
+  EXPECT_FALSE(checkTrivialType(node, "unsigned int"));
+  EXPECT_FALSE(checkTrivialType(node, "long int"));
+  EXPECT_FALSE(checkTrivialType(node, "long unsigned int"));
+  EXPECT_FALSE(checkTrivialType(node, "float"));
+  EXPECT_FALSE(checkTrivialType(node, "double"));
+  EXPECT_TRUE(checkTrivialType(node, "string"));
+  EXPECT_TRUE(checkTrivialType(node, "std::string"));
+  EXPECT_FALSE(checkTrivialType(node, "VectorXd"));
+  EXPECT_FALSE(checkTrivialType(node, "Eigen::VectorXd"));
+  EXPECT_FALSE(checkTrivialType(node, "MatrixXd"));
 }
 
 TEST(check_type, string)
@@ -54,20 +54,20 @@ TEST(check_type, string)
   YAML::Node node;
   node = "gromenauer";
   
-  EXPECT_FALSE(checkType(node, "unknown_class"));
-  EXPECT_FALSE(checkType(node, "bool"));
-  EXPECT_FALSE(checkType(node, "char"));
-  EXPECT_FALSE(checkType(node, "int"));
-  EXPECT_FALSE(checkType(node, "unsigned int"));
-  EXPECT_FALSE(checkType(node, "long int"));
-  EXPECT_FALSE(checkType(node, "long unsigned int"));
-  EXPECT_FALSE(checkType(node, "float"));
-  EXPECT_FALSE(checkType(node, "double"));
-  EXPECT_TRUE(checkType(node, "string"));
-  EXPECT_TRUE(checkType(node, "std::string"));
-  EXPECT_FALSE(checkType(node, "VectorXd"));
-  EXPECT_FALSE(checkType(node, "Eigen::VectorXd"));
-  EXPECT_FALSE(checkType(node, "MatrixXd"));
+  EXPECT_FALSE(checkTrivialType(node, "unknown_class"));
+  EXPECT_FALSE(checkTrivialType(node, "bool"));
+  EXPECT_FALSE(checkTrivialType(node, "char"));
+  EXPECT_FALSE(checkTrivialType(node, "int"));
+  EXPECT_FALSE(checkTrivialType(node, "unsigned int"));
+  EXPECT_FALSE(checkTrivialType(node, "long int"));
+  EXPECT_FALSE(checkTrivialType(node, "long unsigned int"));
+  EXPECT_FALSE(checkTrivialType(node, "float"));
+  EXPECT_FALSE(checkTrivialType(node, "double"));
+  EXPECT_TRUE(checkTrivialType(node, "string"));
+  EXPECT_TRUE(checkTrivialType(node, "std::string"));
+  EXPECT_FALSE(checkTrivialType(node, "VectorXd"));
+  EXPECT_FALSE(checkTrivialType(node, "Eigen::VectorXd"));
+  EXPECT_FALSE(checkTrivialType(node, "MatrixXd"));
 }
 
 TEST(check_type, Eigen)
@@ -78,22 +78,22 @@ TEST(check_type, Eigen)
   node[2] = 1e-5;
   node[3] = 1000;
   
-  EXPECT_FALSE(checkType(node, "unknown_class"));
-  EXPECT_FALSE(checkType(node, "bool"));
-  EXPECT_FALSE(checkType(node, "char"));
-  EXPECT_FALSE(checkType(node, "int"));
-  EXPECT_FALSE(checkType(node, "unsigned int"));
-  EXPECT_FALSE(checkType(node, "long int"));
-  EXPECT_FALSE(checkType(node, "long unsigned int"));
-  EXPECT_FALSE(checkType(node, "float"));
-  EXPECT_FALSE(checkType(node, "double"));
-  EXPECT_FALSE(checkType(node, "string"));
-  EXPECT_FALSE(checkType(node, "std::string"));
-  EXPECT_TRUE(checkType(node, "VectorXd"));
-  EXPECT_TRUE(checkType(node, "Eigen::VectorXd"));
-  EXPECT_TRUE(checkType(node, "Vector4d"));
-  EXPECT_TRUE(checkType(node, "Matrix2d"));
-  EXPECT_FALSE(checkType(node, "MatrixXd"));
+  EXPECT_FALSE(checkTrivialType(node, "unknown_class"));
+  EXPECT_FALSE(checkTrivialType(node, "bool"));
+  EXPECT_FALSE(checkTrivialType(node, "char"));
+  EXPECT_FALSE(checkTrivialType(node, "int"));
+  EXPECT_FALSE(checkTrivialType(node, "unsigned int"));
+  EXPECT_FALSE(checkTrivialType(node, "long int"));
+  EXPECT_FALSE(checkTrivialType(node, "long unsigned int"));
+  EXPECT_FALSE(checkTrivialType(node, "float"));
+  EXPECT_FALSE(checkTrivialType(node, "double"));
+  EXPECT_FALSE(checkTrivialType(node, "string"));
+  EXPECT_FALSE(checkTrivialType(node, "std::string"));
+  EXPECT_TRUE(checkTrivialType(node, "VectorXd"));
+  EXPECT_TRUE(checkTrivialType(node, "Eigen::VectorXd"));
+  EXPECT_TRUE(checkTrivialType(node, "Vector4d"));
+  EXPECT_TRUE(checkTrivialType(node, "Matrix2d"));
+  EXPECT_FALSE(checkTrivialType(node, "MatrixXd"));
 }
 
 TEST(check_type, EigenEmpty)
@@ -105,22 +105,22 @@ TEST(check_type, EigenEmpty)
   EXPECT_EQ(node.size(),0);
   EXPECT_TRUE(node.IsSequence());
 
-  EXPECT_FALSE(checkType(node, "unknown_class"));
-  EXPECT_FALSE(checkType(node, "bool"));
-  EXPECT_FALSE(checkType(node, "char"));
-  EXPECT_FALSE(checkType(node, "int"));
-  EXPECT_FALSE(checkType(node, "unsigned int"));
-  EXPECT_FALSE(checkType(node, "long int"));
-  EXPECT_FALSE(checkType(node, "long unsigned int"));
-  EXPECT_FALSE(checkType(node, "float"));
-  EXPECT_FALSE(checkType(node, "double"));
-  EXPECT_FALSE(checkType(node, "string"));
-  EXPECT_FALSE(checkType(node, "std::string"));
-  EXPECT_TRUE(checkType(node, "VectorXd"));
-  EXPECT_TRUE(checkType(node, "Eigen::VectorXd"));
-  EXPECT_FALSE(checkType(node, "Vector4d"));
-  EXPECT_FALSE(checkType(node, "Matrix2d"));
-  EXPECT_TRUE(checkType(node, "MatrixXd"));
+  EXPECT_FALSE(checkTrivialType(node, "unknown_class"));
+  EXPECT_FALSE(checkTrivialType(node, "bool"));
+  EXPECT_FALSE(checkTrivialType(node, "char"));
+  EXPECT_FALSE(checkTrivialType(node, "int"));
+  EXPECT_FALSE(checkTrivialType(node, "unsigned int"));
+  EXPECT_FALSE(checkTrivialType(node, "long int"));
+  EXPECT_FALSE(checkTrivialType(node, "long unsigned int"));
+  EXPECT_FALSE(checkTrivialType(node, "float"));
+  EXPECT_FALSE(checkTrivialType(node, "double"));
+  EXPECT_FALSE(checkTrivialType(node, "string"));
+  EXPECT_FALSE(checkTrivialType(node, "std::string"));
+  EXPECT_TRUE(checkTrivialType(node, "VectorXd"));
+  EXPECT_TRUE(checkTrivialType(node, "Eigen::VectorXd"));
+  EXPECT_FALSE(checkTrivialType(node, "Vector4d"));
+  EXPECT_FALSE(checkTrivialType(node, "Matrix2d"));
+  EXPECT_TRUE(checkTrivialType(node, "MatrixXd"));
 }
 
 TEST(check_type, Eigen_matrix)
@@ -137,22 +137,43 @@ TEST(check_type, Eigen_matrix)
   node[0] = node_sizes;
   node[1] = node_values;
   
-  EXPECT_FALSE(checkType(node, "unknown_class"));
-  EXPECT_FALSE(checkType(node, "bool"));
-  EXPECT_FALSE(checkType(node, "char"));
-  EXPECT_FALSE(checkType(node, "int"));
-  EXPECT_FALSE(checkType(node, "unsigned int"));
-  EXPECT_FALSE(checkType(node, "long int"));
-  EXPECT_FALSE(checkType(node, "long unsigned int"));
-  EXPECT_FALSE(checkType(node, "float"));
-  EXPECT_FALSE(checkType(node, "double"));
-  EXPECT_FALSE(checkType(node, "string"));
-  EXPECT_FALSE(checkType(node, "std::string"));
-  EXPECT_FALSE(checkType(node, "VectorXd"));
-  EXPECT_FALSE(checkType(node, "Eigen::VectorXd"));
-  EXPECT_FALSE(checkType(node, "Matrix2d"));
-  EXPECT_TRUE(checkType(node, "MatrixXd"));
-  EXPECT_TRUE(checkType(node, "Eigen::MatrixXd"));
+  EXPECT_FALSE(checkTrivialType(node, "unknown_class"));
+  EXPECT_FALSE(checkTrivialType(node, "bool"));
+  EXPECT_FALSE(checkTrivialType(node, "char"));
+  EXPECT_FALSE(checkTrivialType(node, "int"));
+  EXPECT_FALSE(checkTrivialType(node, "unsigned int"));
+  EXPECT_FALSE(checkTrivialType(node, "long int"));
+  EXPECT_FALSE(checkTrivialType(node, "long unsigned int"));
+  EXPECT_FALSE(checkTrivialType(node, "float"));
+  EXPECT_FALSE(checkTrivialType(node, "double"));
+  EXPECT_FALSE(checkTrivialType(node, "string"));
+  EXPECT_FALSE(checkTrivialType(node, "std::string"));
+  EXPECT_FALSE(checkTrivialType(node, "VectorXd"));
+  EXPECT_FALSE(checkTrivialType(node, "Eigen::VectorXd"));
+  EXPECT_FALSE(checkTrivialType(node, "Matrix2d"));
+  EXPECT_TRUE(checkTrivialType(node, "MatrixXd"));
+  EXPECT_TRUE(checkTrivialType(node, "Eigen::MatrixXd"));
+}
+
+TEST(check_type, trivial_types)
+{
+  EXPECT_FALSE(isTrivialType("unknown_class"));
+  EXPECT_FALSE(isTrivialType("some_weird_schema"));
+  EXPECT_TRUE(isTrivialType("bool"));
+  EXPECT_TRUE(isTrivialType("char"));
+  EXPECT_TRUE(isTrivialType("int"));
+  EXPECT_TRUE(isTrivialType("unsigned int"));
+  EXPECT_TRUE(isTrivialType("long int"));
+  EXPECT_TRUE(isTrivialType("long unsigned int"));
+  EXPECT_TRUE(isTrivialType("float"));
+  EXPECT_TRUE(isTrivialType("double"));
+  EXPECT_TRUE(isTrivialType("string"));
+  EXPECT_TRUE(isTrivialType("std::string"));
+  EXPECT_TRUE(isTrivialType("VectorXd"));
+  EXPECT_TRUE(isTrivialType("Eigen::VectorXd"));
+  EXPECT_TRUE(isTrivialType("Matrix2d"));
+  EXPECT_TRUE(isTrivialType("MatrixXd"));
+  EXPECT_TRUE(isTrivialType("Eigen::MatrixXd"));
 }
 
 int main(int argc, char **argv)

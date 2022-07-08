@@ -72,7 +72,7 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
         {
             throw std::runtime_error("YAML schema: " + node_field + " does not contain 'type'");
         }
-        if (not checkType(node_schema["type"],"string"))
+        if (not checkTrivialType(node_schema["type"],"string"))
         {
             throw std::runtime_error("YAML schema: In " + node_field + ", 'type' should be a string");
         }
@@ -81,7 +81,7 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
         {
             throw std::runtime_error("YAML schema: " + node_field + " does not contain 'doc'");
         }
-        if (not checkType(node_schema["doc"],"string"))
+        if (not checkTrivialType(node_schema["doc"],"string"))
         {
             throw std::runtime_error("YAML schema: In " + node_field + ", 'doc' should be a string");
         }
@@ -90,14 +90,14 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
         {
             throw std::runtime_error("YAML schema: " + node_field + " does not contain 'mandatory'");
         }
-        if (not checkType(node_schema["mandatory"],"bool"))
+        if (not checkTrivialType(node_schema["mandatory"],"bool"))
         {
             throw std::runtime_error("YAML schema: In " + node_field + ", 'mandatory' should be a bool");
         }
         // OPTIONAL 'default'
         if (not node_schema["mandatory"].as<bool>() and node_schema["default"])
         {
-            if (not checkType(node_schema["default"], node_schema["type"].as<std::string>()))
+            if (not checkTrivialType(node_schema["default"], node_schema["type"].as<std::string>()))
             {
                 throw std::runtime_error("YAML schema: " + node_field + " default value wrong type");
             }
@@ -113,7 +113,7 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
             // check that all items have valid type
             for (auto n_i = 0; n_i < node_schema["options"].size(); n_i++)
             {
-                if (not checkType(node_schema["options"][n_i],node_schema["type"].as<std::string>()))
+                if (not checkTrivialType(node_schema["options"][n_i],node_schema["type"].as<std::string>()))
                 {
                     throw std::runtime_error("YAML schema: " + node_field + 
                                              ", 'options'[" + std::to_string(n_i) + 
@@ -148,7 +148,7 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
         {
             throw std::runtime_error("YAML schema: " + node_field + " does not contain 'type'");
         }
-        else if (not checkType(node_schema["type"],"string"))
+        else if (not checkTrivialType(node_schema["type"],"string"))
         {
             throw std::runtime_error("YAML schema: In " + node_field + ", 'type' should be a string");
         }
@@ -157,7 +157,7 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
         {
             throw std::runtime_error("YAML schema: " + node_field + " does not contain 'mandatory'");
         }
-        else if (not checkType(node_schema["mandatory"],"bool"))
+        else if (not checkTrivialType(node_schema["mandatory"],"bool"))
         {
             throw std::runtime_error("YAML schema: In " + node_field + ", 'mandatory' should be a bool");
         }
@@ -172,7 +172,7 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
             // Check that all items have valid type
             for (auto n_i = 0; n_i < node_schema["options"].size(); n_i++)
             {
-                if (not checkType(node_schema["options"][n_i],node_schema["type"].as<std::string>()))
+                if (not checkTrivialType(node_schema["options"][n_i],node_schema["type"].as<std::string>()))
                 {
                     throw std::runtime_error("YAML schema: " + node_field + 
                                              ", 'options'[" + std::to_string(n_i) + 
@@ -294,10 +294,10 @@ bool applySchemaRecursive(YAML::Node& node_input,
         if (node_input.IsDefined())
         {
             // check trivial type
-            if (node_schema["type"].as<std::string>() != "derived")
+            if (isTrivialType(node_schema["type"].as<std::string>()))
             {  
                 // Wrong type (complain)
-                if (not checkType(node_input, node_schema["type"].as<std::string>()))
+                if (not checkTrivialType(node_input, node_schema["type"].as<std::string>()))
                 {
                     writeToLog(log, acc_field + ": wrong type, it should be " + node_schema["type"].as<std::string>() + "\n");
                     is_valid_current = false;
@@ -315,8 +315,8 @@ bool applySchemaRecursive(YAML::Node& node_input,
                     }
                 }
             }
-            // Not trivial type
-            else
+            // Derived type
+            else if (node_schema["type"].as<std::string>() == "derived")
             {
                 // check existence of key type
                 if (not node_input["type"])
@@ -327,7 +327,7 @@ bool applySchemaRecursive(YAML::Node& node_input,
                 else
                 {
                     // Validate with the base schema file
-                    if (node_schema["options"])
+                    if (node_schema["base"])
                     {
                         is_valid_children = applySchema(node_input, 
                                                         node_schema["base"].as<std::string>(), 
@@ -346,6 +346,11 @@ bool applySchemaRecursive(YAML::Node& node_input,
                                                     override)
                                         and is_valid_children;
                 }
+            }
+            // non trivial type known in schema
+            else
+            {
+                throw std::runtime_error("not implemented");
             }
         }
         // Does not exist
@@ -382,10 +387,10 @@ bool applySchemaRecursive(YAML::Node& node_input,
                 for (auto i = 0; i < node_input.size(); i++)
                 {
                     // Trivial type
-                    if (node_schema["type"].as<std::string>() != "derived")
+                    if (isTrivialType(node_schema["type"].as<std::string>()))
                     {
                         // Wrong type (complain)
-                        if (not checkType(node_input[i], node_schema["type"].as<std::string>()))
+                        if (not checkTrivialType(node_input[i], node_schema["type"].as<std::string>()))
                         {
                             writeToLog(log, acc_field + 
                                        ": Element " + std::to_string(i) + 
@@ -406,8 +411,8 @@ bool applySchemaRecursive(YAML::Node& node_input,
                             }
                         }
                     }
-                    // Non trivial type (check against schema file)
-                    else
+                    // Derived type
+                    else if (node_schema["type"].as<std::string>() == "derived")
                     {
                         // check existence of key type
                         if (not node_input[i]["type"])
@@ -422,7 +427,7 @@ bool applySchemaRecursive(YAML::Node& node_input,
                         {
                             YAML::Node node_input_i = node_input[i];
                             // Validate with the base schema file
-                            if (node_schema["options"])
+                            if (node_schema["base"])
                             {
                                 is_valid_children = applySchema(node_input_i, 
                                                                 node_schema["base"].as<std::string>(), 
@@ -441,6 +446,11 @@ bool applySchemaRecursive(YAML::Node& node_input,
                                                             override)
                                                 and is_valid_children;
                         }
+                    }
+                    // non trivial type known in schema
+                    else
+                    {
+                        throw std::runtime_error("not implemented");
                     }
                 }
             }

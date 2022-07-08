@@ -11,14 +11,7 @@ namespace yaml_schema_cpp
 #define CHECK_STRING_TYPE(yaml_string, TypeName)  \
   if (type == #yaml_string)                       \
   {                                               \
-    try                                           \
-    {                                             \
-      node.as<TypeName>();                        \
-    }                                             \
-    catch (const std::exception& e)               \
-    {                                             \
-      return false;                               \
-    }                                             \
+    node.as<TypeName>();                          \
     return true;                                  \
   }                                               \
   
@@ -29,31 +22,17 @@ namespace yaml_schema_cpp
   if (type == "Vector" #size "d" or               \
       type == "Eigen::Vector" #size "d")          \
   {                                               \
-    try                                           \
-    {                                             \
-      node.as<Eigen::Matrix<double,size,1> >();   \
-    }                                             \
-    catch (const std::exception& e)               \
-    {                                             \
-      return false;                               \
-    }                                             \
+    node.as<Eigen::Matrix<double,size,1> >();     \
     return true;                                  \
   }                                               \
   if (type == "Matrix" #size "d" or               \
       type == "Eigen::Matrix" #size "d")          \
   {                                               \
-    try                                           \
-    {                                             \
-      node.as<Eigen::Matrix<double,size,size> >();\
-    }                                             \
-    catch (const std::exception& e)               \
-    {                                             \
-      return false;                               \
-    }                                             \
+    node.as<Eigen::Matrix<double,size,size> >();  \
     return true;                                  \
   }                                               \
 
-static bool checkType(const YAML::Node& node, const std::string& type)
+static bool checkTrivialTypeException(const YAML::Node& node, const std::string& type)
 {
   CHECK_TYPE(bool)
   CHECK_TYPE(char)
@@ -82,6 +61,33 @@ static bool checkType(const YAML::Node& node, const std::string& type)
   CHECK_STRING_TYPE(string, std::string)
   CHECK_STRING_TYPE(VectorXd, Eigen::VectorXd)
   CHECK_STRING_TYPE(MatrixXd, Eigen::MatrixXd)
+  
+  return false;
+}
+
+static bool checkTrivialType(const YAML::Node& node, const std::string& type)
+{
+  try
+  {
+    return checkTrivialTypeException(node, type);
+  }
+  catch(const std::exception& e)
+  {
+    return false;
+  }
+  return false;
+}
+
+static bool isTrivialType(const std::string& type)
+{
+  try
+  {
+    return checkTrivialTypeException(YAML::Node(), type);
+  }
+  catch(const std::exception& e)
+  {
+    return true;
+  }
   return false;
 }
 
