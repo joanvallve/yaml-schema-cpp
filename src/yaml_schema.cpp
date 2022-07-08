@@ -16,12 +16,10 @@ YAML::Node loadSchema(std::string name_schema, const std::vector<std::string>& f
     }
     else if (filesystem::extension(name_schema) != SCHEMA_EXTENSION)
     {
-        throw std::runtime_error("Wrong schema file extension " + 
-                                 name_schema + 
-                                 ", it should be '" + 
-                                 SCHEMA_EXTENSION + 
-                                 "'");
+        throw std::runtime_error("Wrong schema file extension " + name_schema + 
+                                 ", it should be '" + SCHEMA_EXTENSION + "'");
     }
+
     // Find schema file
     filesystem::path path_schema = findFileRecursive(name_schema, folders_schema);
 
@@ -33,8 +31,8 @@ YAML::Node loadSchema(std::string name_schema, const std::vector<std::string>& f
     }
     catch (const std::exception& e)
     {
-        throw std::runtime_error("In yaml_schema_cpp::loadSchema: Couldn't load the yaml file " + 
-                                 path_schema.string() + ". The following error: " + e.what());
+        throw std::runtime_error("In loadSchema: Couldn't load the schema yaml file " + 
+                                 path_schema.string() + ". Error: " + e.what());
     }
 
     // Flatten yaml nodes (containing "follow") to a single YAML node containing all the information
@@ -47,8 +45,8 @@ YAML::Node loadSchema(std::string name_schema, const std::vector<std::string>& f
     }
     catch (const std::exception& e)
     {
-        throw std::runtime_error("In yaml_schema_cpp::loadSchema: The schema file " + 
-                                 path_schema.string() + " is not valid. The following error: " + e.what());
+        throw std::runtime_error("In loadSchema: The schema file " + 
+                                 path_schema.string() + " is not valid. Error: " + e.what());
     }
 
     return node_schema;
@@ -197,6 +195,64 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
     }
 }
 
+bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool override)
+{
+    bool all_valid = true;
+
+    for (auto folder : folders_schema)
+    {
+        if (filesystem::exists(folder) and filesystem::is_directory(folder))
+        {
+            for (auto const & entry : filesystem::recursive_directory_iterator(folder))
+            {
+                if (filesystem::is_regular_file(entry) and 
+                    filesystem::extension(entry) == SCHEMA_EXTENSION)
+                {
+                    std::string schema_file = entry.path().string();
+
+                    // Load schema yaml
+                    YAML::Node node_schema;
+                    try
+                    {
+                        node_schema = YAML::LoadFile(schema_file);
+                    }
+                    catch (const std::exception& e)
+                    {
+                        std::cout << "Couldn't load schema: " + schema_file + "\nError: " + e.what() << std::endl << std::endl;
+                        all_valid = false;
+                        continue;
+                    }
+
+                    // Flatten yaml nodes (containing "follow") to a single YAML node containing all the information
+                    try
+                    {
+                        flattenNode(node_schema, folders_schema, true, override);
+                    }
+                    catch (const std::exception& e)
+                    {
+                        std::cout << "Couldn't flatten schema: " + schema_file + "\nError: " + e.what() << std::endl << std::endl;
+                        all_valid = false;
+                        continue;
+                    }
+
+                    // Check schema
+                    try
+                    {
+                        checkSchema(node_schema, "");
+                    }
+                    catch (const std::exception& e)
+                    {
+                        std::cout << "Invalid schema: " + schema_file + "\nError: " + e.what() << std::endl << std::endl;
+                        all_valid = false;
+                    }
+                }
+            }
+        }
+    }
+
+    return all_valid;
+}
+
 bool applySchema(YAML::Node&  node_input,
                  const std::string& name_schema,
                  const std::vector<std::string>& folders,
@@ -205,8 +261,16 @@ bool applySchema(YAML::Node&  node_input,
                  bool override)
 {
     // Load and check schema
-    std::cout << "load schema: " << name_schema << std::endl;
-    YAML::Node node_schema = loadSchema(name_schema, folders, override);
+    YAML::Node node_schema;
+    try
+    {
+        node_schema = loadSchema(name_schema, folders, override);
+    }
+    catch(const std::exception& e)
+    {
+        writeToLog(log, acc_field + ": schema '" + name_schema + "' couldn't be correctly loaded. Error: " + e.what() + "\n");
+        return false;
+    }
 
     // Check node_input against node_schema
     return applySchemaRecursive(node_input, node_input, node_schema, folders, log, acc_field, override);

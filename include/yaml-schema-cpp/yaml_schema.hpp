@@ -22,6 +22,8 @@ namespace filesystem = boost::filesystem;
 YAML::Node loadSchema(std::string schema_file, const std::vector<std::string>& folders_schema, bool override = true);
 void checkSchema(const YAML::Node& node_schema, const std::string& field);
 
+bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool override = true);
+
 bool applySchema(YAML::Node& node_input, 
                  const std::string& name_schema, 
                  const std::vector<std::string>& folders,

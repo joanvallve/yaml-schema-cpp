@@ -70,6 +70,12 @@ TEST(schema, dont_override)
   }
 }
 
+TEST(schema, validate_all_schemas)
+{
+  ASSERT_TRUE(validateAllSchemas({ROOT_DIR + "/test/yaml/schema",  
+                                  ROOT_DIR + "/test/yaml/other_schema"}));
+  ASSERT_FALSE(validateAllSchemas({ROOT_DIR + "/test/yaml/wrong_schema"}));
+}
 
 int main(int argc, char **argv)
 {
