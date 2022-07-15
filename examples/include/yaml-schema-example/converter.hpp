@@ -3,6 +3,7 @@
 
 #include "yaml-schema-example/costs.hpp"
 #include "yaml-schema-example/stage.hpp"
+#include "yaml-schema-cpp/yaml_conversion.hpp"
 
 namespace YAML
 {

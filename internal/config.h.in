@@ -1,0 +1,4 @@
+#pragma once
+
+#define _YAML_SCHEMA_CPP_ROOT_DIR "${CMAKE_SOURCE_DIR}"
+

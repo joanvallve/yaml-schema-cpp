@@ -20,9 +20,9 @@ std::shared_ptr<Stage> createStage(const std::string& yaml_path)
     yaml_schema_cpp::YamlServer yaml_server(stage_folder_path, yaml_path);
     std::stringstream           log_parse;
 
-    if (!yaml_server.isValid("stage_schema"))
+    if (!yaml_server.applySchema("stage_schema"))
     {
-        std::cout << yaml_server.get_log().str() << std::endl;
+        std::cout << yaml_server.getLog().str() << std::endl;
         throw std::runtime_error("Error parsing the yaml file");
 
         return nullptr;

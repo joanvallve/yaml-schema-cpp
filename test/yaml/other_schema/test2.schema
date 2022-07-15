@@ -1,0 +1,12 @@
+follow: test1.schema
+namespace1:
+  param3:
+    mandatory: true
+    yaml_type: scalar
+    type: string
+    doc: "some parameter"
+param5:
+  mandatory: true
+  yaml_type: scalar
+  type: int
+  doc: "some parameter"

@@ -1,0 +1,20 @@
+map2:
+  map21:
+    param1: 1
+    param2: "string"
+    easter_egg: 1
+  seq1:
+    - 
+      easter_egg: 2
+    - 
+      map211: 
+        easter_egg: 3
+        param32: [3, 4, 5, 1, 2]
+    - 
+      5
+  param3: "easter_egg"
+map1:
+  param1: 1
+  param2: "string"
+  easter_egg: 4
+easter_egg: 0

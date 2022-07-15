@@ -1,0 +1,7 @@
+follow: "flatten_recursive.yaml"
+map1:
+  param3: 3
+map2:
+  param2: false
+map3:
+  param2: [9, 0, 1e4]

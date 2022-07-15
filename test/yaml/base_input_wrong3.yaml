@@ -1,0 +1,6 @@
+map1:
+  param1: 1
+  param2: "string"
+  param3: #wrong should be a scalar
+    param4: 4
+    param5: 6

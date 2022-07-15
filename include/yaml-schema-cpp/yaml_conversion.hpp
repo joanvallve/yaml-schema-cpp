@@ -1,33 +1,4 @@
-//--------LICENSE_START--------
-//
-// Copyright (C) 2020,2021,2022 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
-// Authors: Joan Solà Ortega (jsola@iri.upc.edu)
-// All rights reserved.
-//
-// This file is part of WOLF
-// WOLF is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Lesser General Public License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-//
-//--------LICENSE_END--------
-/**
- * \file yaml_conversion.h
- *
- *  Created on: May 12, 2016
- *      \author: jsola
- */
-
-#ifndef YAML_YAML_CONVERSION_H_
-#define YAML_YAML_CONVERSION_H_
+#pragma once
 
 // Yaml
 #include <yaml-cpp/yaml.h>
@@ -84,7 +55,17 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
             YAML::Node values;
 
             // ==========================================================================================
-            if (node[0].Type() == NodeType::Sequence) // sizes given by YAML
+            // Special case empty vector/matrix
+            if (node.IsSequence() and node.size() == 0)
+            {
+                if (_Rows != Eigen::Dynamic and _Cols != Eigen::Dynamic)
+                {
+                    std::cout << "Empty input sequence with not dynamic matrix" << std::endl;
+                    return false;
+                }
+            }
+            // sizes given by YAML
+            else if (node[0].Type() == NodeType::Sequence) 
             {
                 if (node.size() == 2 && node[0].size() == 2 && node[1].Type() == NodeType::Sequence
                         && node[1].size() == node[0][0].as<unsigned int>() * node[0][1].as<unsigned int>()) // YAML string is well formed
@@ -92,11 +73,13 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
                     int rows = node[0][0].as<int>();
                     int cols = node[0][1].as<int>();
                     values = node[1];
-                    if (_Rows == Eigen::Dynamic && _Cols == Eigen::Dynamic) // full dynamic
+                    // full dynamic
+                    if (_Rows == Eigen::Dynamic && _Cols == Eigen::Dynamic)
                     {
                         matrix.resize(rows, cols);
                     }
-                    else if (_Rows == Eigen::Dynamic) // rows dynamic
+                    // only rows dynamic
+                    else if (_Rows == Eigen::Dynamic) 
                     {
                         if (_Cols != cols)
                         {
@@ -105,7 +88,8 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
                         }
                         matrix.resize(rows, Eigen::NoChange);
                     }
-                    else if (_Cols == Eigen::Dynamic) // cols dynamic
+                    // only cols dynamic
+                    else if (_Cols == Eigen::Dynamic) 
                     {
                         if (_Rows != rows)
                         {
@@ -129,7 +113,8 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
                     return false;
                 }
             }
-            else // sizes given by Matrix
+            // sizes deduced
+            else 
             {
                 // If full dynamic -> error
                 if (_Rows == Eigen::Dynamic && _Cols == Eigen::Dynamic)
@@ -231,5 +216,3 @@ struct convert<Eigen::Quaternion<_Scalar, _Options> >
 };
 
 } // namespace YAML
-
-#endif /* YAML_YAML_CONVERSION_H_ */

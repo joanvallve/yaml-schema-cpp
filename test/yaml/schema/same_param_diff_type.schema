@@ -1,0 +1,8 @@
+follow: test2.schema
+namespace1:
+  param3:
+    param5:
+      mandatory: true
+      yaml_type: scalar
+      type: double
+      doc: "some parameter"

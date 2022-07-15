@@ -10,5 +10,4 @@ transition:
 costs:
   mandatory: True
   type: sequence_own_type
-  schema: cost
-  polymorphism: True
+  schema: cost.yaml
