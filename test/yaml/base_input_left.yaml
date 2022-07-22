@@ -1,0 +1,10 @@
+map1:
+  param1: 1
+  param2: "string"
+  param10: true
+map3:
+  param4: 5
+sequence5:
+  - 
+    param1: 3
+    param2: "hello"

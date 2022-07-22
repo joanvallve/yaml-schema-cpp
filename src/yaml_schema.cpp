@@ -455,7 +455,7 @@ bool applySchemaRecursive(YAML::Node& node_input,
                 }
             }
         }
-        else if (node_schema["mandatory"]) // complain inexistence if mandatory
+        else if (node_schema["mandatory"].as<bool>()) // complain inexistence if mandatory
         {
             writeToLog(log, "Input yaml does not contain field: " + acc_field + "\n");
             is_valid_current = false;
@@ -479,6 +479,18 @@ bool applySchemaRecursive(YAML::Node& node_input,
                                                      override)
                                 and is_valid_children;
         }
+
+        // remove nodes not in schema
+        std::list<std::string> left_keys;
+        for (auto node_input_child_pair : node_input)
+        {
+            if (not node_schema[node_input_child_pair.first.as<std::string>()])
+            {
+                left_keys.push_back(node_input_child_pair.first.as<std::string>());
+            }
+        }
+        for (auto left_key : left_keys)
+            node_input.remove(left_key);
     }
     else
     {
