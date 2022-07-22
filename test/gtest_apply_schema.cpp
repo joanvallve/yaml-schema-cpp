@@ -61,26 +61,6 @@ TEST(schema, wrong)
   }
 }
 
-TEST(schema, remove_left)
-{
-  YamlServer server = YamlServer({ROOT_DIR}, ROOT_DIR + "/test/yaml/base_input_left.yaml");
-
-  std::cout << "before: \n" <<  server.getNode() << std::endl;
-
-  ASSERT_TRUE(server.applySchema("base_input.schema"));
-
-  std::cout << "after: \n" <<  server.getNode() << std::endl;
-  
-  YAML::Node node = server.getNode();
-
-  ASSERT_TRUE(node["map1"]["param3"]);
-  ASSERT_TRUE(node["param4"]);
-  ASSERT_NEAR(node["map1"]["param3"].as<double>(), 3.5, 1e-12);
-  ASSERT_EQ(node["param4"].as<std::string>(),"hello");
-  ASSERT_FALSE(node["map3"]);
-  ASSERT_FALSE(node["sequence5"]);
-  ASSERT_FALSE(node["map1"]["param10"]);
-}
 int main(int argc, char **argv)
 {
   testing::InitGoogleTest(&argc, argv);
