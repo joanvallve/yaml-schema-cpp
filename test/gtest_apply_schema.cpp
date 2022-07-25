@@ -57,7 +57,7 @@ TEST(schema, wrong)
 
     ASSERT_FALSE(server.applySchema("base_input.schema"));
 
-    std::cout << server.getLog().str() << std::endl;
+    std::cout << server.getLog() << std::endl;
   }
 }
 

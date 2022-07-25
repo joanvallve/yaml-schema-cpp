@@ -16,7 +16,7 @@ std::shared_ptr<CostBase> createCost(const std::string& yaml_path)
 
     if (!yaml_server.applySchema("cost"))
     {
-        std::cout << yaml_server.getLog().str() << std::endl;
+        std::cout << yaml_server.getLog() << std::endl;
         throw std::runtime_error("Error parsing the yaml file");
 
         return nullptr;

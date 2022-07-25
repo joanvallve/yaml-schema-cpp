@@ -74,9 +74,9 @@ bool YamlServer::applySchema(const std::string& name_schema)
     return yaml_schema_cpp::applySchema(node_input_, name_schema, folders_schema_, log_, "", override_);
 }
 
-const std::stringstream& YamlServer::getLog() const
+std::string YamlServer::getLog() const
 {
-    return log_;
+    return log_.str();
 }
 
 const YAML::Node& YamlServer::getNode() const

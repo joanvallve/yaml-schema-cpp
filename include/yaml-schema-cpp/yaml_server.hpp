@@ -24,7 +24,7 @@ class YamlServer
 
     void loadYaml(const std::string& path_input);
 
-    const std::stringstream& getLog() const;
+    std::string getLog() const;
 
     const YAML::Node& getNode() const;
 
