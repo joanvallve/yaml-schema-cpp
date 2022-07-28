@@ -1,11 +1,8 @@
-//--------LICENSE_START--------
-//
-// Copyright (C) 2020,2021,2022 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
-// Authors: Joan Solà Ortega (jsola@iri.upc.edu)
+// Copyright (C) 2022 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
+// Authors: Josep Martí Saumell (jmarti@iri.upc.edu) and Joan Vallvé Navarro (jvallve@iri.upc.edu)
 // All rights reserved.
 //
-// This file is part of WOLF
-// WOLF is free software: you can redistribute it and/or modify
+// YAML-SCHEMA-CPP is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // at your option) any later version.
@@ -17,8 +14,8 @@
 //
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-//
-//--------LICENSE_END--------
+
+
 /**
  * \file utils_gtest.h
  * \brief Some utils for gtest

@@ -5,8 +5,8 @@
 # This script is used for managing the license headers of code files (.h, .c, .cpp, .hpp)
 # This file is automatically called by the CI in gitlab.
 
-line_start_mark="//--------LICENSE_START--------"
-line_end_mark="//--------LICENSE_END--------"
+line_start_mark="// Copyright (C)"
+line_end_mark="// along with this program.  If not, see <http://www.gnu.org/licenses/>."
 
 #options
 tmp=false
@@ -70,7 +70,7 @@ else
 fi
 
 if [ "$license" == "" ]; then
-  echo 'Error: Please, provide the path to the folder containing the code with --license-header=/my/license/header/file.txt'
+  echo 'Error: Please, provide the path to the folder containing the license header with --license-header=/my/license/header/file.txt'
   exit 1
 else
   if [ -f "$license" ]; then
@@ -108,9 +108,9 @@ fi
 
 # LIST OF FILES TO BE ITERATED ON
 if [ "$exclude_folder" == "" ]; then
-  file_list=$(find $folder -name '*.c' -or -name '*.cpp' -or -name '*.h' -or -name '*.hpp')
+  file_list=$(find $folder -name '*.c' -or -name '*.cpp' -or -name '*.h' -or -name '*.hpp' -or -name '*.h.in' -or -name '*.hpp.in')
 else
-  file_list=$(find $folder -path ${folder}/${exclude_folder} -prune -name '*.c' -or -name '*.cpp' -or -name '*.h' -or -name '*.hpp')
+  file_list=$(find $folder -path ${folder}/${exclude_folder} -prune -name '*.c' -or -name '*.cpp' -or -name '*.h' -or -name '*.hpp' -or -name '*.h.in' -or -name '*.hpp.in')
 fi
 
 # DETECT AND REMOVE EXISTING LICENSE
@@ -118,13 +118,13 @@ if [ "$mode" == "update" ]; then
   echo "Recursely removing license header from all files (.c, .cpp, .h, .hpp):"
   for i in $file_list
   do
-    if grep -Fxq ${line_start_mark} $i 
+    if grep -Fq "${line_start_mark}" $i 
     then
       echo " - ${i}"
-      line_start="$(grep -wn $line_start_mark ${i} | head -n 1 | cut -d: -f1)"
-      line_end="$(grep -wn $line_end_mark ${i} | head -n 1 | cut -d: -f1)"
-      #echo ${line_start}
-      #echo ${line_end}
+      line_start="$(grep -wn "$line_start_mark" ${i} | head -n 1 | cut -d: -f1)"
+      line_end="$(grep -wn "$line_end_mark" ${i} | head -n 1 | cut -d: -f1)"
+      # echo ${line_start}
+      # echo ${line_end}
       awk -v m=$line_start -v n=$line_end 'm <= NR && NR <= n {next} {print}' $i > tmpfile && mv tmpfile $i 
       #cat $i
     fi
@@ -135,11 +135,11 @@ fi
 echo "Recursively adding license header to all files (.c, .cpp, .h, .hpp):"
 for i in $file_list
 do
-  if grep -Fxq ${line_start_mark} $i; then
+  if grep -Fq "${line_start_mark}" $i; then
     :
   else
     echo " - ${i}"
-    ( echo ${line_start_mark}$'\n//'; cat ${license}; echo $'//\n'${line_end_mark}; cat $i ) > temp_file
+    ( cat ${license}; cat $i ) > temp_file
     mv temp_file $i
   fi
 done

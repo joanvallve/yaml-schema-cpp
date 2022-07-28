@@ -1,5 +1,3 @@
-//--------LICENSE_START--------
-//
 // Copyright (C) 2022 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
 // Authors: Josep Martí Saumell (jmarti@iri.upc.edu) and Joan Vallvé Navarro (jvallve@iri.upc.edu)
 // All rights reserved.
@@ -15,8 +13,8 @@
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.//
-//--------LICENSE_END--------
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 #include <stdexcept>
 
 #include "yaml-schema-example/costs.hpp"
