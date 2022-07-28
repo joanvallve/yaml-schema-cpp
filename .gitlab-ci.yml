@@ -38,7 +38,6 @@ stages:
   # license headers
   - export CURRENT_YEAR=$( date +'%Y' )
   - echo "current year:" ${CURRENT_YEAR}
-  - cd scripts
   - if [ -f license_header_${CURRENT_YEAR}.txt ]; then
       # add license headers to new files
   -   echo "File license_header_${CURRENT_YEAR}.txt already exists. License headers are assumed to be updated. Adding headers to new files..."
@@ -51,7 +50,6 @@ stages:
   -   sed -i "s/${PREV_YEAR}/${PREV_YEAR},${CURRENT_YEAR}/g" license_header_${CURRENT_YEAR}.txt
   -   ./license_manager.sh --update --path=${CI_PROJECT_DIR} --license-header=license_header_${CURRENT_YEAR}.txt
   - fi
-  - cd ..
 
   # push changes (if any)
   - if git commit -a -m "[skip ci] license headers added or modified" ; then
