@@ -80,16 +80,6 @@ license_headers:
   script:
     - *license_header_definition
 
-############ UBUNTU 18.04 TESTS ############
-build_and_test_none:bionic:
-  stage: build_and_test
-  image: labrobotica/wolf_deps:18.04
-  before_script:
-    - *preliminaries_definition
-    - *yaml_cpp_install_definition
-  script:
-    - *build_and_test_definition
-
 ############ UBUNTU 20.04 TESTS ############
 build_and_test_none:focal:
   stage: build_and_test
