@@ -1,0 +1,103 @@
+stages:
+  - license
+  - build_and_test
+
+############ YAML ANCHORS ############
+.preliminaries_template: &preliminaries_definition
+  ## Install ssh-agent if not already installed, it is required by Docker.
+  ## (change apt-get to yum if you use an RPM-based image)
+  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+
+  ## Run ssh-agent (inside the build environment)
+  - eval $(ssh-agent -s)
+
+  ## Add the SSH key stored in SSH_PRIVATE_KEY variable to the agent store
+  ## We're using tr to fix line endings which makes ed25519 keys work
+  ## without extra base64 encoding.
+  ## https://gitlab.com/gitlab-examples/ssh-private-key/issues/1#note_48526556
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh  
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+  # - echo "$SSH_KNOWN_HOSTS" > $HOME/.ssh/known_hosts
+  - ssh-keyscan -H -p 2202 gitlab.iri.upc.edu >> $HOME/.ssh/known_hosts
+
+  # update apt
+  - apt-get update
+
+.license_header_template: &license_header_definition
+  - cd $CI_PROJECT_DIR
+
+  # configure git
+  - export CI_NEW_BRANCH=ci_processing$RANDOM
+  - echo creating new temporary branch... $CI_NEW_BRANCH
+  #- export CI_NEW_BRANCH=ci_processing$CI_COMMIT_SHORT_SHA
+  - git config --global user.email "${CI_EMAIL}"
+  - git config --global user.name "${CI_USERNAME}"
+  - git checkout -b $CI_NEW_BRANCH # temporary branch
+
+  # license headers
+  - export CURRENT_YEAR=$( date +'%Y' )
+  - echo "current year:" ${CURRENT_YEAR}
+  - cd scripts
+  - if [ -f license_header_${CURRENT_YEAR}.txt ]; then
+      # add license headers to new files
+  -   echo "File license_header_${CURRENT_YEAR}.txt already exists. License headers are assumed to be updated. Adding headers to new files..."
+  -   ./license_manager.sh --add --path=${CI_PROJECT_DIR} --license-header=license_header_${CURRENT_YEAR}.txt
+  - else
+      # update license headers of all files
+  -   export PREV_YEAR=$(( CURRENT_YEAR-1 ))
+  -   echo "Creating new file license_header_${CURRENT_YEAR}.txt..."
+  -   git mv license_header_${PREV_YEAR}.txt license_header_${CURRENT_YEAR}.txt
+  -   sed -i "s/${PREV_YEAR}/${PREV_YEAR},${CURRENT_YEAR}/g" license_header_${CURRENT_YEAR}.txt
+  -   ./license_manager.sh --update --path=${CI_PROJECT_DIR} --license-header=license_header_${CURRENT_YEAR}.txt
+  - fi
+  - cd ..
+
+  # push changes (if any)
+  - if git commit -a -m "[skip ci] license headers added or modified" ; then
+  -   git remote set-url --push origin "ssh://git@gitlab.iri.upc.edu:2202/${CI_PROJECT_PATH}.git"
+  -   git push origin $CI_NEW_BRANCH:${CI_COMMIT_REF_NAME}
+  - else
+  -   echo "No changes, nothing to commit!"
+  - fi
+
+.yaml_cpp_install_template: &yaml_cpp_install_definition
+  - apt install libyaml-cpp-dev
+
+.build_and_test_template: &build_and_test_definition
+  - cd $CI_PROJECT_DIR
+  - mkdir -pv build
+  - cd build
+  - cmake -DCMAKE_BUILD_TYPE=release -DBUILD_EXAMPLES=ON -DBUILD_TESTS=ON ..
+  - make -j2
+  - ctest -j2
+  - make install
+
+############ LICENSE HEADERS ############
+license_headers:
+  stage: license
+  image: labrobotica/wolf_deps:20.04
+  before_script:
+    - *preliminaries_definition
+  script:
+    - *license_header_definition
+
+############ UBUNTU 18.04 TESTS ############
+build_and_test_none:bionic:
+  stage: build_and_test
+  image: labrobotica/wolf_deps:18.04
+  before_script:
+    - *preliminaries_definition
+    - *yaml_cpp_install_definition
+  script:
+    - *build_and_test_definition
+
+############ UBUNTU 20.04 TESTS ############
+build_and_test_none:focal:
+  stage: build_and_test
+  image: labrobotica/wolf_deps:20.04
+  before_script:
+    - *preliminaries_definition
+    - *yaml_cpp_install_definition
+  script:
+    - *build_and_test_definition
