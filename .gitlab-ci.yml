@@ -74,7 +74,7 @@ stages:
   -   fi
   -   mkdir -pv build
   -   cd build
-  -   cmake -DCMAKE_BUILD_TYPE=release ..
+  -   cmake -DCMAKE_BUILD_TYPE=release -DCMAKE_C_FLAGS=fPIC ..
   -   make -j$(nproc)
   -   make install
   -   ldconfig
