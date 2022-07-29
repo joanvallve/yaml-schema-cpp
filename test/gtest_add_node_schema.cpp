@@ -29,10 +29,10 @@ TEST(addNodeSchema, add_scalars)
   YAML::Node node1, node2;
   node1["param1"]["mandatory"] = true;
   node1["param1"]["type"] = "bool";
-  node1["param1"]["yaml_type"] = "scalar";
+  node1["param1"]["doc"] = "scalar";
   node2["param2"]["mandatory"] = true;
   node2["param2"]["type"] = "string";
-  node2["param2"]["yaml_type"] = "scalar";
+  node2["param2"]["doc"] = "scalar";
 
   std::cout << "node1: " << std::endl << node1 << std::endl;
   std::cout << "node2: " << std::endl << node2 << std::endl;
@@ -40,11 +40,11 @@ TEST(addNodeSchema, add_scalars)
   ASSERT_TRUE(node1["param1"]);
   ASSERT_TRUE(node1["param1"]["mandatory"]);
   ASSERT_TRUE(node1["param1"]["type"]);
-  ASSERT_TRUE(node1["param1"]["yaml_type"]);
+  ASSERT_TRUE(node1["param1"]["doc"]);
   ASSERT_TRUE(node2["param2"]);
   ASSERT_TRUE(node2["param2"]["mandatory"]);
   ASSERT_TRUE(node2["param2"]["type"]);
-  ASSERT_TRUE(node2["param2"]["yaml_type"]);
+  ASSERT_TRUE(node2["param2"]["doc"]);
 
   addNodeSchema(node2, "param1", node1["param1"], true);
   
@@ -53,11 +53,11 @@ TEST(addNodeSchema, add_scalars)
   ASSERT_TRUE(node2["param1"]);
   ASSERT_TRUE(node2["param1"]["mandatory"]);
   ASSERT_TRUE(node2["param1"]["type"]);
-  ASSERT_TRUE(node2["param1"]["yaml_type"]);
+  ASSERT_TRUE(node2["param1"]["doc"]);
   ASSERT_TRUE(node2["param2"]);
   ASSERT_TRUE(node2["param2"]["mandatory"]);
   ASSERT_TRUE(node2["param2"]["type"]);
-  ASSERT_TRUE(node2["param2"]["yaml_type"]);
+  ASSERT_TRUE(node2["param2"]["doc"]);
 }
 
 TEST(addNodeSchema, merge_map)
@@ -65,10 +65,10 @@ TEST(addNodeSchema, merge_map)
   YAML::Node node1, node2;
   node1["namespace"]["param1"]["mandatory"] = true;
   node1["namespace"]["param1"]["type"] = "bool";
-  node1["namespace"]["param1"]["yaml_type"] = "scalar";
+  node1["namespace"]["param1"]["doc"] = "scalar";
   node2["namespace"]["param2"]["mandatory"] = true;
   node2["namespace"]["param2"]["type"] = "string";
-  node2["namespace"]["param2"]["yaml_type"] = "scalar";
+  node2["namespace"]["param2"]["doc"] = "scalar";
 
   std::cout << "node1: " << std::endl << node1 << std::endl;
   std::cout << "node2: " << std::endl << node2 << std::endl;
@@ -76,11 +76,11 @@ TEST(addNodeSchema, merge_map)
   ASSERT_TRUE(node1["namespace"]["param1"]);
   ASSERT_TRUE(node1["namespace"]["param1"]["mandatory"]);
   ASSERT_TRUE(node1["namespace"]["param1"]["type"]);
-  ASSERT_TRUE(node1["namespace"]["param1"]["yaml_type"]);
+  ASSERT_TRUE(node1["namespace"]["param1"]["doc"]);
   ASSERT_TRUE(node2["namespace"]["param2"]);
   ASSERT_TRUE(node2["namespace"]["param2"]["mandatory"]);
   ASSERT_TRUE(node2["namespace"]["param2"]["type"]);
-  ASSERT_TRUE(node2["namespace"]["param2"]["yaml_type"]);
+  ASSERT_TRUE(node2["namespace"]["param2"]["doc"]);
 
   addNodeSchema(node2, "namespace", node1["namespace"], true);
   
@@ -89,11 +89,11 @@ TEST(addNodeSchema, merge_map)
   ASSERT_TRUE(node2["namespace"]["param1"]);
   ASSERT_TRUE(node2["namespace"]["param1"]["mandatory"]);
   ASSERT_TRUE(node2["namespace"]["param1"]["type"]);
-  ASSERT_TRUE(node2["namespace"]["param1"]["yaml_type"]);
+  ASSERT_TRUE(node2["namespace"]["param1"]["doc"]);
   ASSERT_TRUE(node2["namespace"]["param2"]);
   ASSERT_TRUE(node2["namespace"]["param2"]["mandatory"]);
   ASSERT_TRUE(node2["namespace"]["param2"]["type"]);
-  ASSERT_TRUE(node2["namespace"]["param2"]["yaml_type"]);
+  ASSERT_TRUE(node2["namespace"]["param2"]["doc"]);
 }
 
 TEST(addNodeSchema, existing_scalar_override)
@@ -101,10 +101,10 @@ TEST(addNodeSchema, existing_scalar_override)
   YAML::Node node1, node2;
   node1["param1"]["mandatory"] = true;
   node1["param1"]["type"] = "bool";
-  node1["param1"]["yaml_type"] = "scalar";
+  node1["param1"]["doc"] = "scalar";
   node2["param1"]["mandatory"] = true;
   node2["param1"]["type"] = "string";
-  node2["param1"]["yaml_type"] = "scalar";
+  node2["param1"]["doc"] = "scalar";
 
   std::cout << "node1: " << std::endl << node1 << std::endl;
   std::cout << "node2: " << std::endl << node2 << std::endl;
@@ -112,18 +112,18 @@ TEST(addNodeSchema, existing_scalar_override)
   ASSERT_TRUE(node1["param1"]);
   ASSERT_TRUE(node1["param1"]["mandatory"]);
   ASSERT_TRUE(node1["param1"]["type"]);
-  ASSERT_TRUE(node1["param1"]["yaml_type"]);
+  ASSERT_TRUE(node1["param1"]["doc"]);
   ASSERT_TRUE(node2["param1"]);
   ASSERT_TRUE(node2["param1"]["mandatory"]);
   ASSERT_TRUE(node2["param1"]["type"]);
-  ASSERT_TRUE(node2["param1"]["yaml_type"]);
+  ASSERT_TRUE(node2["param1"]["doc"]);
 
   addNodeSchema(node1, "param1", node2["param1"], true);
 
   ASSERT_TRUE(node1["param1"]);
   ASSERT_TRUE(node1["param1"]["mandatory"]);
   ASSERT_TRUE(node1["param1"]["type"]);
-  ASSERT_TRUE(node1["param1"]["yaml_type"]);
+  ASSERT_TRUE(node1["param1"]["doc"]);
   ASSERT_EQ(node1["param1"]["type"].as<std::string>(),"string");
 }
 
@@ -132,10 +132,10 @@ TEST(addNodeSchema, existing_scalar_dont_override)
   YAML::Node node1, node2;
   node1["param1"]["mandatory"] = true;
   node1["param1"]["type"] = "bool";
-  node1["param1"]["yaml_type"] = "scalar";
+  node1["param1"]["doc"] = "scalar";
   node2["param1"]["mandatory"] = true;
   node2["param1"]["type"] = "string";
-  node2["param1"]["yaml_type"] = "scalar";
+  node2["param1"]["doc"] = "scalar";
 
   std::cout << "node1: " << std::endl << node1 << std::endl;
   std::cout << "node2: " << std::endl << node2 << std::endl;
@@ -143,11 +143,11 @@ TEST(addNodeSchema, existing_scalar_dont_override)
   ASSERT_TRUE(node1["param1"]);
   ASSERT_TRUE(node1["param1"]["mandatory"]);
   ASSERT_TRUE(node1["param1"]["type"]);
-  ASSERT_TRUE(node1["param1"]["yaml_type"]);
+  ASSERT_TRUE(node1["param1"]["doc"]);
   ASSERT_TRUE(node2["param1"]);
   ASSERT_TRUE(node2["param1"]["mandatory"]);
   ASSERT_TRUE(node2["param1"]["type"]);
-  ASSERT_TRUE(node2["param1"]["yaml_type"]);
+  ASSERT_TRUE(node2["param1"]["doc"]);
 
   try
   {
@@ -165,10 +165,10 @@ TEST(addNodeSchema, existing_sequence_override)
   YAML::Node node1, node2;
   node1["param1"]["mandatory"] = true;
   node1["param1"]["type"] = "bool";
-  node1["param1"]["yaml_type"] = "sequence";
+  node1["param1"]["doc"] = "sequence";
   node2["param1"]["mandatory"] = true;
   node2["param1"]["type"] = "string";
-  node2["param1"]["yaml_type"] = "scalar";
+  node2["param1"]["doc"] = "scalar";
 
   std::cout << "node1: " << std::endl << node1 << std::endl;
   std::cout << "node2: " << std::endl << node2 << std::endl;
@@ -176,18 +176,18 @@ TEST(addNodeSchema, existing_sequence_override)
   ASSERT_TRUE(node1["param1"]);
   ASSERT_TRUE(node1["param1"]["mandatory"]);
   ASSERT_TRUE(node1["param1"]["type"]);
-  ASSERT_TRUE(node1["param1"]["yaml_type"]);
+  ASSERT_TRUE(node1["param1"]["doc"]);
   ASSERT_TRUE(node2["param1"]);
   ASSERT_TRUE(node2["param1"]["mandatory"]);
   ASSERT_TRUE(node2["param1"]["type"]);
-  ASSERT_TRUE(node2["param1"]["yaml_type"]);
+  ASSERT_TRUE(node2["param1"]["doc"]);
 
   addNodeSchema(node1, "param1", node2["param1"], true);
 
   ASSERT_TRUE(node1["param1"]);
   ASSERT_TRUE(node1["param1"]["mandatory"]);
   ASSERT_TRUE(node1["param1"]["type"]);
-  ASSERT_TRUE(node1["param1"]["yaml_type"]);
+  ASSERT_TRUE(node1["param1"]["doc"]);
   ASSERT_EQ(node1["param1"]["type"].as<std::string>(),"string");
 }
 
@@ -196,10 +196,10 @@ TEST(addNodeSchema, existing_sequence_dont_override)
   YAML::Node node1, node2;
   node1["param1"]["mandatory"] = true;
   node1["param1"]["type"] = "bool";
-  node1["param1"]["yaml_type"] = "sequence";
+  node1["param1"]["doc"] = "sequence";
   node2["param1"]["mandatory"] = true;
   node2["param1"]["type"] = "string";
-  node2["param1"]["yaml_type"] = "scalar";
+  node2["param1"]["doc"] = "scalar";
 
   std::cout << "node1: " << std::endl << node1 << std::endl;
   std::cout << "node2: " << std::endl << node2 << std::endl;
@@ -207,11 +207,11 @@ TEST(addNodeSchema, existing_sequence_dont_override)
   ASSERT_TRUE(node1["param1"]);
   ASSERT_TRUE(node1["param1"]["mandatory"]);
   ASSERT_TRUE(node1["param1"]["type"]);
-  ASSERT_TRUE(node1["param1"]["yaml_type"]);
+  ASSERT_TRUE(node1["param1"]["doc"]);
   ASSERT_TRUE(node2["param1"]);
   ASSERT_TRUE(node2["param1"]["mandatory"]);
   ASSERT_TRUE(node2["param1"]["type"]);
-  ASSERT_TRUE(node2["param1"]["yaml_type"]);
+  ASSERT_TRUE(node2["param1"]["doc"]);
 
   try
   {
@@ -229,10 +229,10 @@ TEST(addNodeSchema, existing_map_scalar_override)
   YAML::Node node1, node2;
   node1["namespace"]["param1"]["mandatory"] = true;
   node1["namespace"]["param1"]["type"] = "bool";
-  node1["namespace"]["param1"]["yaml_type"] = "scalar";
+  node1["namespace"]["param1"]["doc"] = "scalar";
   node2["namespace"]["param1"]["mandatory"] = true;
   node2["namespace"]["param1"]["type"] = "string";
-  node2["namespace"]["param1"]["yaml_type"] = "scalar";
+  node2["namespace"]["param1"]["doc"] = "scalar";
 
   std::cout << "node1: " << std::endl << node1 << std::endl;
   std::cout << "node2: " << std::endl << node2 << std::endl;
@@ -240,18 +240,18 @@ TEST(addNodeSchema, existing_map_scalar_override)
   ASSERT_TRUE(node1["namespace"]["param1"]);
   ASSERT_TRUE(node1["namespace"]["param1"]["mandatory"]);
   ASSERT_TRUE(node1["namespace"]["param1"]["type"]);
-  ASSERT_TRUE(node1["namespace"]["param1"]["yaml_type"]);
+  ASSERT_TRUE(node1["namespace"]["param1"]["doc"]);
   ASSERT_TRUE(node2["namespace"]["param1"]);
   ASSERT_TRUE(node2["namespace"]["param1"]["mandatory"]);
   ASSERT_TRUE(node2["namespace"]["param1"]["type"]);
-  ASSERT_TRUE(node2["namespace"]["param1"]["yaml_type"]);
+  ASSERT_TRUE(node2["namespace"]["param1"]["doc"]);
 
   addNodeSchema(node1, "namespace", node2["namespace"], true);
 
   ASSERT_TRUE(node1["namespace"]["param1"]);
   ASSERT_TRUE(node1["namespace"]["param1"]["mandatory"]);
   ASSERT_TRUE(node1["namespace"]["param1"]["type"]);
-  ASSERT_TRUE(node1["namespace"]["param1"]["yaml_type"]);
+  ASSERT_TRUE(node1["namespace"]["param1"]["doc"]);
   ASSERT_EQ(node1["namespace"]["param1"]["type"].as<std::string>(),"string");
 }
 
@@ -260,10 +260,10 @@ TEST(addNodeSchema, existing_map_scalar_dont_override)
   YAML::Node node1, node2;
   node1["namespace"]["param1"]["mandatory"] = true;
   node1["namespace"]["param1"]["type"] = "bool";
-  node1["namespace"]["param1"]["yaml_type"] = "scalar";
+  node1["namespace"]["param1"]["doc"] = "scalar";
   node2["namespace"]["param1"]["mandatory"] = true;
   node2["namespace"]["param1"]["type"] = "string";
-  node2["namespace"]["param1"]["yaml_type"] = "scalar";
+  node2["namespace"]["param1"]["doc"] = "scalar";
 
   std::cout << "node1: " << std::endl << node1 << std::endl;
   std::cout << "node2: " << std::endl << node2 << std::endl;
@@ -271,11 +271,11 @@ TEST(addNodeSchema, existing_map_scalar_dont_override)
   ASSERT_TRUE(node1["namespace"]["param1"]);
   ASSERT_TRUE(node1["namespace"]["param1"]["mandatory"]);
   ASSERT_TRUE(node1["namespace"]["param1"]["type"]);
-  ASSERT_TRUE(node1["namespace"]["param1"]["yaml_type"]);
+  ASSERT_TRUE(node1["namespace"]["param1"]["doc"]);
   ASSERT_TRUE(node2["namespace"]["param1"]);
   ASSERT_TRUE(node2["namespace"]["param1"]["mandatory"]);
   ASSERT_TRUE(node2["namespace"]["param1"]["type"]);
-  ASSERT_TRUE(node2["namespace"]["param1"]["yaml_type"]);
+  ASSERT_TRUE(node2["namespace"]["param1"]["doc"]);
 
   try
   {
@@ -293,10 +293,10 @@ TEST(addNodeSchema, existing_diff_types_override)
   YAML::Node node1, node2;
   node1["namespace"]["param1"]["mandatory"] = true;
   node1["namespace"]["param1"]["type"] = "bool";
-  node1["namespace"]["param1"]["yaml_type"] = "scalar";
+  node1["namespace"]["param1"]["doc"] = "scalar";
   node2["namespace"]["param1"]["param2"]["mandatory"] = true;
   node2["namespace"]["param1"]["param2"]["type"] = "string";
-  node2["namespace"]["param1"]["param2"]["yaml_type"] = "scalar";
+  node2["namespace"]["param1"]["param2"]["doc"] = "scalar";
 
   std::cout << "node1: " << std::endl << node1 << std::endl;
   std::cout << "node2: " << std::endl << node2 << std::endl;
@@ -304,18 +304,18 @@ TEST(addNodeSchema, existing_diff_types_override)
   ASSERT_TRUE(node1["namespace"]["param1"]);
   ASSERT_TRUE(node1["namespace"]["param1"]["mandatory"]);
   ASSERT_TRUE(node1["namespace"]["param1"]["type"]);
-  ASSERT_TRUE(node1["namespace"]["param1"]["yaml_type"]);
+  ASSERT_TRUE(node1["namespace"]["param1"]["doc"]);
   ASSERT_TRUE(node2["namespace"]["param1"]["param2"]);
   ASSERT_TRUE(node2["namespace"]["param1"]["param2"]["mandatory"]);
   ASSERT_TRUE(node2["namespace"]["param1"]["param2"]["type"]);
-  ASSERT_TRUE(node2["namespace"]["param1"]["param2"]["yaml_type"]);
+  ASSERT_TRUE(node2["namespace"]["param1"]["param2"]["doc"]);
 
   addNodeSchema(node1, "namespace", node2["namespace"], true);
 
   ASSERT_TRUE(node1["namespace"]["param1"]["param2"]);
   ASSERT_TRUE(node1["namespace"]["param1"]["param2"]["mandatory"]);
   ASSERT_TRUE(node1["namespace"]["param1"]["param2"]["type"]);
-  ASSERT_TRUE(node1["namespace"]["param1"]["param2"]["yaml_type"]);
+  ASSERT_TRUE(node1["namespace"]["param1"]["param2"]["doc"]);
 }
 
 TEST(addNodeSchema, existing_diff_types_dont_override)
@@ -323,10 +323,10 @@ TEST(addNodeSchema, existing_diff_types_dont_override)
   YAML::Node node1, node2;
   node1["namespace"]["param1"]["mandatory"] = true;
   node1["namespace"]["param1"]["type"] = "bool";
-  node1["namespace"]["param1"]["yaml_type"] = "scalar";
+  node1["namespace"]["param1"]["doc"] = "scalar";
   node2["namespace"]["param1"]["param2"]["mandatory"] = true;
   node2["namespace"]["param1"]["param2"]["type"] = "string";
-  node2["namespace"]["param1"]["param2"]["yaml_type"] = "scalar";
+  node2["namespace"]["param1"]["param2"]["doc"] = "scalar";
 
   std::cout << "node1: " << std::endl << node1 << std::endl;
   std::cout << "node2: " << std::endl << node2 << std::endl;
@@ -334,11 +334,11 @@ TEST(addNodeSchema, existing_diff_types_dont_override)
   ASSERT_TRUE(node1["namespace"]["param1"]);
   ASSERT_TRUE(node1["namespace"]["param1"]["mandatory"]);
   ASSERT_TRUE(node1["namespace"]["param1"]["type"]);
-  ASSERT_TRUE(node1["namespace"]["param1"]["yaml_type"]);
+  ASSERT_TRUE(node1["namespace"]["param1"]["doc"]);
   ASSERT_TRUE(node2["namespace"]["param1"]["param2"]);
   ASSERT_TRUE(node2["namespace"]["param1"]["param2"]["mandatory"]);
   ASSERT_TRUE(node2["namespace"]["param1"]["param2"]["type"]);
-  ASSERT_TRUE(node2["namespace"]["param1"]["param2"]["yaml_type"]);
+  ASSERT_TRUE(node2["namespace"]["param1"]["param2"]["doc"]);
 
   try
   {

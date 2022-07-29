@@ -65,15 +65,21 @@ TEST(schema, wrong)
                                        ROOT_DIR + "/test/yaml/base_input_wrong2.yaml",
                                        ROOT_DIR + "/test/yaml/base_input_wrong3.yaml",
                                        ROOT_DIR + "/test/yaml/base_input_wrong4.yaml",
-                                       ROOT_DIR + "/test/yaml/base_input_wrong5.yaml"};
+                                       ROOT_DIR + "/test/yaml/base_input_wrong5.yaml",
+                                       ROOT_DIR + "/test/yaml/base_input_wrong6.yaml"};
   for (auto input : input_yamls)
   {
     std::cout << "testing " << input << std::endl;
     YamlServer server = YamlServer({ROOT_DIR}, input);
 
-    ASSERT_FALSE(server.applySchema("base_input.schema"));
+    bool succeed = server.applySchema("base_input.schema");
 
-    std::cout << server.getLog() << std::endl;
+    if (succeed)
+      std::cout << "resulting node: " << server.getNode() << std::endl;
+    else
+      std::cout << server.getLog() << std::endl;
+
+    ASSERT_FALSE(succeed);
   }
 }
 

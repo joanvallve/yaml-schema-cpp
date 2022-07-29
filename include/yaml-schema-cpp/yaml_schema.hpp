@@ -32,6 +32,14 @@ namespace yaml_schema_cpp
 {
 
 static std::string SCHEMA_EXTENSION = ".schema";
+static std::string TYPE = "type";
+static std::string MANDATORY = "mandatory";
+static std::string DOC = "doc";
+static std::string OPTIONS = "options";
+static std::string DEFAULT = "default";
+static std::string BASE = "base";
+static std::list<std::string> RESERVED_KEYS{TYPE, MANDATORY, DOC, OPTIONS, DEFAULT, BASE};
+static std::list<std::string> REQUIRED_KEYS{TYPE, MANDATORY, DOC};
 
 namespace filesystem = boost::filesystem;
 
@@ -57,12 +65,12 @@ bool applySchemaRecursive(YAML::Node& node_input,
 
 bool checkOptions(const YAML::Node& input_node, const YAML::Node& options_node, const std::string& type);
 
-bool isScalarSchema(const YAML::Node& node_schema);
-bool isMapSchema(const YAML::Node& node_schema);
+bool hasAnyReservedKey(const YAML::Node& node_schema);
+bool isSpecification(const YAML::Node& node_schema);
 bool isSequenceSchema(const YAML::Node& node_schema);
 
 void addNodeSchema(YAML::Node& node, const std::string& key, const YAML::Node& value, bool override);
 
-
+std::string getTypeOfSequence(const YAML::Node& node_schema);
 
 }  // namespace yaml_schema_cpp

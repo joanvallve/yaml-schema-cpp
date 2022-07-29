@@ -1,12 +1,10 @@
 param1: 
   mandatory: true
   type: int
-  yaml_type: scalar
   doc: "some doc"
 param2: 
   mandatory: true
   type: string
-  yaml_type: scalar
   doc: "some doc"
   options: 
     - "string"

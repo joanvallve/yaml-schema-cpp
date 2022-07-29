@@ -38,10 +38,10 @@ TEST(schema, wrong)
   std::list<std::string> wrong_schemas{"not_mandatory",
                                        "not_type",
                                        "not_doc",
+                                       "not_base",
                                        "wrong_default",
                                        "wrong_default_options",
                                        "wrong_mandatory", 
-                                       "wrong_yaml_type",
                                        "wrong_doc",
                                        "wrong_options",
                                        "wrong_options2"};
