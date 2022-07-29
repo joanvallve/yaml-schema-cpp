@@ -1,0 +1,8 @@
+map1:
+  param1: 1
+  param2: "string"
+param5:
+  - 1
+  - 2.4 #wrong should be int
+  - 0
+  - -3

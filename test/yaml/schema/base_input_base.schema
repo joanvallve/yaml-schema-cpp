@@ -4,11 +4,13 @@ map1:
     mandatory: false
     type: double
     default: 3.5
-    yaml_type: scalar
     doc: "some doc"
 param4:
   mandatory: false
   type: string
   default: hello
-  yaml_type: scalar
+  doc: "some doc"
+param5:
+  mandatory: true
+  type: int[]
   doc: "some doc"

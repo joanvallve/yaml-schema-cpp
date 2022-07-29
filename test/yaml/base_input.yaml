@@ -1,3 +1,9 @@
 map1:
   param1: 1
   param2: "string"
+param5:
+  - 5
+  - 6
+  - -1
+  - -7
+  - 0

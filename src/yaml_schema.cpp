@@ -81,69 +81,83 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
         throw std::runtime_error("YAML schema: " + node_field + " should be a map");
     }
 
-    // scalar
-    if (isScalarSchema(node_schema))
+    // specifications
+    if (isSpecification(node_schema))
     {
         // Required 'type' of type string
-        if (not node_schema["type"])
+        if (not node_schema[TYPE])
         {
-            throw std::runtime_error("YAML schema: " + node_field + " does not contain 'type'");
+            throw std::runtime_error("YAML schema: " + node_field + " does not contain " + TYPE);
         }
-        if (not checkTrivialType(node_schema["type"],"string"))
+        if (not checkTrivialType(node_schema[TYPE],"string"))
         {
-            throw std::runtime_error("YAML schema: In " + node_field + ", 'type' should be a string");
+            throw std::runtime_error("YAML schema: In " + node_field + ", " + TYPE + " should be a string");
+        }
+        if (node_schema[TYPE].as<std::string>().find("derived") != std::string::npos)
+        {
+            // If type=="derived" or "derived[]", 'base' of type string is required
+            if (not node_schema[BASE])
+            {
+                throw std::runtime_error("YAML schema: " + node_field + " of derived type does not contain " + BASE);
+            }
+            if (not checkTrivialType(node_schema[BASE],"string"))
+            {
+                throw std::runtime_error("YAML schema: In " + node_field + ", " + BASE + " should be a string");
+            }
         }
         // Required 'doc' of type string
-        if (not node_schema["doc"])
+        if (not node_schema[DOC])
         {
-            throw std::runtime_error("YAML schema: " + node_field + " does not contain 'doc'");
+            throw std::runtime_error("YAML schema: " + node_field + " does not contain " + DOC);
         }
-        if (not checkTrivialType(node_schema["doc"],"string"))
+        if (not checkTrivialType(node_schema[DOC],"string"))
         {
-            throw std::runtime_error("YAML schema: In " + node_field + ", 'doc' should be a string");
+            throw std::runtime_error("YAML schema: In " + node_field + ", " + DOC + " should be a string");
         }
         // Required 'mandatory' of type bool
-        if (not node_schema["mandatory"])
+        if (not node_schema[MANDATORY])
         {
-            throw std::runtime_error("YAML schema: " + node_field + " does not contain 'mandatory'");
+            throw std::runtime_error("YAML schema: " + node_field + " does not contain " + MANDATORY);
         }
-        if (not checkTrivialType(node_schema["mandatory"],"bool"))
+        if (not checkTrivialType(node_schema[MANDATORY],"bool"))
         {
-            throw std::runtime_error("YAML schema: In " + node_field + ", 'mandatory' should be a bool");
+            throw std::runtime_error("YAML schema: In " + node_field + ", " + MANDATORY + " should be a bool");
         }
         // OPTIONAL 'default'
-        if (not node_schema["mandatory"].as<bool>() and node_schema["default"])
+        if (not node_schema[MANDATORY].as<bool>() and node_schema[DEFAULT])
         {
-            if (not checkTrivialType(node_schema["default"], node_schema["type"].as<std::string>()))
+            auto type = isSequenceSchema(node_schema) ? getTypeOfSequence(node_schema) : node_schema[TYPE].as<std::string>();
+            if (not checkTrivialType(node_schema[DEFAULT], type))
             {
                 throw std::runtime_error("YAML schema: " + node_field + " default value wrong type");
             }
         }
         // OPTIONAL sequence 'options'
-        if (node_schema["options"])
+        if (node_schema[OPTIONS])
         {
             // Check that it is a sequence
-            if (not node_schema["options"].IsSequence())
+            if (not node_schema[OPTIONS].IsSequence())
             {
-                throw std::runtime_error("YAML schema: " + node_field + ", 'options' should be a sequence");
+                throw std::runtime_error("YAML schema: " + node_field + ", " + OPTIONS + " should be a sequence");
             }
             // check that all items have valid type
-            for (auto n_i = 0; n_i < node_schema["options"].size(); n_i++)
+            auto type = isSequenceSchema(node_schema) ? getTypeOfSequence(node_schema) : node_schema[TYPE].as<std::string>();
+            for (auto n_i = 0; n_i < node_schema[OPTIONS].size(); n_i++)
             {
-                if (not checkTrivialType(node_schema["options"][n_i],node_schema["type"].as<std::string>()))
+                if (not checkTrivialType(node_schema[OPTIONS][n_i],type))
                 {
                     throw std::runtime_error("YAML schema: " + node_field + 
-                                             ", 'options'[" + std::to_string(n_i) + 
-                                             "] has wrong type (should be " + node_schema["type"].as<std::string>() + ")");
+                                             ", " + OPTIONS + "[" + std::to_string(n_i) + 
+                                             "] has wrong type (should be " + type + ")");
                 }
             }
             // If default, check that it is in options
-            if (node_schema["default"])
+            if (node_schema[DEFAULT])
             {
                 bool option_found = false;
-                for (auto valid_n : node_schema["options"])
+                for (auto valid_n : node_schema[OPTIONS])
                 {
-                    if (compare(valid_n, node_schema["default"], node_schema["type"].as<std::string>()))
+                    if (compare(valid_n, node_schema[DEFAULT], type))
                     {
                         option_found = true;
                         break;
@@ -152,63 +166,31 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
                 if (not option_found)
                 {
                     throw std::runtime_error("YAML schema: " + node_field + 
-                                             ", 'default' value should be one of the specified in 'options'");
+                                             ", " + DEFAULT + " value should be one of the specified in " + OPTIONS);
                 }
             }
         }
     }
-    // sequence
-    else if (isSequenceSchema(node_schema))
+    // no specifications
+    else
     {
-        // Check 'type'
-        if (not node_schema["type"])
+        // check that there are no any of the specification keys
+        for (auto reserved_key : RESERVED_KEYS)
         {
-            throw std::runtime_error("YAML schema: " + node_field + " does not contain 'type'");
-        }
-        else if (not checkTrivialType(node_schema["type"],"string"))
-        {
-            throw std::runtime_error("YAML schema: In " + node_field + ", 'type' should be a string");
-        }
-        // Check 'mandatory'
-        if (not node_schema["mandatory"])
-        {
-            throw std::runtime_error("YAML schema: " + node_field + " does not contain 'mandatory'");
-        }
-        else if (not checkTrivialType(node_schema["mandatory"],"bool"))
-        {
-            throw std::runtime_error("YAML schema: In " + node_field + ", 'mandatory' should be a bool");
-        }
-        // OPTIONAL sequence 'options'
-        if (node_schema["options"])
-        {
-            // Check that it is a sequence
-            if (not node_schema["options"].IsSequence())
+            if (node_schema[reserved_key])
             {
-                throw std::runtime_error("YAML schema: " + node_field + ", 'options' should be a sequence");
-            }
-            // Check that all items have valid type
-            for (auto n_i = 0; n_i < node_schema["options"].size(); n_i++)
-            {
-                if (not checkTrivialType(node_schema["options"][n_i],node_schema["type"].as<std::string>()))
-                {
-                    throw std::runtime_error("YAML schema: " + node_field + 
-                                             ", 'options'[" + std::to_string(n_i) + 
-                                             "] has wrong type (should be " + node_schema["type"].as<std::string>() + ")");
-                }
+                throw std::runtime_error("YAML schema: " + node_field + 
+                                         " is not interpreted as specification (any of the required items " +
+                                         MANDATORY + ", " + TYPE + ", and " + DOC +
+                                         " is missing) but has a key reserved for schema specifications: " +
+                                         reserved_key);
             }
         }
-    }
-    // Map
-    else if (isMapSchema(node_schema))
-    {
+        // check the children nodes
         for (auto node_schema_child : node_schema)
         {
             checkSchema(node_schema_child.second, node_schema_child.first.as<std::string>());
         }
-    }
-    else
-    {
-        throw std::runtime_error("YAML schema: " + node_field + " has unknown yaml_type");
     }
 }
 
@@ -305,181 +287,122 @@ bool applySchemaRecursive(YAML::Node& node_input,
     bool is_valid_children = true;
     
     // Param schema (has mandatory and type)
-    if (isScalarSchema(node_schema))
+    if (isSpecification(node_schema))
     {
         // Exists
         if (node_input.IsDefined())
         {
-            // check trivial type
-            if (isTrivialType(node_schema["type"].as<std::string>()))
-            {  
-                // Wrong type (complain)
-                if (not checkTrivialType(node_input, node_schema["type"].as<std::string>()))
-                {
-                    writeToLog(log, acc_field + ": wrong type, it should be " + node_schema["type"].as<std::string>() + "\n");
-                    is_valid_current = false;
-                }
-                // Check "valid options"
-                else if (node_schema["options"])
-                {
-                    if (not checkOptions(node_input, node_schema["options"], node_schema["type"].as<std::string>()))
+            // Not sequence
+            if (not isSequenceSchema(node_schema))
+            {
+                // check trivial type
+                if (isTrivialType(node_schema[TYPE].as<std::string>()))
+                {  
+                    // Wrong type (complain)
+                    if (not checkTrivialType(node_input, node_schema[TYPE].as<std::string>()))
                     {
-                        std::stringstream options; 
-                        options << node_schema["options"];
-                        writeToLog(log, acc_field + 
-                                   " has wrong value, it should be one of the following: \n" + options.str() + "\n");
+                        writeToLog(log, acc_field + ": wrong type, it should be " + node_schema[TYPE].as<std::string>() + "\n");
                         is_valid_current = false;
                     }
-                }
-            }
-            // Derived type
-            else if (node_schema["type"].as<std::string>() == "derived")
-            {
-                // check existence of key type
-                if (not node_input["type"])
-                {
-                    writeToLog(log, acc_field + ": does not contain key 'type'\n");
-                    is_valid_current = false;
-                }
-                else
-                {
-                    // Validate with the base schema file
-                    if (node_schema["base"])
+                    // Check "valid options"
+                    else if (node_schema[OPTIONS])
                     {
+                        if (not checkOptions(node_input, node_schema[OPTIONS], node_schema[TYPE].as<std::string>()))
+                        {
+                            std::stringstream options; 
+                            options << node_schema[OPTIONS];
+                            writeToLog(log, acc_field + 
+                                    " has wrong value, it should be one of the following: \n" + options.str() + "\n");
+                            is_valid_current = false;
+                        }
+                    }
+                }
+                // Derived type
+                else if (node_schema[TYPE].as<std::string>() == "derived")
+                {
+                    // check existence of key type
+                    if (not node_input[TYPE])
+                    {
+                        writeToLog(log, acc_field + ": does not contain key 'type'\n");
+                        is_valid_current = false;
+                    }
+                    else
+                    {
+                        // Validate with the base schema file
                         is_valid_children = applySchema(node_input, 
-                                                        node_schema["base"].as<std::string>(), 
+                                                        node_schema[BASE].as<std::string>(), 
+                                                        folders, 
+                                                        log, 
+                                                        acc_field,
+                                                        override)
+                                            and is_valid_children;
+                        
+                        // Validate with the derived schema file
+                        is_valid_children = applySchema(node_input, 
+                                                        node_input[TYPE].as<std::string>(), 
                                                         folders, 
                                                         log, 
                                                         acc_field,
                                                         override)
                                             and is_valid_children;
                     }
-                    // Validate with the derived schema file
-                    is_valid_children = applySchema(node_input, 
-                                                    node_input["type"].as<std::string>(), 
-                                                    folders, 
-                                                    log, 
-                                                    acc_field,
-                                                    override)
-                                        and is_valid_children;
+                }
+                // non trivial type known in schema
+                else
+                {
+                    throw std::runtime_error("not trivial type nor 'derived', not implemented: " + node_schema[TYPE].as<std::string>());
                 }
             }
-            // non trivial type known in schema
-            else
+            // sequence
+            else 
             {
-                throw std::runtime_error("not implemented");
+                // First check that the node it is really a sequence
+                if (not node_input.IsSequence())
+                {
+                    writeToLog(log, "Input yaml does not contain a sequence in: " + acc_field + "\n");
+                    is_valid_current = false;
+                }
+                // Then check the validity of each element in the sequence
+                else
+                {
+                    // to check all the entries of the sequence, remove the brackets [] from the end of type 
+                    YAML::Node node_schema_i = node_schema;
+                    node_schema_i[TYPE] = getTypeOfSequence(node_schema);
+
+                    for (auto i = 0; i < node_input.size(); i++)
+                    {
+                        YAML::Node node_input_i = node_input[i];
+                        is_valid_children = applySchemaRecursive(node_input_i,
+                                                                 node_input,
+                                                                 node_schema_i, 
+                                                                 folders,
+                                                                 log,
+                                                                 acc_field + "[" + std::to_string(i) + "]",
+                                                                 override)
+                                            and is_valid_children;
+                    }
+                }
             }
         }
         // Does not exist
         else 
         {
             // complain if mandatory
-            if(node_schema["mandatory"].as<bool>())
+            if(node_schema[MANDATORY].as<bool>())
             {
                 writeToLog(log, "Input yaml does not contain field: " + acc_field + "\n");
                 is_valid_current = false;
             }
             // add node with default value (if parent is defined)
-            else if (node_schema["default"] and node_input_parent.IsDefined())
+            else if (node_schema[DEFAULT] and node_input_parent.IsDefined())
             {
                 auto field = filesystem::path(acc_field).filename().string();
-                node_input_parent[field] = node_schema["default"];
+                node_input_parent[field] = node_schema[DEFAULT];
             }
         }
     }
-    // sequence
-    else if (isSequenceSchema(node_schema))
-    {
-        if(node_input.IsDefined())
-        {
-            // First check that the node it is really a sequence
-            if (not node_input.IsSequence())
-            {
-                writeToLog(log, "Input yaml does not contain a sequence in: " + acc_field + "\n");
-                is_valid_current = false;
-            }
-            // Then check the validity of each element in the sequence
-            else
-            {
-                for (auto i = 0; i < node_input.size(); i++)
-                {
-                    // Trivial type
-                    if (isTrivialType(node_schema["type"].as<std::string>()))
-                    {
-                        // Wrong type (complain)
-                        if (not checkTrivialType(node_input[i], node_schema["type"].as<std::string>()))
-                        {
-                            writeToLog(log, acc_field + 
-                                       ": Element " + std::to_string(i) + 
-                                       ": wrong type, it should be " + node_schema["type"].as<std::string>() + "\n");
-                            is_valid_current = false;
-                        }
-                        // Check "valid options"
-                        else if (node_schema["options"])
-                        {
-                            if (not checkOptions(node_input[i], node_schema["options"], node_schema["type"].as<std::string>()))
-                            {
-                                std::stringstream options; 
-                                options << node_schema["options"];
-                                writeToLog(log, acc_field + 
-                                           ": Element " + std::to_string(i) + 
-                                           " has wrong value, it should be one of the following: \n" + options.str() + "\n");
-                                is_valid_current = false;
-                            }
-                        }
-                    }
-                    // Derived type
-                    else if (node_schema["type"].as<std::string>() == "derived")
-                    {
-                        // check existence of key type
-                        if (not node_input[i]["type"])
-                        {
-                            writeToLog(log, acc_field + 
-                                       ": Element " + std::to_string(i) + 
-                                       " does not contain key 'type'\n");
-                            is_valid_current = false; 
-                            continue;
-                        }
-                        else
-                        {
-                            YAML::Node node_input_i = node_input[i];
-                            // Validate with the base schema file
-                            if (node_schema["base"])
-                            {
-                                is_valid_children = applySchema(node_input_i, 
-                                                                node_schema["base"].as<std::string>(), 
-                                                                folders, 
-                                                                log, 
-                                                                acc_field + "[" + std::to_string(i) + "]",
-                                                                override)
-                                                    and is_valid_children;
-                            }
-                            // Validate with the derived schema file
-                            is_valid_children = applySchema(node_input_i, 
-                                                            node_input_i["type"].as<std::string>(), 
-                                                            folders, 
-                                                            log, 
-                                                            acc_field + "[" + std::to_string(i) + "]",
-                                                            override)
-                                                and is_valid_children;
-                        }
-                    }
-                    // non trivial type known in schema
-                    else
-                    {
-                        throw std::runtime_error("not implemented");
-                    }
-                }
-            }
-        }
-        else if (node_schema["mandatory"].as<bool>()) // complain inexistence if mandatory
-        {
-            writeToLog(log, "Input yaml does not contain field: " + acc_field + "\n");
-            is_valid_current = false;
-        }
-    }
-    // map of params
-    else if (isMapSchema(node_schema))
+    // map without specification
+    else
     {
         for (auto node_schema_child : node_schema)
         {
@@ -497,21 +420,17 @@ bool applySchemaRecursive(YAML::Node& node_input,
                                 and is_valid_children;
         }
     }
-    else
-    {
-        throw std::runtime_error("unknown schema node type!");
-    }
 
     // If not valid, print the doc
     if (not is_valid_current)
     {
         writeToLog(log, "-- '" + acc_field + "':\n");
-        writeToLog(log, "\tDoc: " + node_schema["doc"].as<std::string>() + "\n");
-        writeToLog(log, "\t" + node_schema["yaml_type"].as<std::string>() + " of type: " + node_schema["type"].as<std::string>() + "\n");
-        if (node_schema["options"])
+        writeToLog(log, "\tDoc: " + node_schema[DOC].as<std::string>() + "\n");
+        writeToLog(log, "\tType: " + node_schema[TYPE].as<std::string>() + "\n");
+        if (node_schema[OPTIONS])
         {
             writeToLog(log, "\tAccepted values: ");
-            for (auto option_n : node_schema["options"])
+            for (auto option_n : node_schema[OPTIONS])
             {
                 writeToLog(log, option_n.as<std::string>() + ", ");
             }
@@ -539,7 +458,7 @@ void addNodeSchema(YAML::Node& node, const std::string& key, const YAML::Node& v
 {
     if (node[key])
     {
-        if (isScalarSchema(node[key]))
+        if (isSpecification(node[key]))
         {
             if (override)
             {
@@ -547,38 +466,21 @@ void addNodeSchema(YAML::Node& node, const std::string& key, const YAML::Node& v
             }
             else
             {
-                throw std::runtime_error("Trying to add something into an already existing scalar schema node");
-            }
-        }
-        else if (isSequenceSchema(node[key]))
-        {
-            if (override)
-            {
-                node[key] = value;
-            }
-            else
-            {
-                throw std::runtime_error("Trying to add something into an already existing sequence schema node");
-            }
-        }
-        else if (isMapSchema(node[key]))
-        {
-            if (not isMapSchema(value))
-            {
-                throw std::runtime_error("Trying to add a sequence, scalar or unknown schema node into an already existing map schema node");
-            }
-            else
-            {
-                for (auto value_map_node : value)
-                {
-                    YAML::Node node_key = node[key];
-                    addNodeSchema(node_key, value_map_node.first.as<std::string>(), value_map_node.second, override);
-                }
+                throw std::runtime_error("Trying to add something into an already existing schema node");
             }
         }
         else
         {
-            throw std::runtime_error("Trying to add something into an schema node of unknown yaml_type: " + key);
+            if (hasAnyReservedKey(node[key]))
+            {
+                throw std::runtime_error("addNodeSchema: node[key] has any of the reserved keys but not all required keys");
+            }
+
+            for (auto value_map_node : value)
+            {
+                YAML::Node node_key = node[key];
+                addNodeSchema(node_key, value_map_node.first.as<std::string>(), value_map_node.second, override);
+            }
         }
     }
     else
@@ -587,19 +489,52 @@ void addNodeSchema(YAML::Node& node, const std::string& key, const YAML::Node& v
     }
 }
 
-bool isScalarSchema(const YAML::Node& node_schema)
+bool isSpecification(const YAML::Node& node_schema)
 {
-    return node_schema["yaml_type"] and node_schema["yaml_type"].as<std::string>() == "scalar";
+    for (auto required_key : REQUIRED_KEYS)
+    {
+        if (not node_schema[required_key])
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool hasAnyReservedKey(const YAML::Node& node_schema)
+{
+    for (auto reserved_key : RESERVED_KEYS)
+    {
+        if (node_schema[reserved_key])
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool isSequenceSchema(const YAML::Node& node_schema)
 {
-    return node_schema["yaml_type"] and node_schema["yaml_type"].as<std::string>() == "sequence";
+    if (not node_schema[TYPE])
+    {
+        throw std::runtime_error("isSequenceSchema: the node does not have the key " + TYPE);
+    }
+    auto type = node_schema[TYPE].as<std::string>();
+    return type.size() > 2 and type.substr(type.size()-2) == "[]";
 }
 
-bool isMapSchema(const YAML::Node& node_schema)
+std::string getTypeOfSequence(const YAML::Node& node_schema)
 {
-    return node_schema.IsMap() and not node_schema["yaml_type"];
+    if (not node_schema[TYPE])
+    {
+        throw std::runtime_error("getTypeOfSequence: the node does not have the key " + TYPE);
+    }
+    if (not isSequenceSchema(node_schema))
+    {
+        throw std::runtime_error("getTypeOfSequence: the node type is not sequence: " + node_schema[TYPE].as<std::string>());
+    }
+    auto type_seq = node_schema[TYPE].as<std::string>();
+    return type_seq.substr(0, type_seq.size()-2);
 }
 
 }  // namespace yaml_schema_cpp

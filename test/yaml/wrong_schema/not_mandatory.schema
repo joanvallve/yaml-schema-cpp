@@ -1,22 +1,18 @@
 namespace1:
   param1:
     mandatory: true
-    yaml_type: scalar
     type: double
     doc: "some parameter"
   param2:
     mandatory: false
-    yaml_type: scalar
     type: Vector4d
     default: [0.1, 0, 1e4, 9]
     doc: "some parameter"
 param3:
   mandatory: true
-  yaml_type: sequence
-  type: string
+  type: string[]
   doc: "some parameter"
 param4:
-  yaml_type: scalar
   type: bool
   default: true
   doc: "some parameter"
