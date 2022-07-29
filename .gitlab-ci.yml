@@ -60,7 +60,26 @@ stages:
   - fi
 
 .yaml_cpp_install_template: &yaml_cpp_install_definition
-  - apt install libyaml-cpp-dev
+  - if [ $(lsb_release -rs) == "18.04" ]; then
+  -   echo "Ubuntu 18.04. Installing yaml-cpp via source..."
+  -   if [ -d yaml-cpp ]; then
+  -     echo "directory yaml-cpp exists"
+  -     cd yaml-cpp
+  -     git pull
+  -   else
+  -     git clone -b yaml-cpp-0.6.2 --depth 1 https://github.com/jbeder/yaml-cpp.git
+  -     cd yaml-cpp
+  -   fi
+  -   mkdir -pv build
+  -   cd build
+  -   cmake -DCMAKE_BUILD_TYPE=release ..
+  -   make -j$(nproc)
+  -   make install
+  -   ldconfig
+  - else
+  -   echo "Ubuntu 18.04. Installing yaml-cpp via apt..."
+  -   apt install libyaml-cpp-dev
+  - fi
 
 .build_and_test_template: &build_and_test_definition
   - cd $CI_PROJECT_DIR
