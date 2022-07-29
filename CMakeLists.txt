@@ -1,73 +1,140 @@
-if(${CMAKE_VERSION} VERSION_LESS "3.11.0") 
-  message("CMake version less than 3.11.0")
+cmake_minimum_required(VERSION 3.11.0)
+project(yaml-schema-cpp VERSION 0.0.0)
 
-  # Enable ExternalProject CMake module
-  include(ExternalProject)
+# ------ PROJECT REQUIREMENTS ------
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-  set(GTEST_FORCE_SHARED_CRT ON)
-  set(GTEST_DISABLE_PTHREADS ON) # without this in ubuntu 18.04 we get linking errors
+# ------ PROJECT OPTIONS ------
+IF(NOT BUILD_TESTS)
+  OPTION(BUILD_TESTS "Build Unit tests" ON)
+ENDIF(NOT BUILD_TESTS)
 
-  # Download GoogleTest
-  ExternalProject_Add(googletest
-      GIT_REPOSITORY https://github.com/google/googletest.git
-      GIT_TAG        v1.8.x
-      # TIMEOUT 1 # We'll try this
-      CMAKE_ARGS -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG:PATH=DebugLibs
-      -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE:PATH=ReleaseLibs
-      -DCMAKE_CXX_FLAGS=${MSVC_COMPILER_DEFS}
-      -Dgtest_force_shared_crt=${GTEST_FORCE_SHARED_CRT}
-      -Dgtest_disable_pthreads=${GTEST_DISABLE_PTHREADS}
-      -DBUILD_GTEST=ON
-      PREFIX "${CMAKE_CURRENT_BINARY_DIR}"
-      # Disable install step
-      INSTALL_COMMAND ""
-      UPDATE_DISCONNECTED 1 # 1: do not update googletest; 0: update googletest via github
-  )
+IF(NOT BUILD_EXAMPLES)
+  OPTION(BUILD_EXAMPLES "Build examples" ON)
+ENDIF(NOT BUILD_EXAMPLES)
 
-  # Get GTest source and binary directories from CMake project
+# ============ config.h ============ 
+# Define the directory where will be the configured config.h
+SET(YAML_SCHEMA_CONFIG_DIR ${PROJECT_BINARY_DIR}/conf/${PROJECT_NAME}/internal)
+# Create the specified output directory if it does not exist.
+IF(NOT EXISTS "${YAML_SCHEMA_CONFIG_DIR}")
+  message(STATUS "Creating config output directory: ${YAML_SCHEMA_CONFIG_DIR}")
+  file(MAKE_DIRECTORY "${YAML_SCHEMA_CONFIG_DIR}")
+ENDIF()
+IF(EXISTS "${YAML_SCHEMA_CONFIG_DIR}" AND NOT IS_DIRECTORY "${YAML_SCHEMA_CONFIG_DIR}")
+  message(FATAL_ERROR "Bug: Specified CONFIG_DIR: "
+    "${YAML_SCHEMA_CONFIG_DIR} exists, but is not a directory.")
+ENDIF()
+# Configure config.h
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/internal/config.h.in "${YAML_SCHEMA_CONFIG_DIR}/config.h")
+include_directories("${PROJECT_BINARY_DIR}/conf")
 
-  # Specify include dir
-  ExternalProject_Get_Property(googletest source_dir)
-  set(GTEST_INCLUDE_DIRS ${source_dir}/googletest/include PARENT_SCOPE)
 
-  # Specify MainTest's link libraries
-  ExternalProject_Get_Property(googletest binary_dir)
-  set(GTEST_LIBS_DIR ${binary_dir}/googlemock/gtest PARENT_SCOPE)
+# ------ DEPENDENCIES ------
+find_package(yaml-cpp REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED COMPONENTS filesystem)
 
-  # Create a libgtest target to be used as a dependency by test programs
-  add_library(libgtest IMPORTED STATIC GLOBAL)
-  add_dependencies(libgtest googletest)
+# ------ LIBRARY ------
+list(APPEND LIB_SRCS src/folders_schema.cpp)
+list(APPEND LIB_SRCS src/yaml_schema.cpp)
+list(APPEND LIB_SRCS src/yaml_server.cpp)
+list(APPEND LIB_SRCS src/yaml_utils.cpp)
+add_library(${PROJECT_NAME} SHARED ${LIB_SRCS})
 
-  # Set libgtest properties
-  set_target_properties(libgtest PROPERTIES
-      "IMPORTED_LOCATION" "${binary_dir}/googlemock/gtest/libgtest.a"
-      "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
-  )
+target_include_directories(
+    ${PROJECT_NAME}
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    PUBLIC $<BUILD_INTERFACE:${YAML_SCHEMA_CONFIG_DIR}>
+    $<INSTALL_INTERFACE:include>)
 
-else()
+target_link_libraries(${PROJECT_NAME} PUBLIC yaml-cpp)
+target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
+target_link_libraries(${PROJECT_NAME} PUBLIC Boost::filesystem)
 
-  message("CMake version equal or greater than 3.11.0")
+# ------ EXAMPLE LIBRARY ------
+IF(BUILD_EXAMPLES)
+    list(APPEND LIB_EXAMPLE_SRCS examples/src/costs.cpp)
+    list(APPEND LIB_EXAMPLE_SRCS examples/src/stage.cpp)
 
-  include(FetchContent)
+    add_library(${PROJECT_NAME}_example SHARED ${LIB_EXAMPLE_SRCS})
 
-  FetchContent_Declare(
-    googletest
-    GIT_REPOSITORY https://github.com/google/googletest.git 
-    GIT_TAG v1.8.x)
+    target_include_directories(${PROJECT_NAME}_example PUBLIC examples/include)
 
-  SET(INSTALL_GTEST OFF) # Disable installation of googletest
-  FetchContent_MakeAvailable(googletest)
-    
+    target_link_libraries(${PROJECT_NAME}_example PUBLIC ${PROJECT_NAME})
+    target_link_libraries(${PROJECT_NAME}_example PUBLIC Eigen3::Eigen)
+    target_link_libraries(${PROJECT_NAME}_example PUBLIC Boost::filesystem)
+
+    # ------ EXECUTABLES ------
+    set(COST_EX_NAME cost-example)
+    add_executable(${COST_EX_NAME} examples/cost-example.cpp)
+
+    target_link_libraries(${COST_EX_NAME} PUBLIC ${PROJECT_NAME})
+    target_link_libraries(${COST_EX_NAME} PUBLIC ${PROJECT_NAME}_example)
+
+    set(STAGE_EX_NAME stage-example)
+    add_executable(${STAGE_EX_NAME} examples/stage-example.cpp)
+
+    target_link_libraries(${STAGE_EX_NAME} PUBLIC ${PROJECT_NAME})
+    target_link_libraries(${STAGE_EX_NAME} PUBLIC ${PROJECT_NAME}_example)
+ENDIF(BUILD_EXAMPLES)
+
+# ------ TESTS ------
+IF(BUILD_TESTS)
+  MESSAGE(STATUS "Will build tests.")
+  enable_testing()
+  add_subdirectory(test)
+ENDIF(BUILD_TESTS)
+
+# ------ INSTALL ------
+install(DIRECTORY include/${PROJECT_NAME} DESTINATION include)
+install(
+    TARGETS ${PROJECT_NAME}
+    EXPORT ${PROJECT_NAME}-targets
+    LIBRARY DESTINATION lib)
+install(
+    EXPORT ${PROJECT_NAME}-targets
+    FILE ${PROJECT_NAME}-targets.cmake
+    NAMESPACE YamlSchemaCpp::
+    DESTINATION lib/cmake/${PROJECT_NAME})
+
+# ------ Find ------
+include(CMakePackageConfigHelpers)
+
+# generate the config file that is includes the exports
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    INSTALL_DESTINATION "lib/cmake/${PROJECT_NAME}"
+    NO_SET_AND_CHECK_MACRO
+    NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    VERSION "${yaml-schema-cpp_VERSION_MAJOR}.${yaml-schema-cpp_VERSION_MINOR}"
+    COMPATIBILITY AnyNewerVersion
+)
+
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+    DESTINATION lib/cmake/${PROJECT_NAME}
+)
+
+# So that it can be used without installing
+export(EXPORT ${PROJECT_NAME}-targets
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}-targets.cmake"
+)
+
+# ---- UNINSTALL ----
+if(NOT TARGET uninstall)
+    configure_file(
+        "${PROJECT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+        IMMEDIATE @ONLY)
+
+    add_custom_target(uninstall
+        COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 endif()
-  
-function(add_gtest target)
-  add_executable(${target} ${ARGN})
-  if(${CMAKE_VERSION} VERSION_LESS "3.11.0") 
-    add_dependencies(${target} libgtest)
-    target_link_libraries(${target} PUBLIC libgtest ${PROJECT_NAME})
-    target_include_directories(${target} PUBLIC ${GTEST_INCLUDE_DIRS})
-  else()
-    target_link_libraries(${target} PUBLIC gtest_main ${PROJECT_NAME})
-  endif()
-  add_test(NAME ${target} COMMAND ${target})
-endfunction()
