@@ -63,7 +63,6 @@ stages:
 .yaml_cpp_install_template: &yaml_cpp_install_definition
   - if [ $(lsb_release -rs) == "18.04" ]; then
   -   echo "Ubuntu 18.04. Installing yaml-cpp via source..."
-  -   apt remove -y libyaml-cpp-dev
   -   if [ -d yaml-cpp ]; then
   -     echo "directory yaml-cpp exists"
   -     cd yaml-cpp
@@ -79,7 +78,8 @@ stages:
   -   make install
   -   ldconfig
   - else
-  -   echo "Ubuntu 20.04. Already installed yaml-cpp via apt."
+  -   echo "Ubuntu 20.04. Installing yaml-cpp via apt."
+  -   apt install -y libyaml-cpp-dev
   - fi
 
 .build_and_test_template: &build_and_test_definition
@@ -94,7 +94,7 @@ stages:
 ############ LICENSE HEADERS ############
 license_headers:
   stage: license
-  image: labrobotica/wolf_deps:20.04
+  image: ubuntu:20.04
   before_script:
     - *preliminaries_definition
   script:
@@ -103,7 +103,7 @@ license_headers:
 ############ UBUNTU 18.04 TESTS ############
 build_and_test_none:bionic:
   stage: build_and_test
-  image: labrobotica/wolf_deps:18.04
+  image: ubuntu:18.04
   before_script:
     - *preliminaries_definition
     - *yaml_cpp_install_definition
