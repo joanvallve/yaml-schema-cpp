@@ -68,7 +68,7 @@ stages:
   - cd build
   - cmake -DCMAKE_BUILD_TYPE=release -DBUILD_EXAMPLES=ON -DBUILD_TESTS=ON ..
   - make -j2
-  - ctest -j2
+  - ctest -j2 --output-on-failure
   - make install
 
 ############ LICENSE HEADERS ############
