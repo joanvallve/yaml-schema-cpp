@@ -23,6 +23,7 @@ stages:
 
   # update apt
   - apt-get update
+  - apt install -y lsb-release
 
 .license_header_template: &license_header_definition
   - cd $CI_PROJECT_DIR
@@ -77,7 +78,7 @@ stages:
   -   make install
   -   ldconfig
   - else
-  -   echo "Ubuntu 18.04. Installing yaml-cpp via apt..."
+  -   echo "Ubuntu 20.04. Installing yaml-cpp via apt..."
   -   apt install libyaml-cpp-dev
   - fi
 
