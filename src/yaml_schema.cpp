@@ -321,7 +321,7 @@ bool applySchemaRecursive(YAML::Node& node_input,
                 else if (node_schema[TYPE].as<std::string>() == "derived")
                 {
                     // check existence of key type
-                    if (not node_input[TYPE])
+                    if (not node_input["type"])
                     {
                         writeToLog(log, acc_field + ": does not contain key 'type'\n");
                         is_valid_current = false;
@@ -339,7 +339,7 @@ bool applySchemaRecursive(YAML::Node& node_input,
                         
                         // Validate with the derived schema file
                         is_valid_children = applySchema(node_input, 
-                                                        node_input[TYPE].as<std::string>(), 
+                                                        node_input["type"].as<std::string>(), 
                                                         folders, 
                                                         log, 
                                                         acc_field,

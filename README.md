@@ -107,76 +107,76 @@ The following is an example of a schema file:
 house:
   kitchen:
     hoven:
-      mandatory: true
-      type: string
-      doc: "Model of the hoven"
+      _mandatory: true
+      _type: string
+      _doc: "Model of the hoven"
     stove:
       number:
-        mandatory: true
-        type: int
-        doc: "number of stoves"
+        _mandatory: true
+        _type: int
+        _doc: "number of stoves"
       stove_type:
-        mandatory: false
-        type: string
-        default: "gas"
-        options: ["gas", "electric", "induction", "coil", "other"]
-        doc: "The type of the stoves"
+        _mandatory: false
+        _type: string
+        _default: "gas"
+        _options: ["gas", "electric", "induction", "coil", "other"]
+        _doc: "The type of the stoves"
       power:
-        mandatory: false
-        type: double
-        doc: "The power of the stoves (W)"
+        _mandatory: false
+        _type: double
+        _doc: "The power of the stoves (W)"
   dinning_room:
     TV:
-      mandatory: false
-      type: string
-      doc: "The model of the TV, if any"
+      _mandatory: false
+      _type: string
+      _doc: "The model of the TV, if any"
     sofa:
-      mandatory: true
-      type: unsigned int
-      doc: "sofa number of seats"
+      _mandatory: true
+      _type: unsigned int
+      _doc: "sofa number of seats"
     table:
-      mandatory: true
-      type: Eigen::Vector2d
-      doc: "Table dimensions (m)"
+      _mandatory: true
+      _type: Eigen::Vector2d
+      _doc: "Table dimensions (m)"
   bedrooms:
-    mandatory: true
-    type: derived[]
-    base: BedroomClass
-    doc: "A sequence of bedrooms" 
+    _mandatory: true
+    _type: derived[]
+    _base: BedroomClass
+    _doc: "A sequence of bedrooms" 
   corridor:
-    mandatory: false
-    type: string
-    doc: "A string describing the corridor"
+    _mandatory: false
+    _type: string
+    _doc: "A string describing the corridor"
 ```
 
 In this example, an input yaml file is specified. In the schema file, an input field can be specified or not (ex: "house", "kitchen", "stove" and "dinning_room" are not specified). There are some reserved fields to specify the input field, presented below.
 
-#### `type`
+#### `_type`
 A **string** specifying which type the input field should be. 
-The `type` can be:
+The `_type` can be:
 - Trivial types (`bool`, `char`, `int`, `unsigned int`, `long int`, `long unsigned int`, `float`, `double`, `std::string`).
 - Eigen types (`Eigen::MatrixXd`, `Eigen::VectorXd`, `Eigen::Matrix2d`, `Eigen::Vector2d`, `Eigen::Matrix3d`, `Eigen::Vector3d`, ...)
-- "derived": The input field can be a custom type deriving from a specified base class (see `base`).
+- "derived": The input field can be a custom type deriving from a specified base class (see `_base`).
 - Custom types (new feature comming soon)
 
 If the type string ends with `[]`, the input field should be a sequence.
 
-#### `mandatory`
+#### `_mandatory`
 A **bool** specifying if the input field is required or just optional.
 
-#### `doc`
+#### `_doc`
 A **string** with a brief documentation.
 
-#### `default` (optional)
-In case the input field is missing (allowed only if `mandatory` is `false`), then it is added with the `default` value in the input yaml node.
+#### `_default` (optional)
+In case the input field is missing (allowed only if `_mandatory` is `false`), then it is added with the `_default` value in the input yaml node.
 
-#### `options` (optional)
+#### `_options` (optional)
 A sequence of valid values.
 
-#### `base` (required if `type` is "derived")
+#### `_base` (required if `_type` is "derived")
 The base class that the input field type should inherit from. This checks the input against the base class schema.
 
 
 ### The `follow` key
 
-In both input and schema files, the key `follow` is interpreted as a copy-paste of the contents of another file.
+In both input and schema files, the key `follow` is interpreted as a copy-paste of the contents of another file (either `.schema` or `.yaml`).
