@@ -312,7 +312,7 @@ bool applySchemaRecursive(YAML::Node& node_input,
                             std::stringstream options; 
                             options << node_schema[OPTIONS];
                             writeToLog(log, acc_field + 
-                                    " has wrong value, it should be one of the following: \n" + options.str() + "\n");
+                                       ": wrong value, it should be one of the following: \n" + options.str() + "\n");
                             is_valid_current = false;
                         }
                     }

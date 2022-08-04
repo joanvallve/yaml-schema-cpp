@@ -80,6 +80,9 @@ YamlServer server = YamlServer(schema_folders, "another/path/containing/the/inpu
 
 bool succeed = server.applySchema("requeriments.schema");
 
+if (not succeed)
+  std::cout << server.getLog() << std::endl;
+
 YAML::Node input_node = server.getNode();
 ```
 
@@ -89,12 +92,54 @@ Or, if you have more than one yaml file to load:
 YamlServer server = YamlServer({"one/path","another/path"});
 
 server.loadYaml("path/to/input1.yaml")
-bool succeed = server.applySchema("requeriments.schema");
+
+if (not server.applySchema("requeriments.schema"))
+  std::cout << server.getLog() << std::endl;
+
 YAML::Node input_node_1 = server.getNode();
 
 server.loadYaml("path/to/input2.yaml")
-bool succeed = server.applySchema("other_requeriments.schema");
+
+if (server.applySchema("other_requeriments.schema"))
+  std::cout << server.getLog() << std::endl;
+
 YAML::Node input_node_2 = server.getNode();
+```
+
+If the input yaml file is not validated, `YamlServer::applySchema()` returns false and the errors found are reported with `YamlServer::getLog()`.
+The log output will be something like this:
+
+```
+---------------------------------------------------------------------------------
+Log of applySchema to YAML file
+  yaml file: /path/to/the/input.yaml
+  schema: Example.schema
+---------------------------------------------------------------------------------
+
+map1/param2: wrong value, it should be one of the following: 
+- string
+- strong
+- streng
+-- 'map1/param2':
+	Doc: some doc
+	Type: string
+	Accepted values: string, strong, streng, 
+
+map1/param3: wrong type, it should be double
+-- 'map1/param3':
+	Doc: some doc
+	Type: double
+
+Input yaml does not contain field: param4
+-- 'param4':
+	Doc: some doc
+	Type: string
+
+param5[1]: wrong type, it should be int
+-- 'param5[1]':
+	Doc: some doc
+	Type: int
+
 ```
 
 ### The `.schema` file
