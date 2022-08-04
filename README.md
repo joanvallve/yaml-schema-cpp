@@ -105,6 +105,10 @@ Schema files are YAML files as well, but they have the extension `.schema`.
 The following is an example of a schema file:
 ```yaml
 house:
+  owners:
+    _mandatory: true
+    _type: string[]
+    _doc: "Sequence of all owners' names"
   kitchen:
     hoven:
       _mandatory: true
