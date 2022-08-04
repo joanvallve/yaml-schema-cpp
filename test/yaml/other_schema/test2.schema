@@ -1,10 +1,10 @@
 follow: test1.schema
 namespace1:
   param3:
-    mandatory: true
-    type: string
-    doc: "some parameter"
+    _mandatory: true
+    _type: string
+    _doc: "some parameter"
 param5:
-  mandatory: true
-  type: int
-  doc: "some parameter"
+  _mandatory: true
+  _type: int
+  _doc: "some parameter"

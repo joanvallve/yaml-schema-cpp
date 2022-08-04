@@ -1,27 +1,27 @@
 map1:
   param1: 
-    mandatory: true
-    type: int
-    doc: "some doc"
+    _mandatory: true
+    _type: int
+    _doc: "some doc"
   param2: 
-    mandatory: true
-    type: string
-    doc: "some doc"
-    options: 
+    _mandatory: true
+    _type: string
+    _doc: "some doc"
+    _options: 
       - "string"
       - "strong"
       - "streng"
   param3:
-    mandatory: false
-    type: double
-    default: 3.5
-    doc: "some doc"
+    _mandatory: false
+    _type: double
+    _default: 3.5
+    _doc: "some doc"
 param4:
-  mandatory: false
-  type: string
-  default: hello
-  doc: "some doc"
+  _mandatory: false
+  _type: string
+  _default: hello
+  _doc: "some doc"
 param5:
-  mandatory: false
-  type: int[]
-  doc: "some doc"
+  _mandatory: false
+  _type: int[]
+  _doc: "some doc"

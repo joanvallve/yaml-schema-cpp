@@ -1,12 +1,12 @@
 param1: 
-  mandatory: true
-  type: int
-  doc: "some doc"
+  _mandatory: true
+  _type: int
+  _doc: "some doc"
 param2: 
-  mandatory: true
-  type: string
-  doc: "some doc"
-  options: 
+  _mandatory: true
+  _type: string
+  _doc: "some doc"
+  _options: 
     - "string"
     - "strong"
     - "streng"

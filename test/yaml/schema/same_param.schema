@@ -1,6 +1,6 @@
 follow: test2.schema
 namespace1:
   param3:
-    mandatory: true
-    type: double
-    doc: "some parameter"
+    _mandatory: true
+    _type: double
+    _doc: "some parameter"

@@ -32,12 +32,13 @@ namespace yaml_schema_cpp
 {
 
 static std::string SCHEMA_EXTENSION = ".schema";
-static std::string TYPE = "type";
-static std::string MANDATORY = "mandatory";
-static std::string DOC = "doc";
-static std::string OPTIONS = "options";
-static std::string DEFAULT = "default";
-static std::string BASE = "base";
+static std::string SCHEMA_PREFIX    = "_";
+static std::string TYPE             = SCHEMA_PREFIX + "type";
+static std::string MANDATORY        = SCHEMA_PREFIX + "mandatory";
+static std::string DOC              = SCHEMA_PREFIX + "doc";
+static std::string OPTIONS          = SCHEMA_PREFIX + "options";
+static std::string DEFAULT          = SCHEMA_PREFIX + "default";
+static std::string BASE             = SCHEMA_PREFIX + "base";
 static std::list<std::string> RESERVED_KEYS{TYPE, MANDATORY, DOC, OPTIONS, DEFAULT, BASE};
 static std::list<std::string> REQUIRED_KEYS{TYPE, MANDATORY, DOC};
 

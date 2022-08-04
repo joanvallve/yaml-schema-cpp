@@ -1,19 +1,19 @@
 namespace1:
   param1:
-    mandatory: true
-    type: double
-    doc: "some parameter"
+    _mandatory: true
+    _type: double
+    _doc: "some parameter"
   param2:
-    mandatory: false
-    type: Vector4d
-    default: [0.1, 0, 1e4, 9]
-    doc:  [0.1, 0, 1e4, 9]
+    _mandatory: false
+    _type: Vector4d
+    _default: [0.1, 0, 1e4, 9]
+    _doc:  [0.1, 0, 1e4, 9]
 param3:
-  mandatory: true
-  type: string[]
-  doc: "some parameter"
+  _mandatory: true
+  _type: string[]
+  _doc: "some parameter"
 param4:
-  mandatory: false
-  type: bool
-  default: true
-  doc: "some parameter"
+  _mandatory: false
+  _type: bool
+  _default: true
+  _doc: "some parameter"

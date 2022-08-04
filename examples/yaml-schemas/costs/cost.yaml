@@ -1,9 +1,9 @@
 name:
-  mandatory: True
+  _mandatory: True
   type: string
 type:
-  mandatory: True
+  _mandatory: True
   type: string
 weight:
-  mandatory: True
+  _mandatory: True
   type: double
