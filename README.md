@@ -159,7 +159,7 @@ The `_type` can be:
 - "derived": The input field can be a custom type deriving from a specified base class (see `_base`).
 - Custom types (new feature comming soon)
 
-If the type string ends with `[]`, the input field should be a sequence.
+If the type string ends with `[]`, the input field is specified to be a sequence.
 
 #### `_mandatory`
 A **bool** specifying if the input field is required or just optional.
