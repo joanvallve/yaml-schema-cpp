@@ -23,7 +23,6 @@
 
 namespace yaml_schema_example
 {
-
 std::shared_ptr<CostBase> createCost(const std::string& yaml_path)
 {
     std::shared_ptr<CostBase> cost;

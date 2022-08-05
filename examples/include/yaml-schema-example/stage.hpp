@@ -29,7 +29,6 @@
 
 namespace yaml_schema_example
 {
-
 class Stage
 {
   public:

@@ -26,25 +26,25 @@ namespace yaml_schema_cpp
 {
 namespace filesystem = boost::filesystem;
 
-#define CHECK_STRING_TYPE(yaml_string, TypeName) \
-    if (type == #yaml_string)                    \
-    {                                            \
-        node.as<TypeName>();                     \
-        return true;                             \
+#define CHECK_STRING_TYPE(yaml_string, TypeName)                                                                      \
+    if (type == #yaml_string)                                                                                         \
+    {                                                                                                                 \
+        node.as<TypeName>();                                                                                          \
+        return true;                                                                                                  \
     }
 
 #define CHECK_TYPE(TypeName) CHECK_STRING_TYPE(TypeName, TypeName);
 
-#define CHECK_TYPE_EIGEN(size)                                           \
-    if (type == "Vector" #size "d" or type == "Eigen::Vector" #size "d") \
-    {                                                                    \
-        node.as<Eigen::Matrix<double, size, 1> >();                      \
-        return true;                                                     \
-    }                                                                    \
-    if (type == "Matrix" #size "d" or type == "Eigen::Matrix" #size "d") \
-    {                                                                    \
-        node.as<Eigen::Matrix<double, size, size> >();                   \
-        return true;                                                     \
+#define CHECK_TYPE_EIGEN(size)                                                                                        \
+    if (type == "Vector" #size "d" or type == "Eigen::Vector" #size "d")                                              \
+    {                                                                                                                 \
+        node.as<Eigen::Matrix<double, size, 1> >();                                                                   \
+        return true;                                                                                                  \
+    }                                                                                                                 \
+    if (type == "Matrix" #size "d" or type == "Eigen::Matrix" #size "d")                                              \
+    {                                                                                                                 \
+        node.as<Eigen::Matrix<double, size, size> >();                                                                \
+        return true;                                                                                                  \
     }
 
 static bool checkTrivialTypeException(const YAML::Node& node, const std::string& type)
@@ -134,17 +134,17 @@ static bool isNonTrivialType(const std::string& type, const std::vector<std::str
     return true;
 }
 
-#define COMPARE_STRING_TYPE(yaml_string, TypeName)               \
-    if (type == #yaml_string)                                    \
-    {                                                            \
-        try                                                      \
-        {                                                        \
-            return node1.as<TypeName>() == node2.as<TypeName>(); \
-        }                                                        \
-        catch (const std::exception& e)                          \
-        {                                                        \
-            return false;                                        \
-        }                                                        \
+#define COMPARE_STRING_TYPE(yaml_string, TypeName)                                                                    \
+    if (type == #yaml_string)                                                                                         \
+    {                                                                                                                 \
+        try                                                                                                           \
+        {                                                                                                             \
+            return node1.as<TypeName>() == node2.as<TypeName>();                                                      \
+        }                                                                                                             \
+        catch (const std::exception& e)                                                                               \
+        {                                                                                                             \
+            return false;                                                                                             \
+        }                                                                                                             \
     }
 
 #define COMPARE_TYPE(TypeName) COMPARE_STRING_TYPE(TypeName, TypeName);

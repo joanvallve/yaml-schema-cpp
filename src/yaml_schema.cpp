@@ -302,8 +302,9 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                     // Wrong type (complain)
                     if (not checkTrivialType(node_input, node_schema[TYPE].as<std::string>()))
                     {
-                        writeToLog(log, acc_field + ": wrong type, it should be " +
-                                            node_schema[TYPE].as<std::string>() + "\n");
+                        writeToLog(
+                            log,
+                            acc_field + ": wrong type, it should be " + node_schema[TYPE].as<std::string>() + "\n");
                         is_valid_current = false;
                     }
                     // Check "valid options"
@@ -313,8 +314,9 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                         {
                             std::stringstream options;
                             options << node_schema[OPTIONS];
-                            writeToLog(log, acc_field + ": wrong value, it should be one of the following: \n" +
-                                                options.str() + "\n");
+                            writeToLog(log,
+                                       acc_field + ": wrong value, it should be one of the following: \n" +
+                                           options.str() + "\n");
                             is_valid_current = false;
                         }
                     }
@@ -331,22 +333,25 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                     else
                     {
                         // Validate with the base schema file
-                        is_valid_children = applySchema(node_input, node_schema[BASE].as<std::string>(), folders, log,
-                                                        acc_field, override) and
-                                            is_valid_children;
+                        is_valid_children =
+                            applySchema(
+                                node_input, node_schema[BASE].as<std::string>(), folders, log, acc_field, override) and
+                            is_valid_children;
 
                         // Validate with the derived schema file
-                        is_valid_children = applySchema(node_input, node_input[TYPE].as<std::string>(), folders, log,
-                                                        acc_field, override) and
-                                            is_valid_children;
+                        is_valid_children =
+                            applySchema(
+                                node_input, node_input[TYPE].as<std::string>(), folders, log, acc_field, override) and
+                            is_valid_children;
                     }
                 }
                 // custom non trivial-type
                 else if (isNonTrivialType(node_schema[TYPE].as<std::string>(), folders))
                 {
-                    is_valid_children = applySchema(node_input, node_schema[TYPE].as<std::string>(), folders, log,
-                                                    acc_field, override) and
-                                        is_valid_children;
+                    is_valid_children =
+                        applySchema(
+                            node_input, node_schema[TYPE].as<std::string>(), folders, log, acc_field, override) and
+                        is_valid_children;
                 }
                 // non trivial type known in schema
                 else
@@ -374,10 +379,14 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                     for (auto i = 0; i < node_input.size(); i++)
                     {
                         YAML::Node node_input_i = node_input[i];
-                        is_valid_children =
-                            applySchemaRecursive(node_input_i, node_input, node_schema_i, folders, log,
-                                                 acc_field + "[" + std::to_string(i) + "]", override) and
-                            is_valid_children;
+                        is_valid_children       = applySchemaRecursive(node_input_i,
+                                                                 node_input,
+                                                                 node_schema_i,
+                                                                 folders,
+                                                                 log,
+                                                                 acc_field + "[" + std::to_string(i) + "]",
+                                                                 override) and
+                                            is_valid_children;
                     }
                 }
             }
@@ -407,12 +416,15 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
             YAML::Node node_input_child =
                 (node_input.IsDefined() ? node_input[node_schema_child.first.as<std::string>()] : node_input);
 
-            is_valid_children =
-                applySchemaRecursive(
-                    node_input_child, node_input, node_schema_child.second, folders, log,
-                    (acc_field.empty() ? "" : acc_field + "/") + node_schema_child.first.as<std::string>(),
-                    override) and
-                is_valid_children;
+            is_valid_children = applySchemaRecursive(node_input_child,
+                                                     node_input,
+                                                     node_schema_child.second,
+                                                     folders,
+                                                     log,
+                                                     (acc_field.empty() ? "" : acc_field + "/") +
+                                                         node_schema_child.first.as<std::string>(),
+                                                     override) and
+                                is_valid_children;
         }
     }
 

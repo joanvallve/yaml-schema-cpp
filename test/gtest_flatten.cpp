@@ -59,8 +59,8 @@ TEST(flatten, flatten_independent)
 
     ASSERT_EQ(input_node["map1"]["param1"].as<int>(), 1);
     ASSERT_EQ(input_node["map1"]["param2"].as<std::string>(), "string");
-    ASSERT_MATRIX_APPROX(input_node["another_param"].as<Eigen::VectorXd>(),
-                         (Eigen::VectorXd(3) << 0, 0.3, 1e5).finished(), 1e-12);
+    ASSERT_MATRIX_APPROX(
+        input_node["another_param"].as<Eigen::VectorXd>(), (Eigen::VectorXd(3) << 0, 0.3, 1e5).finished(), 1e-12);
     ASSERT_NEAR(input_node["map2"]["param1"].as<double>(), 4.5, 1e-12);
 }
 
@@ -84,8 +84,8 @@ TEST(flatten, flatten_recursive)
 
     ASSERT_EQ(input_node["map1"]["param1"].as<int>(), 1);
     ASSERT_EQ(input_node["map1"]["param2"].as<std::string>(), "string");
-    ASSERT_MATRIX_APPROX(input_node["another_param"].as<Eigen::VectorXd>(),
-                         (Eigen::VectorXd(3) << 0, 0.3, 1e5).finished(), 1e-12);
+    ASSERT_MATRIX_APPROX(
+        input_node["another_param"].as<Eigen::VectorXd>(), (Eigen::VectorXd(3) << 0, 0.3, 1e5).finished(), 1e-12);
     ASSERT_NEAR(input_node["map2"]["param1"].as<double>(), 4.5, 1e-12);
     ASSERT_EQ(input_node["yet_another_param"].as<bool>(), true);
     ASSERT_EQ(input_node["map3"]["param1"].as<std::string>(), "gromenauer");
@@ -115,14 +115,14 @@ TEST(flatten, flatten_merge)
     ASSERT_EQ(input_node["map1"]["param1"].as<int>(), 1);
     ASSERT_EQ(input_node["map1"]["param2"].as<std::string>(), "string");
     ASSERT_EQ(input_node["map1"]["param3"].as<int>(), 3);
-    ASSERT_MATRIX_APPROX(input_node["another_param"].as<Eigen::VectorXd>(),
-                         (Eigen::VectorXd(3) << 0, 0.3, 1e5).finished(), 1e-12);
+    ASSERT_MATRIX_APPROX(
+        input_node["another_param"].as<Eigen::VectorXd>(), (Eigen::VectorXd(3) << 0, 0.3, 1e5).finished(), 1e-12);
     ASSERT_NEAR(input_node["map2"]["param1"].as<double>(), 4.5, 1e-12);
     ASSERT_EQ(input_node["map2"]["param2"].as<bool>(), false);
     ASSERT_EQ(input_node["yet_another_param"].as<bool>(), true);
     ASSERT_EQ(input_node["map3"]["param1"].as<std::string>(), "gromenauer");
-    ASSERT_MATRIX_APPROX(input_node["map3"]["param2"].as<Eigen::VectorXd>(),
-                         (Eigen::VectorXd(3) << 9, 0, 1e4).finished(), 1e-12);
+    ASSERT_MATRIX_APPROX(
+        input_node["map3"]["param2"].as<Eigen::VectorXd>(), (Eigen::VectorXd(3) << 9, 0, 1e4).finished(), 1e-12);
 }
 
 int main(int argc, char **argv)

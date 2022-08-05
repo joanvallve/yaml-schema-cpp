@@ -24,7 +24,6 @@
 
 namespace YAML
 {
-
 template <>
 struct convert<yaml_schema_example::CostState>
 {

@@ -21,7 +21,6 @@
 
 namespace yaml_schema_example
 {
-
 Stage::Stage(std::string& name, double duration, bool transition, const std::vector<std::shared_ptr<CostBase>>& costs)
     : name_(name), duration_(duration), transition_(transition), costs_(costs)
 {

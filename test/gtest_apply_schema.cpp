@@ -61,10 +61,12 @@ TEST(schema, follow)
 
 TEST(schema, wrong)
 {
-    std::vector<std::string> input_yamls{
-        ROOT_DIR + "/test/yaml/base_input_wrong1.yaml", ROOT_DIR + "/test/yaml/base_input_wrong2.yaml",
-        ROOT_DIR + "/test/yaml/base_input_wrong3.yaml", ROOT_DIR + "/test/yaml/base_input_wrong4.yaml",
-        ROOT_DIR + "/test/yaml/base_input_wrong5.yaml", ROOT_DIR + "/test/yaml/base_input_wrong6.yaml"};
+    std::vector<std::string> input_yamls{ROOT_DIR + "/test/yaml/base_input_wrong1.yaml",
+                                         ROOT_DIR + "/test/yaml/base_input_wrong2.yaml",
+                                         ROOT_DIR + "/test/yaml/base_input_wrong3.yaml",
+                                         ROOT_DIR + "/test/yaml/base_input_wrong4.yaml",
+                                         ROOT_DIR + "/test/yaml/base_input_wrong5.yaml",
+                                         ROOT_DIR + "/test/yaml/base_input_wrong6.yaml"};
     for (auto input : input_yamls)
     {
         std::cout << "testing " << input << std::endl;

@@ -25,7 +25,6 @@
 
 namespace yaml_schema_example
 {
-
 enum class CostTypes
 {
     CostState,
@@ -81,7 +80,7 @@ class CostState : public CostBase
     friend YAML::convert<CostState>;
 
   private:
-    CostState(); // private constructor for converter
+    CostState();  // private constructor for converter
     Eigen::VectorXd reference_;
     Eigen::VectorXd weights_;
 };

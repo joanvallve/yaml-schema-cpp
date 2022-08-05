@@ -40,8 +40,8 @@ YamlServer::YamlServer(const std::vector<std::string>& folders_schema, const std
 
 void YamlServer::addFolderSchema(const std::vector<std::string>& folders_schema, bool before)
 {
-    folders_schema_.insert(before ? folders_schema_.begin() : folders_schema_.end(), folders_schema.begin(),
-                           folders_schema.end());
+    folders_schema_.insert(
+        before ? folders_schema_.begin() : folders_schema_.end(), folders_schema.begin(), folders_schema.end());
 }
 
 void YamlServer::addFolderSchema(const std::string& folder_schema, bool before)

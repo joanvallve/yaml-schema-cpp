@@ -35,9 +35,16 @@ TEST(schema, follow)
 
 TEST(schema, wrong)
 {
-    std::list<std::string> wrong_schemas{
-        "not_mandatory",         "not_type",        "not_doc",   "not_base",      "wrong_default",
-        "wrong_default_options", "wrong_mandatory", "wrong_doc", "wrong_options", "wrong_options2"};
+    std::list<std::string> wrong_schemas{"not_mandatory",
+                                         "not_type",
+                                         "not_doc",
+                                         "not_base",
+                                         "wrong_default",
+                                         "wrong_default_options",
+                                         "wrong_mandatory",
+                                         "wrong_doc",
+                                         "wrong_options",
+                                         "wrong_options2"};
 
     for (auto w_schema : wrong_schemas)
     {
@@ -66,9 +73,10 @@ TEST(schema, dont_override)
     for (auto w_schema : wrong_schemas)
     {
         std::cout << "Checking " << w_schema << ".schema..." << std::endl;
-        ASSERT_THROW(loadSchema(w_schema + ".schema",
-                                {ROOT_DIR + "/test/yaml/schema", ROOT_DIR + "/test/yaml/other_schema"}, false),
-                     std::runtime_error);
+        ASSERT_THROW(
+            loadSchema(
+                w_schema + ".schema", {ROOT_DIR + "/test/yaml/schema", ROOT_DIR + "/test/yaml/other_schema"}, false),
+            std::runtime_error);
     }
 }
 
