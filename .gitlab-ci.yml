@@ -23,7 +23,11 @@ stages:
 
   # update apt
   - apt-get update
-  - apt install -y lsb-release
+  - apt install -y lsb-release clang-format-12
+
+.clang_validation_template: &clang_validation_definition
+  - cd $CI_PROJECT_DIR
+  - find . -iname *.h -o -iname *.cpp -o -iname *.hpp | xargs clang-format-12 --style=file -i --Wno-error=unknown --dry-run --Werror
 
 .license_header_template: &license_header_definition
   - cd $CI_PROJECT_DIR
