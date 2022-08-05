@@ -15,7 +15,6 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 /**
  * \file utils_gtest.h
  * \brief Some utils for gtest
@@ -74,36 +73,40 @@ namespace internal
 {
 enum GTestColor
 {
-  COLOR_DEFAULT,
-  COLOR_RED,
-  COLOR_GREEN,
-  COLOR_YELLOW
+    COLOR_DEFAULT,
+    COLOR_RED,
+    COLOR_GREEN,
+    COLOR_YELLOW
 };
 
 extern void ColoredPrintf(GTestColor color, const char* fmt, ...);
 
-#define PRINTF(...) \
-  do { testing::internal::ColoredPrintf(testing::internal::COLOR_GREEN,\
-  "[          ] "); \
-  testing::internal::ColoredPrintf(testing::internal::COLOR_YELLOW, __VA_ARGS__); } \
-  while(0)
+#define PRINTF(...)                                                                        \
+    do                                                                                     \
+    {                                                                                      \
+        testing::internal::ColoredPrintf(testing::internal::COLOR_GREEN, "[          ] "); \
+        testing::internal::ColoredPrintf(testing::internal::COLOR_YELLOW, __VA_ARGS__);    \
+    } while (0)
 
-#define PRINT_TEST_FINISHED \
-{ \
-  const ::testing::TestInfo* const test_info = \
-    ::testing::UnitTest::GetInstance()->current_test_info(); \
-  PRINTF(std::string("Finished test case ").append(test_info->test_case_name()).\
-          append(" of test ").append(test_info->name()).append(".\n").c_str()); \
-}
+#define PRINT_TEST_FINISHED                                                                                   \
+    {                                                                                                         \
+        const ::testing::TestInfo* const test_info = ::testing::UnitTest::GetInstance()->current_test_info(); \
+        PRINTF(std::string("Finished test case ")                                                             \
+                   .append(test_info->test_case_name())                                                       \
+                   .append(" of test ")                                                                       \
+                   .append(test_info->name())                                                                 \
+                   .append(".\n")                                                                             \
+                   .c_str());                                                                                 \
+    }
 
 // C++ stream interface
 class TestCout : public std::stringstream
 {
-public:
-  ~TestCout() override
-  {
-    PRINTF("%s\n", str().c_str());
-  }
+  public:
+    ~TestCout() override
+    {
+        PRINTF("%s\n", str().c_str());
+    }
 };
 
 /* Usage :
@@ -128,74 +131,90 @@ TEST(Test, Foo)
 */
 #define TEST_COUT testing::internal::TestCout()
 
-} // namespace internal
+}  // namespace internal
 
 /* Macros related to testing Eigen classes:
  */
-#define EXPECT_MATRIX_APPROX(C_expect, C_actual, precision) EXPECT_PRED2([](const Eigen::MatrixXd lhs, const Eigen::MatrixXd rhs) { \
-                  return (lhs - rhs).isMuchSmallerThan(1, precision); \
-               }, \
-               C_expect, C_actual);
+#define EXPECT_MATRIX_APPROX(C_expect, C_actual, precision)                                             \
+    EXPECT_PRED2([](const Eigen::MatrixXd lhs,                                                          \
+                    const Eigen::MatrixXd rhs) { return (lhs - rhs).isMuchSmallerThan(1, precision); }, \
+                 C_expect, C_actual);
 
-#define ASSERT_MATRIX_APPROX(C_expect, C_actual, precision) ASSERT_PRED2([](const Eigen::MatrixXd lhs, const Eigen::MatrixXd rhs) { \
-                  return (lhs - rhs).isMuchSmallerThan(1, precision); \
-               }, \
-               C_expect, C_actual);
+#define ASSERT_MATRIX_APPROX(C_expect, C_actual, precision)                                             \
+    ASSERT_PRED2([](const Eigen::MatrixXd lhs,                                                          \
+                    const Eigen::MatrixXd rhs) { return (lhs - rhs).isMuchSmallerThan(1, precision); }, \
+                 C_expect, C_actual);
 
-#define EXPECT_QUATERNION_APPROX(C_expect, C_actual, precision) EXPECT_PRED2([](const Eigen::Quaterniond lhs, const Eigen::Quaterniond rhs) { \
-                   return lhs.angularDistance(rhs) < precision; \
-               }, \
-               C_expect, C_actual);
+#define EXPECT_QUATERNION_APPROX(C_expect, C_actual, precision)                                     \
+    EXPECT_PRED2([](const Eigen::Quaterniond lhs,                                                   \
+                    const Eigen::Quaterniond rhs) { return lhs.angularDistance(rhs) < precision; }, \
+                 C_expect, C_actual);
 
-#define ASSERT_QUATERNION_APPROX(C_expect, C_actual, precision) ASSERT_PRED2([](const Eigen::Quaterniond lhs, const Eigen::Quaterniond rhs) { \
-                   return lhs.angularDistance(rhs) < precision; \
-               }, \
-               C_expect, C_actual);
+#define ASSERT_QUATERNION_APPROX(C_expect, C_actual, precision)                                     \
+    ASSERT_PRED2([](const Eigen::Quaterniond lhs,                                                   \
+                    const Eigen::Quaterniond rhs) { return lhs.angularDistance(rhs) < precision; }, \
+                 C_expect, C_actual);
 
-#define EXPECT_QUATERNION_VECTOR_APPROX(C_expect, C_actual, precision) EXPECT_PRED2([](const Eigen::VectorXd lhs, const Eigen::VectorXd rhs) { \
-                   return Eigen::Quaterniond(Eigen::Vector4d(lhs)).angularDistance(Eigen::Quaterniond(Eigen::Vector4d(rhs))) < precision; \
-               }, \
-               C_expect, C_actual);
+#define EXPECT_QUATERNION_VECTOR_APPROX(C_expect, C_actual, precision)                         \
+    EXPECT_PRED2(                                                                              \
+        [](const Eigen::VectorXd lhs, const Eigen::VectorXd rhs) {                             \
+            return Eigen::Quaterniond(Eigen::Vector4d(lhs))                                    \
+                       .angularDistance(Eigen::Quaterniond(Eigen::Vector4d(rhs))) < precision; \
+        },                                                                                     \
+        C_expect, C_actual);
 
-#define ASSERT_QUATERNION_VECTOR_APPROX(C_expect, C_actual, precision) ASSERT_PRED2([](const Eigen::VectorXd lhs, const Eigen::VectorXd rhs) { \
-                   return Eigen::Quaterniond(Eigen::Vector4d(lhs)).angularDistance(Eigen::Quaterniond(Eigen::Vector4d(rhs))) < precision; \
-               }, \
-               C_expect, C_actual);
+#define ASSERT_QUATERNION_VECTOR_APPROX(C_expect, C_actual, precision)                         \
+    ASSERT_PRED2(                                                                              \
+        [](const Eigen::VectorXd lhs, const Eigen::VectorXd rhs) {                             \
+            return Eigen::Quaterniond(Eigen::Vector4d(lhs))                                    \
+                       .angularDistance(Eigen::Quaterniond(Eigen::Vector4d(rhs))) < precision; \
+        },                                                                                     \
+        C_expect, C_actual);
 
-#define EXPECT_POSE2d_APPROX(C_expect, C_actual, precision) EXPECT_PRED2([](const Eigen::VectorXd lhs, const Eigen::VectorXd rhs) { \
-                   assert(lhs.size() == 3 and rhs.size() == 3); \
-                   Eigen::VectorXd er = lhs - rhs; \
-                   er(2) = pi2pi((double)er(2)); \
-                   return er.isMuchSmallerThan(1, precision); \
-               }, \
-               C_expect, C_actual);
+#define EXPECT_POSE2d_APPROX(C_expect, C_actual, precision)        \
+    EXPECT_PRED2(                                                  \
+        [](const Eigen::VectorXd lhs, const Eigen::VectorXd rhs) { \
+            assert(lhs.size() == 3 and rhs.size() == 3);           \
+            Eigen::VectorXd er = lhs - rhs;                        \
+            er(2)              = pi2pi((double)er(2));             \
+            return er.isMuchSmallerThan(1, precision);             \
+        },                                                         \
+        C_expect, C_actual);
 
-#define ASSERT_POSE2d_APPROX(C_expect, C_actual, precision) ASSERT_PRED2([](const Eigen::VectorXd lhs, const Eigen::VectorXd rhs) { \
-                   assert(lhs.size() == 3 and rhs.size() == 3); \
-                   Eigen::VectorXd er = lhs - rhs; \
-                   er(2) = pi2pi((double)er(2)); \
-                   return er.isMuchSmallerThan(1, precision); \
-               }, \
-               C_expect, C_actual);
+#define ASSERT_POSE2d_APPROX(C_expect, C_actual, precision)        \
+    ASSERT_PRED2(                                                  \
+        [](const Eigen::VectorXd lhs, const Eigen::VectorXd rhs) { \
+            assert(lhs.size() == 3 and rhs.size() == 3);           \
+            Eigen::VectorXd er = lhs - rhs;                        \
+            er(2)              = pi2pi((double)er(2));             \
+            return er.isMuchSmallerThan(1, precision);             \
+        },                                                         \
+        C_expect, C_actual);
 
-#define EXPECT_POSE3d_APPROX(C_expect, C_actual, precision) EXPECT_PRED2([](const Eigen::VectorXd lhs, const Eigen::VectorXd rhs) { \
-                   assert(lhs.size() == 7 and rhs.size() == 7); \
-                   Eigen::Vector4d er; \
-                   er.head(3) = lhs.head(3) - rhs.head(3); \
-                   er(3) = Eigen::Quaterniond(Eigen::Vector4d(lhs.tail(4))).angularDistance(Eigen::Quaterniond(Eigen::Vector4d(rhs.tail(4)))); \
-                   return er.isMuchSmallerThan(1, precision); \
-               }, \
-               C_expect, C_actual);
+#define EXPECT_POSE3d_APPROX(C_expect, C_actual, precision)                                 \
+    EXPECT_PRED2(                                                                           \
+        [](const Eigen::VectorXd lhs, const Eigen::VectorXd rhs) {                          \
+            assert(lhs.size() == 7 and rhs.size() == 7);                                    \
+            Eigen::Vector4d er;                                                             \
+            er.head(3) = lhs.head(3) - rhs.head(3);                                         \
+            er(3)      = Eigen::Quaterniond(Eigen::Vector4d(lhs.tail(4)))                   \
+                        .angularDistance(Eigen::Quaterniond(Eigen::Vector4d(rhs.tail(4)))); \
+            return er.isMuchSmallerThan(1, precision);                                      \
+        },                                                                                  \
+        C_expect, C_actual);
 
-#define ASSERT_POSE3d_APPROX(C_expect, C_actual, precision) EXPECT_PRED2([](const Eigen::VectorXd lhs, const Eigen::VectorXd rhs) { \
-                   assert(lhs.size() == 7 and rhs.size() == 7); \
-                   Eigen::Vector4d er; \
-                   er.head(3) = lhs.head(3) - rhs.head(3); \
-                   er(3) = Eigen::Quaterniond(Eigen::Vector4d(lhs.tail(4))).angularDistance(Eigen::Quaterniond(Eigen::Vector4d(rhs.tail(4)))); \
-                   return er.isMuchSmallerThan(1, precision); \
-               }, \
-               C_expect, C_actual);
+#define ASSERT_POSE3d_APPROX(C_expect, C_actual, precision)                                 \
+    EXPECT_PRED2(                                                                           \
+        [](const Eigen::VectorXd lhs, const Eigen::VectorXd rhs) {                          \
+            assert(lhs.size() == 7 and rhs.size() == 7);                                    \
+            Eigen::Vector4d er;                                                             \
+            er.head(3) = lhs.head(3) - rhs.head(3);                                         \
+            er(3)      = Eigen::Quaterniond(Eigen::Vector4d(lhs.tail(4)))                   \
+                        .angularDistance(Eigen::Quaterniond(Eigen::Vector4d(rhs.tail(4)))); \
+            return er.isMuchSmallerThan(1, precision);                                      \
+        },                                                                                  \
+        C_expect, C_actual);
 
-} // namespace testing
+}  // namespace testing
 
 #endif /* WOLF_UTILS_GTEST_H */

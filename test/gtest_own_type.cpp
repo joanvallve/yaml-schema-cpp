@@ -55,7 +55,7 @@ TEST(TestOwnType, SequenceMandatory)
     ASSERT_DOUBLE_EQ(node["own_type"][0]["map1"]["param3"].as<double>(), 3.5);
     ASSERT_EQ(node["own_type"][0]["param4"].as<std::string>(), "hello");
     ASSERT_TRUE(node["own_type"][0]["param5"].as<std::vector<int>>() == std::vector<int>({5, 6, -1, -7, 0}));
-    
+
     ASSERT_EQ(node["own_type"][1]["map1"]["param1"].as<int>(), 4);
     ASSERT_EQ(node["own_type"][1]["map1"]["param2"].as<std::string>(), "strong");
     ASSERT_DOUBLE_EQ(node["own_type"][1]["map1"]["param3"].as<double>(), 4.4);

@@ -25,26 +25,26 @@ using namespace Eigen;
 
 TEST(MapYaml, save_2d)
 {
-    MatrixXd M23(2,3);
-    MatrixXd M33(3,3);
+    MatrixXd M23(2, 3);
+    MatrixXd M33(3, 3);
     VectorXd v3(3);
     M23 << 1, 2, 3, 4, 5, 6;
     M33 << 1, 2, 3, 4, 5, 6, 7, 8, 9;
-    v3  << 1, 2, 3;
+    v3 << 1, 2, 3;
 
     std::cout << "\nTrying different yaml specs for matrix..." << std::endl;
 
     YAML::Node mat_sized_23, mat_sized_33, mat_23, mat_33;
     YAML::Node vec_sized_3, vec_3, vec_0;
 
-    mat_sized_23    = YAML::Load("[[2, 3] ,[1, 2, 3, 4, 5, 6] ]"); // insensitive to spacing
-    mat_sized_33    = YAML::Load("[[3, 3] ,[1, 2, 3, 4, 5, 6, 7, 8, 9]]"); // insensitive to spacing
-    vec_sized_3     = YAML::Load("[[3, 1] ,[1, 2, 3]]"); // insensitive to spacing
+    mat_sized_23 = YAML::Load("[[2, 3] ,[1, 2, 3, 4, 5, 6] ]");          // insensitive to spacing
+    mat_sized_33 = YAML::Load("[[3, 3] ,[1, 2, 3, 4, 5, 6, 7, 8, 9]]");  // insensitive to spacing
+    vec_sized_3  = YAML::Load("[[3, 1] ,[1, 2, 3]]");                    // insensitive to spacing
 
-    mat_23      = YAML::Load("[1, 2, 3, 4, 5, 6]");             // insensitive to spacing
-    mat_33      = YAML::Load("[1, 2, 3, 4, 5, 6, 7, 8, 9]");    // insensitive to spacing
-    vec_3       = YAML::Load("[1, 2, 3]");                      // insensitive to spacing
-    //vec_0       = YAML::Load("[]");                             // insensitive to spacing
+    mat_23 = YAML::Load("[1, 2, 3, 4, 5, 6]");           // insensitive to spacing
+    mat_33 = YAML::Load("[1, 2, 3, 4, 5, 6, 7, 8, 9]");  // insensitive to spacing
+    vec_3  = YAML::Load("[1, 2, 3]");                    // insensitive to spacing
+    // vec_0       = YAML::Load("[]");                             // insensitive to spacing
 
     MatrixXd Mx = mat_sized_23.as<MatrixXd>();
     std::cout << "Dyn-Dyn [[2,3] ,[1, 2, 3, 4, 5, 6] ] = \n" << Mx << std::endl;
@@ -93,6 +93,6 @@ TEST(MapYaml, save_2d)
 
 int main(int argc, char **argv)
 {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

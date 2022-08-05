@@ -24,9 +24,7 @@
 
 namespace yaml_schema_cpp
 {
-
 namespace filesystem = boost::filesystem;
-
 
 #define CHECK_STRING_TYPE(yaml_string, TypeName) \
     if (type == #yaml_string)                    \

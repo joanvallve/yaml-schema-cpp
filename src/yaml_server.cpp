@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-#include "yaml-schema-cpp/yaml_server.hpp" 
+#include "yaml-schema-cpp/yaml_server.hpp"
 
 #include <stdexcept>
 #include "yaml-schema-cpp/yaml_schema.hpp"
@@ -23,31 +23,25 @@
 
 namespace yaml_schema_cpp
 {
-
 namespace filesystem = boost::filesystem;
 
-YamlServer::YamlServer(bool override)
-    : folders_schema_(),
-      override_(override)
-{
-}
+YamlServer::YamlServer(bool override) : folders_schema_(), override_(override) {}
 
 YamlServer::YamlServer(const std::vector<std::string>& folders_schema, bool override)
-    : folders_schema_(folders_schema),
-      override_(override)
+    : folders_schema_(folders_schema), override_(override)
 {
 }
 
 YamlServer::YamlServer(const std::vector<std::string>& folders_schema, const std::string& path_input, bool override)
-    : folders_schema_(folders_schema),
-      override_(override)
+    : folders_schema_(folders_schema), override_(override)
 {
     loadYaml(path_input);
 }
 
 void YamlServer::addFolderSchema(const std::vector<std::string>& folders_schema, bool before)
 {
-    folders_schema_.insert(before ? folders_schema_.begin() : folders_schema_.end(), folders_schema.begin(), folders_schema.end());
+    folders_schema_.insert(before ? folders_schema_.begin() : folders_schema_.end(), folders_schema.begin(),
+                           folders_schema.end());
 }
 
 void YamlServer::addFolderSchema(const std::string& folder_schema, bool before)
@@ -74,19 +68,19 @@ void YamlServer::loadYaml(const std::string& path_input)
 bool YamlServer::applySchema(const std::string& name_schema)
 {
     log_.clear();
-    
+
     std::string header1 = "Log of applySchema to YAML file";
     std::string header2 = "  yaml file: " + path_input_.string();
     std::string header3 = "  schema: " + name_schema;
 
-    auto max_size = std::max({header1.size(),header2.size(),header3.size()});
+    auto max_size = std::max({header1.size(), header2.size(), header3.size()});
 
     log_ << std::endl;
-    log_ << std::string(max_size,'-') << std::endl;
+    log_ << std::string(max_size, '-') << std::endl;
     log_ << header1 << std::endl;
     log_ << header2 << std::endl;
     log_ << header3 << std::endl;
-    log_ << std::string(max_size,'-') << std::endl << std::endl;
+    log_ << std::string(max_size, '-') << std::endl << std::endl;
 
     return yaml_schema_cpp::applySchema(node_input_, name_schema, folders_schema_, log_, "", override_);
 }

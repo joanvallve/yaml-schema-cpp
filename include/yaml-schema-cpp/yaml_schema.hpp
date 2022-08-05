@@ -30,39 +30,38 @@
 
 namespace yaml_schema_cpp
 {
-
-static std::string SCHEMA_EXTENSION = ".schema";
-static std::string SCHEMA_PREFIX    = "_";
-static std::string TYPE             = SCHEMA_PREFIX + "type";
-static std::string MANDATORY        = SCHEMA_PREFIX + "mandatory";
-static std::string DOC              = SCHEMA_PREFIX + "doc";
-static std::string OPTIONS          = SCHEMA_PREFIX + "options";
-static std::string DEFAULT          = SCHEMA_PREFIX + "default";
-static std::string BASE             = SCHEMA_PREFIX + "base";
+static std::string            SCHEMA_EXTENSION = ".schema";
+static std::string            SCHEMA_PREFIX    = "_";
+static std::string            TYPE             = SCHEMA_PREFIX + "type";
+static std::string            MANDATORY        = SCHEMA_PREFIX + "mandatory";
+static std::string            DOC              = SCHEMA_PREFIX + "doc";
+static std::string            OPTIONS          = SCHEMA_PREFIX + "options";
+static std::string            DEFAULT          = SCHEMA_PREFIX + "default";
+static std::string            BASE             = SCHEMA_PREFIX + "base";
 static std::list<std::string> RESERVED_KEYS{TYPE, MANDATORY, DOC, OPTIONS, DEFAULT, BASE};
 static std::list<std::string> REQUIRED_KEYS{TYPE, MANDATORY, DOC};
 
 namespace filesystem = boost::filesystem;
 
 YAML::Node loadSchema(std::string schema_file, const std::vector<std::string>& folders_schema, bool override = true);
-void checkSchema(const YAML::Node& node_schema, const std::string& field);
+void       checkSchema(const YAML::Node& node_schema, const std::string& field);
 
 bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool override = true);
 
-bool applySchema(YAML::Node& node_input, 
-                 const std::string& name_schema, 
+bool applySchema(YAML::Node&                     node_input,
+                 const std::string&              name_schema,
                  const std::vector<std::string>& folders,
-                 std::stringstream& log,
-                 const std::string& acc_field, 
-                 bool override=true);
-                 
-bool applySchemaRecursive(YAML::Node& node_input,
-                          YAML::Node& node_input_parent,
-                          const YAML::Node& node_schema,
+                 std::stringstream&              log,
+                 const std::string&              acc_field,
+                 bool                            override = true);
+
+bool applySchemaRecursive(YAML::Node&                     node_input,
+                          YAML::Node&                     node_input_parent,
+                          const YAML::Node&               node_schema,
                           const std::vector<std::string>& folders,
-                          std::stringstream& log,
-                          const std::string& acc_field, 
-                          bool override);
+                          std::stringstream&              log,
+                          const std::string&              acc_field,
+                          bool                            override);
 
 bool checkOptions(const YAML::Node& input_node, const YAML::Node& options_node, const std::string& type);
 

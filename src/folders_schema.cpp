@@ -19,7 +19,6 @@
 
 namespace yaml_schema_cpp
 {
-
 bool FoldersSchema::add_folder(std::string folder_path)
 {
     folders().push_back(folder_path);
@@ -39,4 +38,4 @@ std::vector<std::string>& FoldersSchema::folders()
     return folders;
 }
 
-}
+}  // namespace yaml_schema_cpp

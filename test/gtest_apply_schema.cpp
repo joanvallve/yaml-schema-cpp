@@ -25,68 +25,66 @@ using namespace yaml_schema_cpp;
 
 TEST(schema, plain_yaml)
 {
-  YamlServer server = YamlServer({ROOT_DIR}, ROOT_DIR + "/test/yaml/base_input.yaml");
+    YamlServer server = YamlServer({ROOT_DIR}, ROOT_DIR + "/test/yaml/base_input.yaml");
 
-  std::cout << "before: \n" <<  server.getNode() << std::endl;
+    std::cout << "before: \n" << server.getNode() << std::endl;
 
-  ASSERT_TRUE(server.applySchema("base_input.schema"));
+    ASSERT_TRUE(server.applySchema("base_input.schema"));
 
-  std::cout << "after: \n" <<  server.getNode() << std::endl;
-  
-  YAML::Node node = server.getNode();
+    std::cout << "after: \n" << server.getNode() << std::endl;
 
-  ASSERT_TRUE(node["map1"]["param3"]);
-  ASSERT_TRUE(node["param4"]);
-  ASSERT_NEAR(node["map1"]["param3"].as<double>(), 3.5, 1e-12);
-  ASSERT_EQ(node["param4"].as<std::string>(),"hello");
+    YAML::Node node = server.getNode();
+
+    ASSERT_TRUE(node["map1"]["param3"]);
+    ASSERT_TRUE(node["param4"]);
+    ASSERT_NEAR(node["map1"]["param3"].as<double>(), 3.5, 1e-12);
+    ASSERT_EQ(node["param4"].as<std::string>(), "hello");
 }
 
 TEST(schema, follow)
 {
-  YamlServer server = YamlServer({ROOT_DIR}, ROOT_DIR + "/test/yaml/base_input.yaml");
+    YamlServer server = YamlServer({ROOT_DIR}, ROOT_DIR + "/test/yaml/base_input.yaml");
 
-  std::cout << "before: \n" <<  server.getNode() << std::endl;
+    std::cout << "before: \n" << server.getNode() << std::endl;
 
-  ASSERT_TRUE(server.applySchema("base_input_base.schema"));
+    ASSERT_TRUE(server.applySchema("base_input_base.schema"));
 
-  std::cout << "after: \n" <<  server.getNode() << std::endl;
-  
-  YAML::Node node = server.getNode();
+    std::cout << "after: \n" << server.getNode() << std::endl;
 
-  ASSERT_TRUE(node["map1"]["param3"]);
-  ASSERT_TRUE(node["param4"]);
-  ASSERT_NEAR(node["map1"]["param3"].as<double>(), 3.5, 1e-12);
-  ASSERT_EQ(node["param4"].as<std::string>(),"hello");
+    YAML::Node node = server.getNode();
+
+    ASSERT_TRUE(node["map1"]["param3"]);
+    ASSERT_TRUE(node["param4"]);
+    ASSERT_NEAR(node["map1"]["param3"].as<double>(), 3.5, 1e-12);
+    ASSERT_EQ(node["param4"].as<std::string>(), "hello");
 }
 
 TEST(schema, wrong)
 {
-  std::vector<std::string> input_yamls{ROOT_DIR + "/test/yaml/base_input_wrong1.yaml",
-                                       ROOT_DIR + "/test/yaml/base_input_wrong2.yaml",
-                                       ROOT_DIR + "/test/yaml/base_input_wrong3.yaml",
-                                       ROOT_DIR + "/test/yaml/base_input_wrong4.yaml",
-                                       ROOT_DIR + "/test/yaml/base_input_wrong5.yaml",
-                                       ROOT_DIR + "/test/yaml/base_input_wrong6.yaml"};
-  for (auto input : input_yamls)
-  {
-    std::cout << "testing " << input << std::endl;
-    YamlServer server = YamlServer({ROOT_DIR}, input);
+    std::vector<std::string> input_yamls{
+        ROOT_DIR + "/test/yaml/base_input_wrong1.yaml", ROOT_DIR + "/test/yaml/base_input_wrong2.yaml",
+        ROOT_DIR + "/test/yaml/base_input_wrong3.yaml", ROOT_DIR + "/test/yaml/base_input_wrong4.yaml",
+        ROOT_DIR + "/test/yaml/base_input_wrong5.yaml", ROOT_DIR + "/test/yaml/base_input_wrong6.yaml"};
+    for (auto input : input_yamls)
+    {
+        std::cout << "testing " << input << std::endl;
+        YamlServer server = YamlServer({ROOT_DIR}, input);
 
-    bool succeed = server.applySchema("base_input.schema");
+        bool succeed = server.applySchema("base_input.schema");
 
-    if (succeed)
-      std::cout << "resulting node: " << server.getNode() << std::endl;
-    else
-      std::cout << server.getLog() << std::endl;
+        if (succeed)
+            std::cout << "resulting node: " << server.getNode() << std::endl;
+        else
+            std::cout << server.getLog() << std::endl;
 
-    ASSERT_FALSE(succeed);
-  }
+        ASSERT_FALSE(succeed);
+    }
 }
 
 int main(int argc, char **argv)
 {
-  testing::InitGoogleTest(&argc, argv);
-  //::testing::GTEST_FLAG(filter) = "TestTest.DummyTestExample"; // Test only this one
-  //::testing::GTEST_FLAG(filter) = "TestTest.*"; // Test only the tests in this group
-  return RUN_ALL_TESTS();
+    testing::InitGoogleTest(&argc, argv);
+    //::testing::GTEST_FLAG(filter) = "TestTest.DummyTestExample"; // Test only this one
+    //::testing::GTEST_FLAG(filter) = "TestTest.*"; // Test only the tests in this group
+    return RUN_ALL_TESTS();
 }

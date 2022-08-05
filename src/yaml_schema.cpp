@@ -21,7 +21,6 @@
 
 namespace yaml_schema_cpp
 {
-
 namespace filesystem = boost::filesystem;
 
 YAML::Node loadSchema(std::string name_schema, const std::vector<std::string>& folders_schema, bool override)
@@ -314,8 +313,8 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                         {
                             std::stringstream options;
                             options << node_schema[OPTIONS];
-                            writeToLog(log, acc_field + 
-                                       ": wrong value, it should be one of the following: \n" + options.str() + "\n");
+                            writeToLog(log, acc_field + ": wrong value, it should be one of the following: \n" +
+                                                options.str() + "\n");
                             is_valid_current = false;
                         }
                     }

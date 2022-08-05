@@ -28,7 +28,6 @@
 
 namespace yaml_schema_cpp
 {
-
 namespace filesystem = boost::filesystem;
 
 void flattenNode(YAML::Node& node, std::vector<std::string> folders, bool is_schema, bool override)
@@ -70,7 +69,7 @@ void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_sche
             {
                 folders.front() = path_follow.parent_path().string();
             }
-            
+
             // load "follow" file
             YAML::Node node_child = YAML::LoadFile(path_follow.string());
 
@@ -116,10 +115,9 @@ void addNodeYaml(YAML::Node& node, const std::string& key, const YAML::Node& val
 {
     if (node[key])
     {
-        switch (value.Type()) 
+        switch (value.Type())
         {
-            case YAML::NodeType::Scalar:
-            {
+            case YAML::NodeType::Scalar: {
                 if (override)
                 {
                     node[key] = value;
@@ -129,16 +127,14 @@ void addNodeYaml(YAML::Node& node, const std::string& key, const YAML::Node& val
                     throw std::runtime_error("Trying to add an already existing scalar node.");
                 }
             }
-            case YAML::NodeType::Sequence:
-            {
+            case YAML::NodeType::Sequence: {
                 for (auto value_seq_node : value)
                 {
                     node[key].push_back(value_seq_node);
                 }
                 break;
             }
-            case YAML::NodeType::Map:
-            {
+            case YAML::NodeType::Map: {
                 for (auto value_map_node : value)
                 {
                     YAML::Node node_key = node[key];
@@ -146,8 +142,7 @@ void addNodeYaml(YAML::Node& node, const std::string& key, const YAML::Node& val
                 }
                 break;
             }
-            default:
-            {
+            default: {
                 throw std::runtime_error("Trying to add a node of type not known.");
             }
         }
@@ -164,10 +159,9 @@ filesystem::path findFileRecursive(const std::string& name_with_extension, const
     {
         if (filesystem::exists(folder) and filesystem::is_directory(folder))
         {
-            for (auto const & entry : filesystem::recursive_directory_iterator(folder))
+            for (auto const& entry : filesystem::recursive_directory_iterator(folder))
             {
-                if (filesystem::is_regular_file(entry) and 
-                    entry.path().filename().string() == name_with_extension)
+                if (filesystem::is_regular_file(entry) and entry.path().filename().string() == name_with_extension)
                 {
                     return entry;
                 }
@@ -192,7 +186,7 @@ std::list<YAML::Node> findNodesWithKey(const YAML::Node root_node, const std::st
         for (auto i = 0; i < root_node.size(); i++)
         {
             auto nodes_with_key_i = findNodesWithKey(root_node[i], key);
-            nodes_with_key.insert(nodes_with_key.end(),nodes_with_key_i.begin(),nodes_with_key_i.end());
+            nodes_with_key.insert(nodes_with_key.end(), nodes_with_key_i.begin(), nodes_with_key_i.end());
         }
     }
     if (root_node.IsMap())
@@ -201,15 +195,14 @@ std::list<YAML::Node> findNodesWithKey(const YAML::Node root_node, const std::st
         {
             nodes_with_key.push_back(root_node[key]);
         }
-        
+
         for (auto node_child : root_node)
         {
             auto node_child_with_key = findNodesWithKey(node_child.second, key);
-            nodes_with_key.insert(nodes_with_key.end(),node_child_with_key.begin(),node_child_with_key.end());
+            nodes_with_key.insert(nodes_with_key.end(), node_child_with_key.begin(), node_child_with_key.end());
         }
     }
     return nodes_with_key;
 }
-
 
 }  // namespace yaml_schema_cpp
