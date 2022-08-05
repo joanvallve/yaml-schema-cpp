@@ -8,29 +8,31 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ------ PROJECT OPTIONS ------
 IF(NOT BUILD_TESTS)
-  OPTION(BUILD_TESTS "Build Unit tests" ON)
+    OPTION(BUILD_TESTS "Build Unit tests" ON)
 ENDIF(NOT BUILD_TESTS)
 
 IF(NOT BUILD_EXAMPLES)
-  OPTION(BUILD_EXAMPLES "Build examples" ON)
+    OPTION(BUILD_EXAMPLES "Build examples" ON)
 ENDIF(NOT BUILD_EXAMPLES)
 
-# ============ config.h ============ 
+# ============ config.h ============
 # Define the directory where will be the configured config.h
 SET(YAML_SCHEMA_CONFIG_DIR ${PROJECT_BINARY_DIR}/conf/${PROJECT_NAME}/internal)
+
 # Create the specified output directory if it does not exist.
 IF(NOT EXISTS "${YAML_SCHEMA_CONFIG_DIR}")
-  message(STATUS "Creating config output directory: ${YAML_SCHEMA_CONFIG_DIR}")
-  file(MAKE_DIRECTORY "${YAML_SCHEMA_CONFIG_DIR}")
+    message(STATUS "Creating config output directory: ${YAML_SCHEMA_CONFIG_DIR}")
+    file(MAKE_DIRECTORY "${YAML_SCHEMA_CONFIG_DIR}")
 ENDIF()
+
 IF(EXISTS "${YAML_SCHEMA_CONFIG_DIR}" AND NOT IS_DIRECTORY "${YAML_SCHEMA_CONFIG_DIR}")
-  message(FATAL_ERROR "Bug: Specified CONFIG_DIR: "
-    "${YAML_SCHEMA_CONFIG_DIR} exists, but is not a directory.")
+    message(FATAL_ERROR "Bug: Specified CONFIG_DIR: "
+        "${YAML_SCHEMA_CONFIG_DIR} exists, but is not a directory.")
 ENDIF()
+
 # Configure config.h
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/internal/config.h.in "${YAML_SCHEMA_CONFIG_DIR}/config.h")
 include_directories("${PROJECT_BINARY_DIR}/conf")
-
 
 # ------ DEPENDENCIES ------
 find_package(yaml-cpp REQUIRED)
@@ -83,9 +85,9 @@ ENDIF(BUILD_EXAMPLES)
 
 # ------ TESTS ------
 IF(BUILD_TESTS)
-  MESSAGE(STATUS "Will build tests.")
-  enable_testing()
-  add_subdirectory(test)
+    MESSAGE(STATUS "Will build tests.")
+    enable_testing()
+    add_subdirectory(test)
 ENDIF(BUILD_TESTS)
 
 # ------ INSTALL ------

@@ -1,0 +1,4 @@
+own_type:
+  _mandatory: true
+  _type: base_input[]
+  _doc: "some doc"

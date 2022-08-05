@@ -1,0 +1,22 @@
+own_type:
+  - map1:
+      param1: 1
+      param2: "string"
+    param5:
+      - 5
+      - 6
+      - -1
+      - -7
+      - 0
+  - map1:
+      param1: 4
+      param2: "strong"
+      param3: 4.4
+    param4: "gromenauer"
+    param5:
+      - 4
+      - 6
+      - -1
+      - -7
+      - 10
+    
