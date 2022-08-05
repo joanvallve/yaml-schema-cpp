@@ -1,6 +1,6 @@
 stages:
   - license
-  - clang_format
+  - format
   - build_and_test
 
 ############ YAML ANCHORS ############
@@ -108,7 +108,7 @@ license_headers:
 
 ############ CLANG FORMAT CHECK ############
 clang_format:
-  stage: license
+  stage: format
   image: labrobotica/wolf_deps:20.04
   before_script:
     - *preliminaries_definition
