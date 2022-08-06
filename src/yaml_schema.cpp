@@ -341,7 +341,7 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                         // Validate with the derived schema file
                         is_valid_children =
                             applySchema(
-                                node_input, node_input[TYPE].as<std::string>(), folders, log, acc_field, override) and
+                                node_input, node_input["type"].as<std::string>(), folders, log, acc_field, override) and
                             is_valid_children;
                     }
                 }

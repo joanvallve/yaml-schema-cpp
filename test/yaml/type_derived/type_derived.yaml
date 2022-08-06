@@ -1,0 +1,5 @@
+final_1: "test_derived"
+final_derived:
+  type: type_derived_derived
+  param_base: 2.4
+  param_derived: [1, 2, 3, 4]

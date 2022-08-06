@@ -1,0 +1,9 @@
+final_1:
+  _mandatory: true
+  _type: string
+  _doc: "derived type" 
+final_derived:
+  _mandatory: true
+  _type: derived
+  _base: type_derived_base.schema
+  _doc: "derived type" 
