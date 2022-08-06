@@ -1,0 +1,4 @@
+param_base:
+    _mandatory: true
+    _type: double
+    _doc: "some doc"

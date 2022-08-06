@@ -1,0 +1,4 @@
+param_derived:
+    _mandatory: true
+    _type: int[]
+    _doc: "some doc"
