@@ -37,7 +37,7 @@ include_directories("${PROJECT_BINARY_DIR}/conf")
 # ------ DEPENDENCIES ------
 find_package(yaml-cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(Boost REQUIRED COMPONENTS filesystem)
+find_package(Boost REQUIRED COMPONENTS filesystem system)
 
 # ------ LIBRARY ------
 list(APPEND LIB_SRCS src/folders_schema.cpp)
@@ -54,7 +54,7 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PUBLIC yaml-cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
-target_link_libraries(${PROJECT_NAME} PUBLIC Boost::filesystem)
+target_link_libraries(${PROJECT_NAME} PUBLIC Boost::filesystem Boost::system)
 
 # ------ EXAMPLE LIBRARY ------
 IF(BUILD_EXAMPLES)
@@ -67,7 +67,7 @@ IF(BUILD_EXAMPLES)
 
     target_link_libraries(${PROJECT_NAME}_example PUBLIC ${PROJECT_NAME})
     target_link_libraries(${PROJECT_NAME}_example PUBLIC Eigen3::Eigen)
-    target_link_libraries(${PROJECT_NAME}_example PUBLIC Boost::filesystem)
+    target_link_libraries(${PROJECT_NAME}_example PUBLIC Boost::filesystem  Boost::system)
 
     # ------ EXECUTABLES ------
     set(COST_EX_NAME cost-example)
