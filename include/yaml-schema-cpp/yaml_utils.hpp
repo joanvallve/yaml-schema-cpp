@@ -23,7 +23,11 @@
 namespace yaml_schema_cpp
 {
 namespace filesystem = boost::filesystem;
-
+// 'follow' behavior:
+// -> schema node (is_schema = true): only allowed single file names. It will be searched inside folders specified by
+// 'folders'
+// -> input node (is_schema = false): path to file allowd (either relative or absolute). Relative paths will be done
+// with respect to the first item specified in folders. No search will be performed.
 void flattenNode(YAML::Node& node, std::vector<std::string> folders, bool is_schema, bool override);
 void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_schema, bool override);
 void flattenSequence(YAML::Node& node, std::vector<std::string> folders, bool is_schema, bool override);

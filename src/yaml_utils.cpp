@@ -61,30 +61,21 @@ void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_sche
     {
         if (n.first.as<std::string>() == "follow")
         {
-            const filesystem::path follow_value(n.second.as<std::string>());
-            filesystem::path       path_follow;
+            filesystem::path path_follow;
 
-            if (*follow_value.begin() == "..")
+            if (is_schema)
             {
-                // TODO: the following might be a little inconsistent as it takes the first value in folders to append
-                // the relative path (it might be a specific argument of the function instead)
+                path_follow = findFileRecursive(n.second.as<std::string>(), folders);
+            }
+            else
+            {
+                const filesystem::path follow_value(n.second.as<std::string>());
                 path_follow = folders.front() / follow_value;
 
                 if (not filesystem::exists(path_follow))
                 {
                     throw std::runtime_error("In flattenNode: the file '" + path_follow.string() +
                                              "' does not exists");
-                }
-            }
-            else
-            {
-                // Try to find the file
-                path_follow = findFileRecursive(n.second.as<std::string>(), folders);
-
-                // Case input yaml, folders has to be modified to keep relative paths
-                if (not is_schema)
-                {
-                    folders.front() = path_follow.parent_path().string();
                 }
             }
 
