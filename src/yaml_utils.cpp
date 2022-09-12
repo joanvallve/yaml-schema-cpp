@@ -83,7 +83,14 @@ void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_sche
             YAML::Node node_child = YAML::LoadFile(path_follow.string());
 
             // Recursively flatten the "follow" file
-            flattenNode(node_child, folders, is_schema, override);
+            if (is_schema)
+            {
+                flattenNode(node_child, folders, is_schema, override);
+            }
+            else
+            {
+                flattenNode(node_child, {path_follow.parent_path().string()}, is_schema, override);
+            }
 
             for (auto nc : node_child)
             {
