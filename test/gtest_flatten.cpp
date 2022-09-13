@@ -125,6 +125,28 @@ TEST(flatten, flatten_merge)
         input_node["map3"]["param2"].as<Eigen::VectorXd>(), (Eigen::VectorXd(3) << 9, 0, 1e4).finished(), 1e-12);
 }
 
+TEST(flatten, flatten_relative_path)
+{
+    YamlServer yaml_server({ROOT_DIR + "/test/yaml"}, ROOT_DIR + "/test/yaml/flatten/flatten_relative_path.yaml");
+
+    YAML::Node input_node = yaml_server.getNode();
+
+    std::cout << "input_node: " << std::endl << input_node << std::endl;
+
+    ASSERT_TRUE(input_node["map1"]);
+    ASSERT_TRUE(input_node["map1"]["param1"]);
+    ASSERT_TRUE(input_node["map1"]["param2"]);
+    ASSERT_TRUE(input_node["another_param"]);
+    ASSERT_TRUE(input_node["map2"]);
+    ASSERT_TRUE(input_node["map2"]["param1"]);
+
+    ASSERT_EQ(input_node["map1"]["param1"].as<int>(), 1);
+    ASSERT_EQ(input_node["map1"]["param2"].as<std::string>(), "string");
+    ASSERT_MATRIX_APPROX(
+        input_node["another_param"].as<Eigen::VectorXd>(), (Eigen::VectorXd(3) << 0, 0.3, 1e5).finished(), 1e-12);
+    ASSERT_NEAR(input_node["map2"]["param1"].as<double>(), 4.5, 1e-12);
+}
+
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);
