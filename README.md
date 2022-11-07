@@ -155,10 +155,10 @@ house:
     _type: string[]
     _doc: "Sequence of all owners' names"
   kitchen:
-    hoven:
+    oven:
       _mandatory: true
       _type: string
-      _doc: "Model of the hoven"
+      _doc: "Model of the oven"
     stove:
       number:
         _mandatory: true
