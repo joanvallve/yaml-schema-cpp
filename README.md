@@ -17,6 +17,8 @@ Future features:
 - Default values for custom classes.
 - Options for custom classes.
 
+This library uses *exprtk* (http://www.partow.net/programming/exprtk/index.html). The file "exprtk.hpp" is redistributed without modifications, under the MIT license.
+
 ## Installation
 
 Requirements: C++14 and cmake 3.10 or newer. 

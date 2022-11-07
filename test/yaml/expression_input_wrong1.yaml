@@ -1,0 +1,24 @@
+enabled: true
+disabled: false
+#param_int: 3 missing required param and used in expression
+param_double: 3.1
+
+# parameters with mandatory expressions
+param_expr1:  1   #mandatory: TRUE
+param_expr2:  2   #mandatory: FALSE
+param_expr3:  3   #mandatory: TRUE
+param_expr4:  4   #mandatory: FALSE
+param_expr5:  5   #mandatory: TRUE
+param_expr6:  6   #mandatory: FALSE
+param_expr7:  7   #mandatory: FALSE
+param_expr8:  8   #mandatory: TRUE
+param_expr9:  9   #mandatory: TRUE
+param_expr10: 10  #mandatory: FALSE
+param_expr11: 11  #mandatory: FALSE
+param_expr12: 12  #mandatory: FALSE
+param_expr13: 13  #mandatory: TRUE
+param_expr14: 14  #mandatory: TRUE
+param_expr15: 15  #mandatory: FALSE
+param_expr16: 16  #mandatory: TRUE
+param_expr17: 17  #mandatory: TRUE
+param_expr18: 18  #mandatory: FALSE

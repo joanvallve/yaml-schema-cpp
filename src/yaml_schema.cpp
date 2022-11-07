@@ -18,6 +18,7 @@
 #include <stdexcept>
 
 #include "yaml-schema-cpp/yaml_schema.hpp"
+#include "yaml-schema-cpp/expression.hpp"
 
 namespace yaml_schema_cpp
 {
@@ -57,7 +58,7 @@ YAML::Node loadSchema(std::string name_schema, const std::vector<std::string>& f
     // Check schema
     try
     {
-        checkSchema(node_schema, "");
+        checkSchema(node_schema, "", node_schema);
     }
     catch (const std::exception& e)
     {
@@ -68,7 +69,7 @@ YAML::Node loadSchema(std::string name_schema, const std::vector<std::string>& f
     return node_schema;
 }
 
-void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
+void checkSchema(const YAML::Node& node_schema, const std::string& node_field, const YAML::Node& node_schema_parent)
 {
     // skip scalars
     if (node_schema.IsScalar()) return;
@@ -87,7 +88,7 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
         {
             throw std::runtime_error("YAML schema: " + node_field + " does not contain " + TYPE);
         }
-        if (not checkTrivialType(node_schema[TYPE], "string"))
+        if (not tryNodeAs(node_schema[TYPE], "string"))
         {
             throw std::runtime_error("YAML schema: In " + node_field + ", " + TYPE + " should be a string");
         }
@@ -98,7 +99,7 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
             {
                 throw std::runtime_error("YAML schema: " + node_field + " of derived type does not contain " + BASE);
             }
-            if (not checkTrivialType(node_schema[BASE], "string"))
+            if (not tryNodeAs(node_schema[BASE], "string"))
             {
                 throw std::runtime_error("YAML schema: In " + node_field + ", " + BASE + " should be a string");
             }
@@ -108,25 +109,34 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
         {
             throw std::runtime_error("YAML schema: " + node_field + " does not contain " + DOC);
         }
-        if (not checkTrivialType(node_schema[DOC], "string"))
+        if (not tryNodeAs(node_schema[DOC], "string"))
         {
             throw std::runtime_error("YAML schema: In " + node_field + ", " + DOC + " should be a string");
         }
-        // Required 'mandatory' of type bool
+        // Required 'mandatory' of type bool or expression
         if (not node_schema[MANDATORY])
         {
             throw std::runtime_error("YAML schema: " + node_field + " does not contain " + MANDATORY);
         }
-        if (not checkTrivialType(node_schema[MANDATORY], "bool"))
+        if (not tryNodeAs(node_schema[MANDATORY], "bool") and not isExpression(node_schema[MANDATORY]))
         {
-            throw std::runtime_error("YAML schema: In " + node_field + ", " + MANDATORY + " should be a bool");
+            throw std::runtime_error("YAML schema: In " + node_field + ", " + MANDATORY +
+                                     " should be a bool or an expression.");
+        }
+        // check expression
+        std::string err_msg;
+        if (isExpression(node_schema[MANDATORY]) and
+            not checkExpressionSchema(node_schema[MANDATORY], node_schema_parent, err_msg))
+        {
+            throw std::runtime_error("YAML schema: In " + node_field + ", " + MANDATORY +
+                                     " wrong expression: " + err_msg);
         }
         // OPTIONAL 'default'
-        if (not node_schema[MANDATORY].as<bool>() and node_schema[DEFAULT])
+        if (node_schema[DEFAULT])
         {
             auto type =
                 isSequenceSchema(node_schema) ? getTypeOfSequence(node_schema) : node_schema[TYPE].as<std::string>();
-            if (not checkTrivialType(node_schema[DEFAULT], type))
+            if (not tryNodeAs(node_schema[DEFAULT], type))
             {
                 throw std::runtime_error("YAML schema: " + node_field + " default value wrong type");
             }
@@ -144,7 +154,7 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
                 isSequenceSchema(node_schema) ? getTypeOfSequence(node_schema) : node_schema[TYPE].as<std::string>();
             for (auto n_i = 0; n_i < node_schema[OPTIONS].size(); n_i++)
             {
-                if (not checkTrivialType(node_schema[OPTIONS][n_i], type))
+                if (not tryNodeAs(node_schema[OPTIONS][n_i], type))
                 {
                     throw std::runtime_error("YAML schema: " + node_field + ", " + OPTIONS + "[" +
                                              std::to_string(n_i) + "] has wrong type (should be " + type + ")");
@@ -187,7 +197,7 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field)
         // check the children nodes
         for (auto node_schema_child : node_schema)
         {
-            checkSchema(node_schema_child.second, node_schema_child.first.as<std::string>());
+            checkSchema(node_schema_child.second, node_schema_child.first.as<std::string>(), node_schema);
         }
     }
 }
@@ -236,7 +246,7 @@ bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool ove
                     // Check schema
                     try
                     {
-                        checkSchema(node_schema, "");
+                        checkSchema(node_schema, "", node_schema);
                     }
                     catch (const std::exception& e)
                     {
@@ -300,7 +310,7 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                 if (isTrivialType(node_schema[TYPE].as<std::string>()))
                 {
                     // Wrong type (complain)
-                    if (not checkTrivialType(node_input, node_schema[TYPE].as<std::string>()))
+                    if (not tryNodeAs(node_input, node_schema[TYPE].as<std::string>()))
                     {
                         writeToLog(
                             log,
@@ -397,10 +407,32 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
         // Does not exist
         else
         {
-            // complain if mandatory
-            if (node_schema[MANDATORY].as<bool>())
+            assert(tryNodeAs(node_schema[MANDATORY], "bool") or isExpression(node_schema[MANDATORY]));
+            // is mandatory?
+            bool mandatory;
+            if (isExpression(node_schema[MANDATORY]))
             {
-                writeToLog(log, "Input yaml does not contain field: " + acc_field + "\n");
+                try
+                {
+                    mandatory = evalExpression(node_schema[MANDATORY].as<std::string>(), node_input_parent);
+                }
+                catch (const std::exception& e)
+                {
+                    writeToLog(log,
+                               "Evaluating schema expression for 'mandatory' of field " + acc_field +
+                                   " failed with error: " + e.what() + "\n");
+                    is_valid_current = false;
+                }
+            }
+            else
+                mandatory = node_schema[MANDATORY].as<bool>();
+
+            // complain if mandatory
+            if (mandatory)
+            {
+                writeToLog(log,
+                           "Input yaml does not contain the mandatory field: " + acc_field + " (" + MANDATORY + ": " +
+                               node_schema[MANDATORY].as<std::string>() + ")\n");
                 is_valid_current = false;
             }
             // add node with default value (if parent is defined)

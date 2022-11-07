@@ -1,0 +1,9 @@
+enabled:
+  _mandatory: true
+  _type: bool
+  _doc: boolean parameter
+
+param_expr1:
+  _mandatory: $2-*enabled
+  _type: int
+  _doc: wrong expression

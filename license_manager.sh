@@ -12,7 +12,7 @@ line_end_mark="// along with this program.  If not, see <http://www.gnu.org/lice
 tmp=false
 mode="none"
 path=""
-exclude_folder=""
+exclude_folder="include/yaml-schema-cpp/exprtk"
 #recursive=true
 license=""
 
