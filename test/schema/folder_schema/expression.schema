@@ -1,0 +1,110 @@
+enabled:
+  _mandatory: true
+  _type: bool
+  _doc: boolean parameter
+
+disabled:
+  _mandatory: true
+  _type: bool
+  _doc: boolean parameter
+
+param_int:
+  _mandatory: true
+  _type: int
+  _doc: some integer param
+
+param_double:
+  _mandatory: true
+  _type: double
+  _doc: some double param
+
+# parameters with expressions
+param_expr1:
+  _mandatory: $enabled
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr2:
+  _mandatory: $disabled
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr3:
+  _mandatory: $not( disabled )
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr4:
+  _mandatory: $ not(enabled)
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr5:
+  _mandatory: $disabled or  not(disabled)
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr6:
+  _mandatory: $enabled  and (not(enabled))
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr7:
+  _mandatory: $param_int  < 3
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr8:
+  _mandatory: $param_int <= 3
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr9:
+  _mandatory: $param_int>= 3
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr10:
+  _mandatory: $param_int >   3
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr11:
+  _mandatory: $param_double  < 3
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr12:
+  _mandatory: $param_double <= 3
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr13:
+  _mandatory: $param_double>= 3
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr14:
+  _mandatory: $param_double >   3
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr15:
+  _mandatory: $enabled and param_int <3
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr16:
+  _mandatory: $enabled and param_int <=  3
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr17:
+  _mandatory: $enabled and param_int  >= 3
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr18:
+  _mandatory: $enabled and param_int>3
+  _type: int
+  _doc: a parameter mandatory if expression

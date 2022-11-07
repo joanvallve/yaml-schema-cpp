@@ -1,0 +1,9 @@
+enabled:
+  _mandatory: false
+  _type: bool
+  _doc: boolean parameter
+
+param_expr3:
+  _mandatory: $enabled
+  _type: int
+  _doc: wrong expression, enabled is not mandatory, cannot be used in an expression

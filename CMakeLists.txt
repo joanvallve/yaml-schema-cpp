@@ -40,7 +40,9 @@ find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem system)
 
 # ------ LIBRARY ------
+list(APPEND LIB_SRCS src/expression.cpp)
 list(APPEND LIB_SRCS src/folders_schema.cpp)
+list(APPEND LIB_SRCS src/type_check.cpp)
 list(APPEND LIB_SRCS src/yaml_schema.cpp)
 list(APPEND LIB_SRCS src/yaml_server.cpp)
 list(APPEND LIB_SRCS src/yaml_utils.cpp)

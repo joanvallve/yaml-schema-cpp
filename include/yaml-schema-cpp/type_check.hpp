@@ -26,16 +26,16 @@ namespace yaml_schema_cpp
 {
 namespace filesystem = boost::filesystem;
 
-#define CHECK_STRING_TYPE(yaml_string, TypeName)                                                                      \
+#define CHECK_STRING_TYPE_CASE(yaml_string, TypeName)                                                                 \
     if (type == #yaml_string)                                                                                         \
     {                                                                                                                 \
         node.as<TypeName>();                                                                                          \
         return true;                                                                                                  \
     }
 
-#define CHECK_TYPE(TypeName) CHECK_STRING_TYPE(TypeName, TypeName);
+#define CHECK_TYPE_CASE(TypeName) CHECK_STRING_TYPE_CASE(TypeName, TypeName);
 
-#define CHECK_TYPE_EIGEN(size)                                                                                        \
+#define CHECK_TYPE_EIGEN_CASE(size)                                                                                   \
     if (type == "Vector" #size "d" or type == "Eigen::Vector" #size "d")                                              \
     {                                                                                                                 \
         node.as<Eigen::Matrix<double, size, 1> >();                                                                   \
@@ -47,92 +47,44 @@ namespace filesystem = boost::filesystem;
         return true;                                                                                                  \
     }
 
-static bool checkTrivialTypeException(const YAML::Node& node, const std::string& type)
+static bool checkNodeAs(const YAML::Node& node, const std::string& type)
 {
-    CHECK_TYPE(bool)
-    CHECK_TYPE(char)
-    CHECK_TYPE(int)
-    CHECK_TYPE(unsigned int)
-    CHECK_TYPE(long int)
-    CHECK_TYPE(long unsigned int)
-    CHECK_TYPE(float)
-    CHECK_TYPE(double)
-    CHECK_TYPE(std::string)
-    CHECK_TYPE(Eigen::VectorXd)
-    CHECK_TYPE(Eigen::VectorXd)
-    CHECK_TYPE(Eigen::MatrixXd)
+    CHECK_TYPE_CASE(bool)
+    CHECK_TYPE_CASE(char)
+    CHECK_TYPE_CASE(int)
+    CHECK_TYPE_CASE(unsigned int)
+    CHECK_TYPE_CASE(long int)
+    CHECK_TYPE_CASE(long unsigned int)
+    CHECK_TYPE_CASE(float)
+    CHECK_TYPE_CASE(double)
+    CHECK_TYPE_CASE(std::string)
+    CHECK_TYPE_CASE(Eigen::VectorXd)
+    CHECK_TYPE_CASE(Eigen::VectorXd)
+    CHECK_TYPE_CASE(Eigen::MatrixXd)
 
-    CHECK_TYPE_EIGEN(1)
-    CHECK_TYPE_EIGEN(2)
-    CHECK_TYPE_EIGEN(3)
-    CHECK_TYPE_EIGEN(4)
-    CHECK_TYPE_EIGEN(5)
-    CHECK_TYPE_EIGEN(6)
-    CHECK_TYPE_EIGEN(7)
-    CHECK_TYPE_EIGEN(8)
-    CHECK_TYPE_EIGEN(9)
-    CHECK_TYPE_EIGEN(10)
+    CHECK_TYPE_EIGEN_CASE(1)
+    CHECK_TYPE_EIGEN_CASE(2)
+    CHECK_TYPE_EIGEN_CASE(3)
+    CHECK_TYPE_EIGEN_CASE(4)
+    CHECK_TYPE_EIGEN_CASE(5)
+    CHECK_TYPE_EIGEN_CASE(6)
+    CHECK_TYPE_EIGEN_CASE(7)
+    CHECK_TYPE_EIGEN_CASE(8)
+    CHECK_TYPE_EIGEN_CASE(9)
+    CHECK_TYPE_EIGEN_CASE(10)
 
-    CHECK_STRING_TYPE(string, std::string)
-    CHECK_STRING_TYPE(VectorXd, Eigen::VectorXd)
-    CHECK_STRING_TYPE(MatrixXd, Eigen::MatrixXd)
+    CHECK_STRING_TYPE_CASE(string, std::string)
+    CHECK_STRING_TYPE_CASE(VectorXd, Eigen::VectorXd)
+    CHECK_STRING_TYPE_CASE(MatrixXd, Eigen::MatrixXd)
 
     return false;
 }
 
-static bool checkTrivialType(const YAML::Node& node, const std::string& type)
-{
-    try
-    {
-        return checkTrivialTypeException(node, type);
-    }
-    catch (const std::exception& e)
-    {
-        return false;
-    }
-    return false;
-}
+bool tryNodeAs(const YAML::Node& node, const std::string& type);
 
-static bool isTrivialType(const std::string& type)
-{
-    try
-    {
-        return checkTrivialTypeException(YAML::Node(), type);
-    }
-    catch (const std::exception& e)
-    {
-        return true;
-    }
-    return false;
-}
+bool isTrivialType(const std::string& type);
 
-static bool isNonTrivialType(const std::string& type, const std::vector<std::string>& folders)
-{
-    std::string name_schema = type;
-
-    if (filesystem::extension(name_schema).empty())
-    {
-        // circular includes in case I use "SCHEMA_EXTENSION"
-        name_schema += ".schema";
-    }
-    else if (filesystem::extension(name_schema) != ".schema")
-    {
-        // bad extension
-        return false;
-    }
-
-    try
-    {
-        filesystem::path path = findFileRecursive(name_schema, folders);
-    }
-    catch (const std::exception& e)
-    {
-        // non existing file
-        return false;
-    }
-
-    return true;
-}
+bool isNonTrivialType(const std::string& type, const std::vector<std::string>& folders);
 
 #define COMPARE_STRING_TYPE(yaml_string, TypeName)                                                                    \
     if (type == #yaml_string)                                                                                         \

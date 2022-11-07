@@ -1,0 +1,9 @@
+enabled:
+  _mandatory: true
+  _type: bool
+  _doc: boolean parameter
+
+param_expr2:
+  _mandatory: $param2 > 3
+  _type: int
+  _doc: wrong expresssion, missing param2
