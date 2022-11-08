@@ -31,20 +31,12 @@ TEST(TestExpression, isExpression)
     ASSERT_TRUE(isExpression("$ It only checks if first char is '$' !·$%&/()^\n:-*+-"));
 }
 
-TEST(TestExpression, checkExpressionSyntax)
-{
-    ASSERT_TRUE(checkExpressionSyntax("$enable"));
-    ASSERT_TRUE(checkExpressionSyntax("$not(enable)"));
-    ASSERT_FALSE(checkExpressionSyntax("3*2-4"));    // missing $
-    ASSERT_FALSE(checkExpressionSyntax("$3-*2-4"));  // wrong expression
-    ASSERT_FALSE(checkExpressionSyntax("$not 3"));   // wrong expression
-}
-
 TEST(TestExpression, evalExpression)
 {
     YAML::Node node_input;
     node_input["enabled"]      = true;
     node_input["disabled"]     = false;
+    node_input["mode"]         = "auto";
     node_input["param_int"]    = 3;
     node_input["param_double"] = 3.1;
 
@@ -72,7 +64,14 @@ TEST(TestExpression, evalExpression)
     ASSERT_TRUE(evalExpression("$enabled and param_int  >= 3", node_input));
     ASSERT_FALSE(evalExpression("$enabled and param_int>3", node_input));
 
+    ASSERT_TRUE(evalExpression("$mode == 'auto'", node_input));
+    ASSERT_FALSE(evalExpression("$not(mode == 'auto')", node_input));
+    ASSERT_FALSE(evalExpression("$mode <> 'auto'", node_input));
+    ASSERT_FALSE(evalExpression("$mode == 'manual'", node_input));
+    ASSERT_TRUE(evalExpression("$mode <> 'manual'", node_input));
+
     ASSERT_THROW(evalExpression("$param2 > 3", node_input), std::runtime_error);
+    ASSERT_THROW(evalExpression("$param2 > 'manual'", node_input), std::runtime_error);
 }
 
 TEST(TestExpression, isExpreYaml)
@@ -90,10 +89,10 @@ TEST(TestExpression, checkExpressionYaml)
     YAML::Node node_schema_wrong2 = YAML::LoadFile(ROOT_DIR + "/test/wrong_schema/wrong_expression2.schema");
 
     std::string err_msg;
-    ASSERT_TRUE(checkExpressionSchema(node_schema["param_expr1"][MANDATORY], node_schema, err_msg));
-    ASSERT_FALSE(checkExpressionSchema(node_schema_wrong["param_expr1"][MANDATORY], node_schema_wrong, err_msg));
+    ASSERT_TRUE(checkExpression(node_schema["param_expr1"][MANDATORY], node_schema, err_msg));
+    ASSERT_FALSE(checkExpression(node_schema_wrong["param_expr1"][MANDATORY], node_schema_wrong, err_msg));
     std::cout << err_msg << std::endl;
-    ASSERT_FALSE(checkExpressionSchema(node_schema_wrong2["param_expr2"][MANDATORY], node_schema_wrong2, err_msg));
+    ASSERT_FALSE(checkExpression(node_schema_wrong2["param_expr2"][MANDATORY], node_schema_wrong2, err_msg));
     std::cout << err_msg << std::endl;
 }
 
@@ -142,11 +141,16 @@ TEST(TestExpression, applySchema)
         std::cout << "testing " << input << std::endl;
         YamlServer server = YamlServer({ROOT_DIR}, input);
 
-        std::cout << "before: \n" << server.getNode() << std::endl;
+        // std::cout << "before: \n" << server.getNode() << std::endl;
 
-        ASSERT_TRUE(server.applySchema("expression.schema"));
+        bool succeed = server.applySchema("expression.schema");
 
-        std::cout << "after: \n" << server.getNode() << std::endl;
+        if (succeed)
+            std::cout << "resulting node: " << server.getNode() << std::endl;
+        else
+            std::cout << server.getLog() << std::endl;
+
+        ASSERT_TRUE(succeed);
     }
 }
 

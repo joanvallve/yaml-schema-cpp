@@ -22,9 +22,127 @@
 
 namespace yaml_schema_cpp
 {
-typedef exprtk::expression<double>   expression_t;
-typedef exprtk::parser<double>       parser_t;
-typedef exprtk::symbol_table<double> symbol_table_t;
+typedef exprtk::expression<double>                 expression_t;
+typedef exprtk::parser<double>                     parser_t;
+typedef exprtk::symbol_table<double>               symbol_table_t;
+typedef typename parser_t::unknown_symbol_resolver usr_t;
+
+struct yaml_USR : public parser_t::unknown_symbol_resolver
+{
+    YAML::Node node_;
+
+    yaml_USR(const YAML::Node& _node) : usr_t(usr_t::e_usrmode_extended), node_(_node) {}
+
+    virtual bool process(const std::string& unknown_symbol, symbol_table_t& symbol_table, std::string& error_message)
+    {
+        bool result = false;
+
+        // inexistent
+        if (not node_[unknown_symbol])
+        {
+            error_message = "Indeterminable symbol type.";
+        }
+        // boolean
+        else if (tryNodeAs(node_[unknown_symbol], "bool"))
+        {
+            double value = node_[unknown_symbol].as<bool>() ? 1 : 0;
+            result       = symbol_table.create_variable(unknown_symbol, value);
+
+            if (not result)
+            {
+                error_message = "Failed to create variable " + unknown_symbol + " with value " + std::to_string(value);
+            }
+        }
+        // scalar
+        else if (tryNodeAs(node_[unknown_symbol], "double"))
+        {
+            double value = node_[unknown_symbol].as<double>();
+            result       = symbol_table.create_variable(unknown_symbol, value);
+
+            if (not result)
+            {
+                error_message = "Failed to create variable " + unknown_symbol + " with value " + std::to_string(value);
+            }
+        }
+        // string (last one since it is always possible to take as string)
+        else if (tryNodeAs(node_[unknown_symbol], "string"))
+        {
+            std::string string_val = node_[unknown_symbol].as<std::string>();
+            result                 = symbol_table.create_stringvar(unknown_symbol, string_val);
+
+            if (not result)
+            {
+                error_message = "Failed to create string variable " + unknown_symbol + " with value " + string_val;
+            }
+        }
+        else
+        {
+            error_message = "yaml_USR: unknown case.";
+        }
+        return result;
+    }
+};
+
+struct schema_USR : public parser_t::unknown_symbol_resolver
+{
+    YAML::Node schema_;
+
+    schema_USR(const YAML::Node& _schema) : usr_t(usr_t::e_usrmode_extended), schema_(_schema) {}
+
+    virtual bool process(const std::string& unknown_symbol, symbol_table_t& symbol_table, std::string& error_message)
+    {
+        bool result = false;
+
+        // inexistent
+        if (not schema_[unknown_symbol])
+        {
+            error_message = "coudn't find '" + unknown_symbol + "' parameter in the schema at the same level.";
+        }
+        // is specification
+        else if (not isSpecification(schema_[unknown_symbol]))
+        {
+            error_message = "The parameter '" + unknown_symbol + "' does not have specifications in the schema.";
+        }
+        // basic type (bool, scalar) or string
+        else if (not isBasicType(schema_[unknown_symbol][TYPE].as<std::string>()) and
+                 not isStringType(schema_[unknown_symbol][TYPE].as<std::string>()))
+        {
+            error_message = "checkExpression: The parameter '" + unknown_symbol + "' is not a basic type";
+        }
+        // mandatory (bool and true)
+        else if (not tryNodeAs(schema_[unknown_symbol][MANDATORY], "bool") or
+                 not schema_[unknown_symbol][MANDATORY].as<bool>())
+        {
+            error_message = "checkExpression: The parameter '" + unknown_symbol +
+                            "' is not mandatory (expressions with optional parameters not implemented yet)";
+        }
+        // scalar
+        else if (isBasicType(schema_[unknown_symbol][TYPE].as<std::string>()))
+        {
+            result = symbol_table.create_variable(unknown_symbol, 0);  // initialize to 0/false, just checking syntax
+
+            if (not result)
+            {
+                error_message = "Failed to create variable " + unknown_symbol;
+            }
+        }
+        // string
+        else if (isStringType(schema_[unknown_symbol][TYPE].as<std::string>()))
+        {
+            result = symbol_table.create_stringvar(unknown_symbol, "");
+
+            if (not result)
+            {
+                error_message = "Failed to create string variable " + unknown_symbol;
+            }
+        }
+        else
+        {
+            error_message = "schema_USR: unknown case.";
+        }
+        return result;
+    }
+};
 
 bool isExpression(const YAML::Node& node)
 {
@@ -36,75 +154,40 @@ bool isExpression(const std::string& expression)
     return expression.front() == '$';
 }
 
-bool checkExpressionSyntax(std::string expression)
+bool checkExpression(const YAML::Node& node_expression, const YAML::Node& node_schema_parent, std::string& err)
 {
-    if (not isExpression(expression)) return false;
+    std::string expression_str = node_expression.as<std::string>();
 
-    std::vector<std::string> variable_list;
-
-    // remove "$"
-    expression.erase(expression.begin());
-
-    return exprtk::collect_variables(expression, variable_list);
-}
-
-bool checkExpressionSchema(const YAML::Node& node_expression, const YAML::Node& node_schema_parent, std::string& err)
-{
-    std::string expression = node_expression.as<std::string>();
-
-    if (not isExpression(expression))
+    if (not isExpression(expression_str))
     {
-        err = "checkExpression: expression should start by '$': " + expression;
+        err = "checkExpression: expression should start by '$': " + expression_str;
         return false;
     }
 
-    // remove "$"
-    expression.erase(expression.begin());
+    // Preprocess: remove '$'
+    preProcessExpression(expression_str);
+
+    // Parser with our symbol resolver for schemas
+    expression_t   expression;
+    symbol_table_t symbol_table;
+    schema_USR     schema_usr(node_schema_parent);
+    parser_t       parser;
+    expression.register_symbol_table(symbol_table);
+    parser.enable_unknown_symbol_resolver(&schema_usr);
+    parser.compile(expression_str, expression);
 
     // check exprtk syntax validity
-    std::vector<std::string> variable_list;
-    if (not exprtk::collect_variables(expression, variable_list))
+    if (not parser.compile(expression_str, expression))
     {
-        err = "checkExpression: bad syntax: " + expression;
-        return false;
-    }
-    // check variables
-    else
-    {
-        for (const auto& var : variable_list)
+        err = "checkExpression: bad syntax:";
+        for (std::size_t i = 0; i < parser.error_count(); ++i)
         {
-            // existence
-            if (not node_schema_parent[var])
-            {
-                err = "checkExpression: coudn't find '" + var +
-                      "' parameter in the schema at the same level, evaluating expression: " + expression;
-                return false;
-            }
-            // is specification
-            if (not isSpecification(node_schema_parent[var]))
-            {
-                err = "checkExpression: The parameter '" + var +
-                      "' does not have specifications in the schema, evaluating expression: " + expression;
-                return false;
-            }
-            // trivial type
-            if (not isTrivialType(node_schema_parent[var][TYPE].as<std::string>()))
-            {
-                err = "checkExpression: The parameter '" + var +
-                      "' is not a trivial type, evaluating expression: " + expression;
-                return false;
-            }
-            // mandatory (bool and true)
-            if (not tryNodeAs(node_schema_parent[var][MANDATORY], "bool") or
-                not node_schema_parent[var][MANDATORY].as<bool>())
-            {
-                err = "checkExpression: The parameter '" + var +
-                      "' is not mandatory (expressions with optional parameters not implemented yet), evaluating "
-                      "expression: " +
-                      expression;
-                return false;
-            }
+            auto error = parser.get_error(i);
+            err += "\nError " + std::to_string(i) + " (position " + std::to_string(error.token.position) +
+                   "): " + error.diagnostic.c_str();
         }
+
+        return false;
     }
 
     return true;
@@ -114,51 +197,40 @@ bool evalExpression(std::string expression_str, const YAML::Node& node_input_par
 {
     assert(isExpression(expression_str) and "evalExpression: expression does not contain an expression");
 
-    // remove "$"
-    expression_str.erase(expression_str.begin());
+    // Preprocess: remove '$'
+    preProcessExpression(expression_str);
 
-    // VARIABLES
+    // Parser with our symbol resolver for schemas
+    expression_t   expression;
     symbol_table_t symbol_table;
-    double         true_double(1), false_double(0);
-    // get variable list
-    std::vector<std::string> variable_list;
-    std::vector<double>      values_list;
-    if (exprtk::collect_variables(expression_str, variable_list))
-    {
-        // Add variables
-        for (const auto& var : variable_list)
-        {
-            if (not node_input_parent[var])
-            {
-                throw std::runtime_error("evalExpression: coudn't find '" + var +
-                                         "' parameter in the yaml file evaluating expression: " + expression_str);
-            }
-            if (tryNodeAs(node_input_parent[var], "bool"))
-            {
-                values_list.push_back(node_input_parent[var].as<bool>() ? true_double : false_double);
-            }
-            else
-                values_list.push_back(node_input_parent[var].as<double>());
-
-            symbol_table.add_variable(var, values_list.back(), true);
-        }
-    }
-    else
-        throw std::runtime_error("evalExpression: An error occurred collecting variables of expression: " +
-                                 expression_str);
-
-    // EXPRESSION
-    expression_t expression;
+    yaml_USR       yaml_usr(node_input_parent);
+    parser_t       parser;
     expression.register_symbol_table(symbol_table);
+    parser.enable_unknown_symbol_resolver(&yaml_usr);
+    parser.compile(expression_str, expression);
 
-    // COMPILE
-    parser_t parser;
+    // check exprtk syntax validity
     if (not parser.compile(expression_str, expression))
     {
-        throw std::runtime_error("evalExpression: An error occurred compiling expression: " + expression_str);
+        std::string err = "bad syntax:";
+        for (std::size_t i = 0; i < parser.error_count(); ++i)
+        {
+            auto error = parser.get_error(i);
+            err += "\nError " + std::to_string(i) + " (position " + std::to_string(error.token.position) +
+                   "): " + error.diagnostic.c_str();
+        }
+
+        throw std::runtime_error("evalExpression: An error occurred compiling expression: " + expression_str + " | " +
+                                 err);
     }
 
     return (bool)expression.value();
+}
+
+void preProcessExpression(std::string& expression_str)
+{
+    // remove first '$' if there
+    if (expression_str.front() == '$') expression_str.erase(expression_str.begin());
 }
 
 }  // namespace yaml_schema_cpp

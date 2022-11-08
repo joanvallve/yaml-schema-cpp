@@ -46,6 +46,45 @@ bool isTrivialType(const std::string& type)
     return false;
 }
 
+bool isBasicType(const std::string& type)
+{
+    try
+    {
+        return checkNodeAsBasic(YAML::Node(), type);
+    }
+    catch (const std::exception& e)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool isStringType(const std::string& type)
+{
+    try
+    {
+        return checkNodeAsString(YAML::Node(), type);
+    }
+    catch (const std::exception& e)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool isEigenType(const std::string& type)
+{
+    try
+    {
+        return checkNodeAsEigen(YAML::Node(), type);
+    }
+    catch (const std::exception& e)
+    {
+        return true;
+    }
+    return false;
+}
+
 bool isNonTrivialType(const std::string& type, const std::vector<std::string>& folders)
 {
     std::string name_schema = type;

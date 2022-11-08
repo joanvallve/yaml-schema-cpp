@@ -27958,7 +27958,7 @@ namespace exprtk
 
             if (result)
             {
-               parser_->set_synthesis_error("Invalid string operation");
+               parser_->set_synthesis_error(std::string("Invalid string operation: ") + (b0_string ? "true" : "false") + ", " + (b1_string ? "true" : "false") + " op: " + to_str(operation));
             }
 
             return result;

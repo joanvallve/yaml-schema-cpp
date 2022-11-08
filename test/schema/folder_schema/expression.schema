@@ -8,6 +8,11 @@ disabled:
   _type: bool
   _doc: boolean parameter
 
+mode:
+  _mandatory: true
+  _type: string
+  _doc: string parameter
+
 param_int:
   _mandatory: true
   _type: int
@@ -106,5 +111,30 @@ param_expr17:
 
 param_expr18:
   _mandatory: $enabled and param_int>3
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr19:
+  _mandatory: $mode == 'auto'
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr20:
+  _mandatory: $not(mode == 'auto')
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr21:
+  _mandatory: $mode <> 'auto'
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr22:
+  _mandatory: $mode == 'manual'
+  _type: int
+  _doc: a parameter mandatory if expression
+
+param_expr23:
+  _mandatory: $mode <> 'manual'
   _type: int
   _doc: a parameter mandatory if expression
