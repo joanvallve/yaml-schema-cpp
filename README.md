@@ -11,13 +11,15 @@ The specification of this input files includes:
 - Default values can be specified for optional fields.
 - The values of can be limited to a set of options.
 - Use of polymorfism in type checking.
+- Boolean expressions.
 
 Future features:
 - Building a template YAML file from schema.
 - Default values for custom classes.
 - Options for custom classes.
+- Scalar expressions for default and options.
 
-This library uses *exprtk* (http://www.partow.net/programming/exprtk/index.html). The file "exprtk.hpp" is redistributed without modifications, under the MIT license.
+This library uses [exprtk](http://www.partow.net/programming/exprtk/index.html) as boolean expressions interpreter. The file "exprtk.hpp" is redistributed without modifications, under the MIT license.
 
 ## Installation
 
@@ -170,10 +172,10 @@ house:
         _mandatory: false
         _type: string
         _default: "gas"
-        _options: ["gas", "electric", "induction", "coil", "other"]
+        _options: ["natural gas", "butane", "propane", "electric", "induction", "coil", "other"]
         _doc: "The type of the stoves"
       power:
-        _mandatory: false
+        _mandatory: $stove_type == 'electric' or stove_type == 'induction' or stove_type == 'coil'
         _type: double
         _doc: "The power of the stoves (W)"
   dinning_room:
@@ -195,9 +197,14 @@ house:
     _base: BedroomClass
     _doc: "A sequence of bedrooms" 
   corridor:
-    _mandatory: false
-    _type: string
-    _doc: "A string describing the corridor"
+    has_corridor:
+      _mandatory: true
+      _type: bool
+      _doc: "If the house has corridor or not"
+    corridor_description:
+      _mandatory: $has_corridor
+      _type: string
+      _doc: "Description of the corridor"
 ```
 
 In this example, an input yaml file is specified. In the schema file, an input field can be specified or not (ex: "house", "kitchen", "stove" and "dinning_room" are not specified). There are some reserved fields to specify the input field, presented below.
@@ -213,13 +220,13 @@ The `_type` can be:
 If the type string ends with `[]`, the input field is specified to be a sequence.
 
 #### `_mandatory`
-A **bool** specifying if the input field is required or just optional.
+A **bool** value or expression (see below) specifying if the input field is required or just optional.
 
 #### `_doc`
 A **string** with a brief documentation.
 
 #### `_default` (optional)
-In case the input field is missing (allowed only if `_mandatory` is `false`), then it is added with the `_default` value in the input yaml node.
+In case the input field is missing (only allowed if `_mandatory` is `false`), then it is added with the `_default` value in the input yaml node.
 
 #### `_options` (optional)
 A sequence of valid values.
@@ -227,7 +234,22 @@ A sequence of valid values.
 #### `_base` (required if `_type` is "derived")
 The base class that the input field type should inherit from. This checks the input against the base class schema.
 
-
 ### The `follow` key
-
 In both input and schema files, the key `follow` is interpreted as a copy-paste of the contents of another file (either `.schema` or `.yaml`).
+
+### Expressions
+We allow the use of [exprtk](http://www.partow.net/programming/exprtk/index.html) expressions in `_mandatory` field. 
+There are some rules for the expressions:
+1. It should start by a `$` symbol.
+2. All parameters involved in an expression have to be at the same level of the specified node.
+3. All parameters involved in an expression have to be mandatory at all cases (i.e. true, not an expression).
+4. The exprtk syntax has to be followed (see [exprtk readme](https://www.partow.net/programming/exprtk/code/readme.txt) for more information).
+5. The result of the expression will be casted to `bool`. If the result is a numeric value, it will be converted to `true` except for 0 (`false`).
+
+Some examples of expresssions:
+```yaml
+  _mandatory: $mode == 'auto'            # assuming 'mode' is a string parameter with mandatory=true
+  _mandatory: $enabled                   # assuming 'enabled' is a bool parameter with mandatory=true
+  _mandatory: $n_threads > 0             # assuming 'n_threads' is a int/double parameter with mandatory=true
+  _mandatory: $enabled and not(disabled) # assuming 'enabled' and 'disabled' are bool parameters with mandatory=true
+```
