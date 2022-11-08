@@ -126,7 +126,7 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field, c
         // check expression
         std::string err_msg;
         if (isExpression(node_schema[MANDATORY]) and
-            not checkExpressionSchema(node_schema[MANDATORY], node_schema_parent, err_msg))
+            not checkExpression(node_schema[MANDATORY], node_schema_parent, err_msg))
         {
             throw std::runtime_error("YAML schema: In " + node_field + ", " + MANDATORY +
                                      " wrong expression: " + err_msg);

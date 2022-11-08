@@ -47,42 +47,66 @@ namespace filesystem = boost::filesystem;
         return true;                                                                                                  \
     }
 
-static bool checkNodeAs(const YAML::Node& node, const std::string& type)
-{
-    CHECK_TYPE_CASE(bool)
-    CHECK_TYPE_CASE(char)
-    CHECK_TYPE_CASE(int)
-    CHECK_TYPE_CASE(unsigned int)
-    CHECK_TYPE_CASE(long int)
-    CHECK_TYPE_CASE(long unsigned int)
-    CHECK_TYPE_CASE(float)
-    CHECK_TYPE_CASE(double)
-    CHECK_TYPE_CASE(std::string)
-    CHECK_TYPE_CASE(Eigen::VectorXd)
-    CHECK_TYPE_CASE(Eigen::VectorXd)
-    CHECK_TYPE_CASE(Eigen::MatrixXd)
-
-    CHECK_TYPE_EIGEN_CASE(1)
-    CHECK_TYPE_EIGEN_CASE(2)
-    CHECK_TYPE_EIGEN_CASE(3)
-    CHECK_TYPE_EIGEN_CASE(4)
-    CHECK_TYPE_EIGEN_CASE(5)
-    CHECK_TYPE_EIGEN_CASE(6)
-    CHECK_TYPE_EIGEN_CASE(7)
-    CHECK_TYPE_EIGEN_CASE(8)
-    CHECK_TYPE_EIGEN_CASE(9)
-    CHECK_TYPE_EIGEN_CASE(10)
-
-    CHECK_STRING_TYPE_CASE(string, std::string)
-    CHECK_STRING_TYPE_CASE(VectorXd, Eigen::VectorXd)
+#define CHECK_TYPE_EIGEN_CASES                                                                                        \
+    CHECK_TYPE_CASE(Eigen::VectorXd)                                                                                  \
+    CHECK_TYPE_CASE(Eigen::VectorXd)                                                                                  \
+    CHECK_TYPE_CASE(Eigen::MatrixXd)                                                                                  \
+    CHECK_TYPE_EIGEN_CASE(1)                                                                                          \
+    CHECK_TYPE_EIGEN_CASE(2)                                                                                          \
+    CHECK_TYPE_EIGEN_CASE(3)                                                                                          \
+    CHECK_TYPE_EIGEN_CASE(4)                                                                                          \
+    CHECK_TYPE_EIGEN_CASE(5)                                                                                          \
+    CHECK_TYPE_EIGEN_CASE(6)                                                                                          \
+    CHECK_TYPE_EIGEN_CASE(7)                                                                                          \
+    CHECK_TYPE_EIGEN_CASE(8)                                                                                          \
+    CHECK_TYPE_EIGEN_CASE(9)                                                                                          \
+    CHECK_TYPE_EIGEN_CASE(10)                                                                                         \
+    CHECK_STRING_TYPE_CASE(VectorXd, Eigen::VectorXd)                                                                 \
     CHECK_STRING_TYPE_CASE(MatrixXd, Eigen::MatrixXd)
 
+#define CHECK_TYPE_BASIC_CASES                                                                                        \
+    CHECK_TYPE_CASE(bool)                                                                                             \
+    CHECK_TYPE_CASE(char)                                                                                             \
+    CHECK_TYPE_CASE(int)                                                                                              \
+    CHECK_TYPE_CASE(unsigned int)                                                                                     \
+    CHECK_TYPE_CASE(long int)                                                                                         \
+    CHECK_TYPE_CASE(long unsigned int)                                                                                \
+    CHECK_TYPE_CASE(float)                                                                                            \
+    CHECK_TYPE_CASE(double)
+
+#define CHECK_TYPE_STRING_CASES                                                                                       \
+    CHECK_TYPE_CASE(std::string)                                                                                      \
+    CHECK_STRING_TYPE_CASE(string, std::string)
+
+static bool checkNodeAsBasic(const YAML::Node& node, const std::string& type)
+{
+    CHECK_TYPE_BASIC_CASES
+    return false;
+}
+static bool checkNodeAsString(const YAML::Node& node, const std::string& type)
+{
+    CHECK_TYPE_STRING_CASES
+    return false;
+}
+static bool checkNodeAsEigen(const YAML::Node& node, const std::string& type)
+{
+    CHECK_TYPE_EIGEN_CASES
+    return false;
+}
+static bool checkNodeAs(const YAML::Node& node, const std::string& type)
+{
+    CHECK_TYPE_BASIC_CASES
+    CHECK_TYPE_STRING_CASES
+    CHECK_TYPE_EIGEN_CASES
     return false;
 }
 
 bool tryNodeAs(const YAML::Node& node, const std::string& type);
 
 bool isTrivialType(const std::string& type);
+bool isBasicType(const std::string& type);
+bool isStringType(const std::string& type);
+bool isEigenType(const std::string& type);
 
 bool isNonTrivialType(const std::string& type, const std::vector<std::string>& folders);
 
