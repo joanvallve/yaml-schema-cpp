@@ -1,0 +1,18 @@
+map1:
+  param1: 
+    _mandatory: false
+    _type: int
+    _doc: "some doc"
+  param2: 
+    _mandatory: false
+    _type: string
+    _doc: "some doc"
+    _options: 
+      - "string"
+      - "strong"
+      - "streng"
+  param3: 
+    _mandatory: false
+    _type: int
+    _default: 3
+    _doc: "some doc"

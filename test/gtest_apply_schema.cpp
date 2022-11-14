@@ -83,6 +83,23 @@ TEST(schema, wrong)
     }
 }
 
+TEST(schema, optional_map)
+{
+    std::vector<std::string> input_yamls{ROOT_DIR + "/test/yaml/optional_map.yaml",
+                                         ROOT_DIR + "/test/yaml/optional_map2.yaml"};
+    for (auto input : input_yamls)
+    {
+        std::cout << "testing " << input << std::endl;
+        YamlServer server = YamlServer({ROOT_DIR}, input);
+
+        std::cout << "before: \n" << server.getNode() << std::endl;
+
+        ASSERT_TRUE(server.applySchema("optional_map.schema"));
+
+        std::cout << "after: \n" << server.getNode() << std::endl;
+    }
+}
+
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);

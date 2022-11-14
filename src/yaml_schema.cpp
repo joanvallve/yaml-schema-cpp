@@ -446,10 +446,18 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
     // map without specification
     else
     {
+        // if doesn't exist, we create it. If it should have mandatory fields, it will crash later.
+        if (not node_input.IsDefined())
+        {
+            node_input               = YAML::Node();
+            auto field               = filesystem::path(acc_field).filename().string();
+            node_input_parent[field] = node_input;
+        }
+
+        // iterate all childs
         for (auto node_schema_child : node_schema)
         {
-            YAML::Node node_input_child =
-                (node_input.IsDefined() ? node_input[node_schema_child.first.as<std::string>()] : node_input);
+            YAML::Node node_input_child = node_input[node_schema_child.first.as<std::string>()];
 
             is_valid_children = applySchemaRecursive(node_input_child,
                                                      node_input,
