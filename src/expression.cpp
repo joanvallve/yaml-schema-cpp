@@ -109,9 +109,9 @@ struct schema_USR : public parser_t::unknown_symbol_resolver
         {
             error_message = "checkExpression: The parameter '" + unknown_symbol + "' is not a basic type";
         }
-        // mandatory (bool and true)
-        else if (not tryNodeAs(schema_[unknown_symbol][MANDATORY], "bool") or
-                 not schema_[unknown_symbol][MANDATORY].as<bool>())
+        // mandatory (bool and true or with default
+        else if (not(tryNodeAs(schema_[unknown_symbol][MANDATORY], "bool") and
+                     (schema_[unknown_symbol][MANDATORY].as<bool>() or schema_[unknown_symbol][DEFAULT])))
         {
             error_message = "checkExpression: The parameter '" + unknown_symbol +
                             "' is not mandatory (expressions with optional parameters not implemented yet)";

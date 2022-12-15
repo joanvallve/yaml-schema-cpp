@@ -23,6 +23,18 @@ param_double:
   _type: double
   _doc: some double param
 
+optional_default_bool:
+  _mandatory: false
+  _type: bool
+  _default: false
+  _doc: some bool param with default
+
+optional_default_double:
+  _mandatory: false
+  _type: double
+  _default: -1
+  _doc: some double param with default
+
 # parameters with expressions
 param_expr1:
   _mandatory: $enabled
@@ -138,3 +150,13 @@ param_expr23:
   _mandatory: $mode <> 'manual'
   _type: int
   _doc: a parameter mandatory if expression
+
+param_expr24:
+  _mandatory: $optional_default_bool
+  _type: int
+  _doc: a parameter mandatory if expression involving an optional bool parameter with default value
+
+param_expr25:
+  _mandatory: $optional_default_double < 0
+  _type: int
+  _doc: a parameter mandatory if expression involving an optional double parameter with default value

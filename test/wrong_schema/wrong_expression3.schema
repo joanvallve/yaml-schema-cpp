@@ -1,9 +1,9 @@
-enabled:
+optional_param:
   _mandatory: false
   _type: bool
   _doc: boolean parameter
 
 param_expr3:
-  _mandatory: $enabled
+  _mandatory: $optional_param
   _type: int
-  _doc: wrong expression, enabled is not mandatory, cannot be used in an expression
+  _doc: wrong expression, 'optional_param' is not mandatory and doesn't have default, cannot be used in an expression
