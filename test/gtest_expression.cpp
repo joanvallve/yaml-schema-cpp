@@ -106,7 +106,7 @@ TEST(TestExpression, evalExpressionYaml)
     node_input["disabled"]        = false;
     node_input["param_int"]       = 3;
     node_input["param_double"]    = 3.1;
-    node_input["mode"]         = "auto";
+    node_input["mode"]            = "auto";
     YAML::Node node_schema        = YAML::LoadFile(ROOT_DIR + "/test/schema/folder_schema/expression.schema");
     YAML::Node node_schema_wrong  = YAML::LoadFile(ROOT_DIR + "/test/wrong_schema/wrong_expression.schema");
     YAML::Node node_schema_wrong2 = YAML::LoadFile(ROOT_DIR + "/test/wrong_schema/wrong_expression2.schema");
