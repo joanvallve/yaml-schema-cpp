@@ -120,27 +120,23 @@ Log of applySchema to YAML file
   schema: Example.schema
 ---------------------------------------------------------------------------------
 
-map1/param2: wrong value, it should be one of the following: 
+ERROR in 'map1/param2': Wrong value.
+ Doc: some doc
+ Type: string
+ Accepted values:
 - string
 - strong
 - streng
--- 'map1/param2':
-	Doc: some doc
-	Type: string
-	Accepted values: string, strong, streng, 
 
-map1/param3: wrong type, it should be double
--- 'map1/param3':
-	Doc: some doc
-	Type: double
+ERROR in 'map1/param3': Wrong type.
+ Doc: some doc
+ Type: double
 
-Input yaml does not contain field: param4
--- 'param4':
-	Doc: some doc
-	Type: string
+ERROR in 'param4': Missing mandatory field (MANDATORY: true).
+ Doc: some doc
+ Type: string
 
-param5[1]: wrong type, it should be int
--- 'param5[1]':
+ERROR in 'param5[1]': Wrong type.
 	Doc: some doc
 	Type: int
 
@@ -242,7 +238,7 @@ We allow the use of [exprtk](http://www.partow.net/programming/exprtk/index.html
 There are some rules for the expressions:
 1. It should start by a `$` symbol.
 2. All parameters involved in an expression have to be at the same level of the specified node.
-3. All parameters involved in an expression have to be mandatory at all cases (i.e. true, not an expression).
+3. All parameters involved in an expression have to be mandatory at all cases (i.e. true, not an expression) or have a default value defined.
 4. The exprtk syntax has to be followed (see [exprtk readme](https://www.partow.net/programming/exprtk/code/readme.txt) for more information).
 5. The result of the expression will be casted to `bool`. If the result is a numeric value, it will be converted to `true` except for 0 (`false`).
 

@@ -188,9 +188,18 @@ filesystem::path findFileRecursive(const std::string& name_with_extension, const
     throw std::runtime_error("File '" + name_with_extension + "' not found in provided folders");
 }
 
-void writeToLog(std::stringstream& log, const std::string& message)
+void writeToLog(std::stringstream& log,
+                const std::string& acc_field,
+                const YAML::Node   node_schema,
+                const std::string& message)
 {
-    log << message;
+    log << "ERROR in '" << acc_field << "': " << message << "\n";
+    log << " Doc: " << node_schema[DOC].as<std::string>() << "\n";
+    log << " Type: " << node_schema[TYPE].as<std::string>() << "\n";
+    if (node_schema[OPTIONS])
+        log << " Accepted values: \n" << node_schema[OPTIONS] << "\n";
+    
+    log << "\n";
 }
 
 std::list<YAML::Node> findNodesWithKey(const YAML::Node root_node, const std::string& key)
