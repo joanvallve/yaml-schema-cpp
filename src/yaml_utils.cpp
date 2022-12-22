@@ -71,12 +71,11 @@ void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_sche
             {
                 const filesystem::path follow_value(n.second.as<std::string>());
                 path_follow = folders.front() / follow_value;
+            }
 
-                if (not filesystem::exists(path_follow))
-                {
-                    throw std::runtime_error("In flattenNode: the file '" + path_follow.string() +
-                                             "' does not exists");
-                }
+            if (not filesystem::exists(path_follow))
+            {
+                throw std::runtime_error("In flattenNode: the file '" + path_follow.string() + "' does not exists");
             }
 
             // load "follow" file
@@ -185,20 +184,51 @@ filesystem::path findFileRecursive(const std::string& name_with_extension, const
         }
     }
 
-    throw std::runtime_error("File '" + name_with_extension + "' not found in provided folders");
+    throw std::runtime_error("File '" + name_with_extension + "' not found in provided folders.");
 }
 
-void writeToLog(std::stringstream& log,
-                const std::string& acc_field,
-                const YAML::Node   node_schema,
-                const std::string& message)
+void writeErrorToLog(std::stringstream& log,
+                     const std::string& _acc_field,
+                     const YAML::Node   _node_schema,
+                     const std::string& _error_message)
 {
-    log << "ERROR in '" << acc_field << "': " << message << "\n";
-    log << " Doc: " << node_schema[DOC].as<std::string>() << "\n";
-    log << " Type: " << node_schema[TYPE].as<std::string>() << "\n";
-    if (node_schema[OPTIONS]) log << " Accepted values: \n" << node_schema[OPTIONS] << "\n";
-
+    log << "ERROR in '" << _acc_field << "': " << _error_message << "\n";
+    if (_node_schema.IsDefined())
+    {
+        log << "Schema specification:\n";
+        writeNodeSchemaToLog(log, _acc_field, _node_schema, "  ");
+    }
     log << "\n";
+}
+
+void writeNodeSchemaToLog(std::stringstream& log,
+                          const std::string& _acc_field,
+                          const YAML::Node   _node_schema,
+                          std::string        _tabs)
+{
+    if (isSpecification(_node_schema))
+    {
+        log << _tabs << "DOC: " << _node_schema[DOC].as<std::string>() << "\n";
+        log << _tabs << "MANDATORY: " << _node_schema[MANDATORY].as<std::string>() << "\n";
+        if (_node_schema[DEFAULT]) log << _tabs << "DEFAULT: " << _node_schema[DEFAULT].as<std::string>() << "\n";
+        log << _tabs << "TYPE: " << _node_schema[TYPE].as<std::string>() << "\n";
+        if (_node_schema[OPTIONS])
+        {
+            log << _tabs << "OPTIONS:\n";
+            _tabs += " ";
+            for (auto opt : _node_schema[OPTIONS]) log << _tabs << "- " << opt.as<std::string>() << "\n";
+        }
+    }
+    else if (_node_schema.IsMap())
+    {
+        for (auto node_schema_child : _node_schema)
+        {
+            auto acc_field_child =
+                (_acc_field.empty() ? "" : _acc_field + "/") + node_schema_child.first.as<std::string>();
+            log << _tabs << acc_field_child << ":\n";
+            writeNodeSchemaToLog(log, acc_field_child, node_schema_child.second, _tabs + "  ");
+        }
+    }
 }
 
 std::list<YAML::Node> findNodesWithKey(const YAML::Node root_node, const std::string& key)

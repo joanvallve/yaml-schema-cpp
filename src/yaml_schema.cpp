@@ -270,17 +270,17 @@ bool applySchema(YAML::Node&                     node_input,
                  bool                            override)
 {
     // Load and check schema
-    YAML::Node node_schema;
+    YAML::Node node_schema(YAML::NodeType::Undefined);
     try
     {
         node_schema = loadSchema(name_schema, folders, override);
     }
     catch (const std::exception& e)
     {
-        writeToLog(log,
-                   acc_field,
-                   node_schema,
-                   "Schema '" + name_schema + "' couldn't be correctly loaded. Error: " + e.what());
+        writeErrorToLog(log,
+                        acc_field,
+                        node_schema,
+                        "Schema '" + name_schema + "' couldn't be correctly loaded. Error: " + e.what());
         return false;
     }
 
@@ -313,7 +313,7 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                     // Wrong type (complain)
                     if (not tryNodeAs(node_input, node_schema[TYPE].as<std::string>()))
                     {
-                        writeToLog(log, acc_field, node_schema, "Wrong type.");
+                        writeErrorToLog(log, acc_field, node_schema, "Wrong type.");
                         is_valid = false;
                     }
                     // Check "valid options"
@@ -321,7 +321,7 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                     {
                         if (not checkOptions(node_input, node_schema[OPTIONS], node_schema[TYPE].as<std::string>()))
                         {
-                            writeToLog(log, acc_field, node_schema, "Wrong value.");
+                            writeErrorToLog(log, acc_field, node_schema, "Wrong value.");
                             is_valid = false;
                         }
                     }
@@ -332,10 +332,10 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                     // check existence of key type
                     if (not node_input["type"])
                     {
-                        writeToLog(log,
-                                   acc_field,
-                                   node_schema,
-                                   "Does not contain key 'type' which is mandatory for 'derived'.");
+                        writeErrorToLog(log,
+                                        acc_field,
+                                        node_schema,
+                                        "Does not contain key 'type' which is mandatory for 'derived'.");
                         is_valid = false;
                     }
                     else
@@ -364,11 +364,10 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                             node_input, node_schema[TYPE].as<std::string>(), folders, log, acc_field, override) and
                         is_valid;
                 }
-                // non trivial type known in schema
+                // non trivial type also failed
                 else
                 {
-                    throw std::runtime_error("Not trivial type nor 'derived', not implemented: " +
-                                             node_schema[TYPE].as<std::string>());
+                    throw std::runtime_error("Not trivial type not found: " + node_schema[TYPE].as<std::string>());
                 }
             }
             // sequence
@@ -377,7 +376,7 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                 // First check that the node it is really a sequence
                 if (not node_input.IsSequence())
                 {
-                    writeToLog(log, acc_field, node_schema, "Should be a sequence.");
+                    writeErrorToLog(log, acc_field, node_schema, "Should be a sequence.");
                     is_valid = false;
                 }
                 // Then check the validity of each element in the sequence
@@ -416,11 +415,11 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                 }
                 catch (const std::exception& e)
                 {
-                    writeToLog(log,
-                               acc_field,
-                               node_schema,
-                               "Evaluating schema expression for 'mandatory' of field " + acc_field +
-                                   " failed with error: " + e.what() + "\n");
+                    writeErrorToLog(log,
+                                    acc_field,
+                                    node_schema,
+                                    "Evaluating schema expression for 'mandatory' of field " + acc_field +
+                                        " failed with error: " + e.what() + "\n");
                     is_valid = false;
                 }
             }
@@ -430,7 +429,7 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
             // complain if mandatory
             if (mandatory)
             {
-                writeToLog(
+                writeErrorToLog(
                     log,
                     acc_field,
                     node_schema,

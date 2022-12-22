@@ -32,10 +32,14 @@ void flattenNode(YAML::Node& node, std::vector<std::string> folders, bool is_sch
 void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_schema, bool override);
 void flattenSequence(YAML::Node& node, std::vector<std::string> folders, bool is_schema, bool override);
 
-void writeToLog(std::stringstream& log,
-                const std::string& acc_field,
-                const YAML::Node   node_schema,
-                const std::string& message);
+void writeErrorToLog(std::stringstream& log,
+                     const std::string& _acc_field,
+                     const YAML::Node   _node_schema,
+                     const std::string& _error_message);
+void writeNodeSchemaToLog(std::stringstream& log,
+                          const std::string& _acc_field,
+                          const YAML::Node   _node_schema,
+                          std::string        _tabs = "");
 
 void addNodeYaml(YAML::Node& node, const std::string& key, const YAML::Node& value, bool override);
 

@@ -1,3 +1,5 @@
+follow: type_derived_base.schema
+
 param_derived:
     _mandatory: true
     _type: int[]
