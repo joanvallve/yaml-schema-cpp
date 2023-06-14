@@ -1,0 +1,20 @@
+namespace1:
+  param1:
+    _mandatory: true
+    _type: double
+    _doc: "some parameter"
+  param2:
+    _mandatory: false
+    _type: Vector4d
+    _default: [3, 5, 0]
+    _doc: "some parameter"
+param3:
+  _mandatory: true
+  _type: string[]
+  _doc: "some parameter"
+param4:
+  _mandatory: false
+  _type: int
+  _value: 0
+  _options: [1, 2, 3, 4, 5]
+  _doc: "some parameter"

@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
+// Copyright (C) 2022,2023 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
 // Authors: Josep Martí Saumell (jmarti@iri.upc.edu) and Joan Vallvé Navarro (jvallve@iri.upc.edu)
 // All rights reserved.
 //
@@ -66,7 +66,8 @@ TEST(schema, wrong)
                                          ROOT_DIR + "/test/yaml/base_input_wrong3.yaml",
                                          ROOT_DIR + "/test/yaml/base_input_wrong4.yaml",
                                          ROOT_DIR + "/test/yaml/base_input_wrong5.yaml",
-                                         ROOT_DIR + "/test/yaml/base_input_wrong6.yaml"};
+                                         ROOT_DIR + "/test/yaml/base_input_wrong6.yaml",
+                                         ROOT_DIR + "/test/yaml/base_input_wrong7.yaml"};
     for (auto input : input_yamls)
     {
         std::cout << "testing " << input << std::endl;

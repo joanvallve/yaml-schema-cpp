@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
+// Copyright (C) 2022,2023 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
 // Authors: Josep Martí Saumell (jmarti@iri.upc.edu) and Joan Vallvé Navarro (jvallve@iri.upc.edu)
 // All rights reserved.
 //
@@ -37,6 +37,7 @@ static std::string            MANDATORY        = SCHEMA_PREFIX + "mandatory";
 static std::string            DOC              = SCHEMA_PREFIX + "doc";
 static std::string            OPTIONS          = SCHEMA_PREFIX + "options";
 static std::string            DEFAULT          = SCHEMA_PREFIX + "default";
+static std::string            VALUE            = SCHEMA_PREFIX + "value";
 static std::string            BASE             = SCHEMA_PREFIX + "base";
 static std::list<std::string> RESERVED_KEYS{TYPE, MANDATORY, DOC, OPTIONS, DEFAULT, BASE};
 static std::list<std::string> REQUIRED_KEYS{TYPE, MANDATORY, DOC};

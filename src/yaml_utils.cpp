@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
+// Copyright (C) 2022,2023 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
 // Authors: Josep Martí Saumell (jmarti@iri.upc.edu) and Joan Vallvé Navarro (jvallve@iri.upc.edu)
 // All rights reserved.
 //
@@ -210,6 +210,7 @@ void writeNodeSchemaToLog(std::stringstream& log,
     {
         log << _tabs << "DOC: " << _node_schema[DOC].as<std::string>() << "\n";
         log << _tabs << "MANDATORY: " << _node_schema[MANDATORY].as<std::string>() << "\n";
+        if (_node_schema[VALUE]) log << _tabs << "VALUE: " << _node_schema[VALUE].as<std::string>() << "\n";
         if (_node_schema[DEFAULT]) log << _tabs << "DEFAULT: " << _node_schema[DEFAULT].as<std::string>() << "\n";
         log << _tabs << "TYPE: " << _node_schema[TYPE].as<std::string>() << "\n";
         if (_node_schema[OPTIONS])

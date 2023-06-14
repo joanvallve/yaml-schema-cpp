@@ -1,0 +1,4 @@
+map1:
+  param1: 1
+  param2: "string"
+param6: 5.3 #value defined, cannot modify it

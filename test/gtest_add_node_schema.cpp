@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
+// Copyright (C) 2022,2023 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
 // Authors: Josep Martí Saumell (jmarti@iri.upc.edu) and Joan Vallvé Navarro (jvallve@iri.upc.edu)
 // All rights reserved.
 //
