@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
+// Copyright (C) 2022,2023 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
 // Authors: Josep Martí Saumell (jmarti@iri.upc.edu) and Joan Vallvé Navarro (jvallve@iri.upc.edu)
 // All rights reserved.
 //
@@ -43,6 +43,8 @@ TEST(schema, wrong)
                                          "not_base",
                                          "wrong_default",
                                          "wrong_default_options",
+                                         "wrong_value",
+                                         "wrong_value_options",
                                          "wrong_expression",
                                          "wrong_expression2",
                                          "wrong_expression3",

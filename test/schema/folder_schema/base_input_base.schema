@@ -14,3 +14,9 @@ param5:
   _mandatory: true
   _type: int[]
   _doc: "some doc"
+param6:
+  _mandatory: false
+  _type: Vector3d
+  _value: [0, 2, 3]
+  _options: [[0, 1, 2], [0, 2, 3], [1, 1, 1]]
+  _doc: "some doc"

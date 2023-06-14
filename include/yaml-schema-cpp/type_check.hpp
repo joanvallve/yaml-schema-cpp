@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
+// Copyright (C) 2022,2023 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
 // Authors: Josep Martí Saumell (jmarti@iri.upc.edu) and Joan Vallvé Navarro (jvallve@iri.upc.edu)
 // All rights reserved.
 //
@@ -125,8 +125,32 @@ bool isNonTrivialType(const std::string& type, const std::vector<std::string>& f
 
 #define COMPARE_TYPE(TypeName) COMPARE_STRING_TYPE(TypeName, TypeName);
 
+#define COMPARE_EIGEN(size)                                                                                           \
+    if (type == "Vector" #size "d" or type == "Eigen::Vector" #size "d")                                              \
+    {                                                                                                                 \
+        return node1.as<Eigen::Matrix<double, size, 1> >() == node2.as<Eigen::Matrix<double, size, 1> >();            \
+    }                                                                                                                 \
+    if (type == "Matrix" #size "d" or type == "Eigen::Matrix" #size "d")                                              \
+    {                                                                                                                 \
+        return node1.as<Eigen::Matrix<double, size, size> >() == node2.as<Eigen::Matrix<double, size, size> >();      \
+    }
+
 static bool compare(const YAML::Node& node1, const YAML::Node& node2, const std::string& type)
 {
+    // sequence
+    if (type.front() == '[' and type.back() == ']')
+    {
+        // same size
+        if (node1.size() != node2.size()) return false;
+
+        // compare all elements
+        for (auto i = 0; i < node1.size(); i++)
+        {
+            if (not compare(node1[i], node2[i], type.substr(1, type.size() - 2))) return false;
+        }
+        return true;
+    }
+
     COMPARE_TYPE(bool)
     COMPARE_TYPE(char)
     COMPARE_TYPE(int)
@@ -136,9 +160,25 @@ static bool compare(const YAML::Node& node1, const YAML::Node& node2, const std:
     COMPARE_TYPE(float)
     COMPARE_TYPE(double)
     COMPARE_TYPE(std::string)
+    COMPARE_TYPE(Eigen::VectorXd)
+    COMPARE_TYPE(Eigen::MatrixXd)
+
+    COMPARE_EIGEN(1)
+    COMPARE_EIGEN(2)
+    COMPARE_EIGEN(3)
+    COMPARE_EIGEN(4)
+    COMPARE_EIGEN(5)
+    COMPARE_EIGEN(6)
+    COMPARE_EIGEN(7)
+    COMPARE_EIGEN(8)
+    COMPARE_EIGEN(9)
+    COMPARE_EIGEN(10)
 
     COMPARE_STRING_TYPE(string, std::string)
-    return false;
+    COMPARE_STRING_TYPE(VectorXd, Eigen::VectorXd)
+    COMPARE_STRING_TYPE(VectorXd, Eigen::VectorXd)
+
+    throw std::runtime_error("compare() not implemented for type " + type);
 }
 
 }  // namespace yaml_schema_cpp

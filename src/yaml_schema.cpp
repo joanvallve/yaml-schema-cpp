@@ -1,4 +1,4 @@
-// Copyright (C) 2022 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
+// Copyright (C) 2022,2023 Institut de Robòtica i Informàtica Industrial, CSIC-UPC.
 // Authors: Josep Martí Saumell (jmarti@iri.upc.edu) and Joan Vallvé Navarro (jvallve@iri.upc.edu)
 // All rights reserved.
 //
@@ -131,14 +131,33 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field, c
             throw std::runtime_error("YAML schema: In " + node_field + ", " + MANDATORY +
                                      " wrong expression: " + err_msg);
         }
-        // OPTIONAL 'default'
+        // OPTIONAL 'value'
+        if (node_schema[VALUE])
+        {
+            // check type
+            auto type =
+                isSequenceSchema(node_schema) ? getTypeOfSequence(node_schema) : node_schema[TYPE].as<std::string>();
+            if (not tryNodeAs(node_schema[VALUE], type))
+            {
+                throw std::runtime_error("YAML schema: " + node_field + ", " + VALUE + " of wrong type");
+            }
+        }
+
+        // OPTIONAL 'default' only if 'mandatory'=false or expression
         if (node_schema[DEFAULT])
         {
+            if (not isExpression(node_schema[MANDATORY]) and node_schema[MANDATORY].as<bool>())
+            {
+                throw std::runtime_error("YAML schema: " + node_field + ", " + DEFAULT +
+                                         " value cannot be defined in mandatory field");
+            }
+
+            // check type
             auto type =
                 isSequenceSchema(node_schema) ? getTypeOfSequence(node_schema) : node_schema[TYPE].as<std::string>();
             if (not tryNodeAs(node_schema[DEFAULT], type))
             {
-                throw std::runtime_error("YAML schema: " + node_field + " default value wrong type");
+                throw std::runtime_error("YAML schema: " + node_field + ", " + DEFAULT + " value wrong type");
             }
         }
         // OPTIONAL sequence 'options'
@@ -160,21 +179,39 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field, c
                                              std::to_string(n_i) + "] has wrong type (should be " + type + ")");
                 }
             }
-            // If default, check that it is in options
+            // If default, check it is included in options
             if (node_schema[DEFAULT])
             {
-                bool option_found = false;
+                bool default_found = false;
                 for (auto valid_n : node_schema[OPTIONS])
                 {
                     if (compare(valid_n, node_schema[DEFAULT], type))
                     {
-                        option_found = true;
+                        default_found = true;
                         break;
                     }
                 }
-                if (not option_found)
+                if (not default_found)
                 {
                     throw std::runtime_error("YAML schema: " + node_field + ", " + DEFAULT +
+                                             " value should be one of the specified in " + OPTIONS);
+                }
+            }
+            // If value, check it is included in options
+            if (node_schema[VALUE])
+            {
+                bool value_found = false;
+                for (auto valid_n : node_schema[OPTIONS])
+                {
+                    if (compare(valid_n, node_schema[VALUE], type))
+                    {
+                        value_found = true;
+                        break;
+                    }
+                }
+                if (not value_found)
+                {
+                    throw std::runtime_error("YAML schema: " + node_field + ", " + VALUE +
                                              " value should be one of the specified in " + OPTIONS);
                 }
             }
@@ -304,6 +341,13 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
         // Exists
         if (node_input.IsDefined())
         {
+            // If VALUE defined in schema, complain
+            if (node_schema[VALUE])
+            {
+                writeErrorToLog(log, acc_field, node_schema, "Already defined in schema, not allowed to be changed.");
+                is_valid = false;
+            }
+
             // Not sequence
             if (not isSequenceSchema(node_schema))
             {
@@ -321,7 +365,8 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                     {
                         if (not checkOptions(node_input, node_schema[OPTIONS], node_schema[TYPE].as<std::string>()))
                         {
-                            writeErrorToLog(log, acc_field, node_schema, "Wrong value.");
+                            writeErrorToLog(
+                                log, acc_field, node_schema, "Wrong value. Allowed values defined in OPTIONS.");
                             is_valid = false;
                         }
                     }
@@ -404,43 +449,56 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
         // Does not exist
         else
         {
-            assert(tryNodeAs(node_schema[MANDATORY], "bool") or isExpression(node_schema[MANDATORY]));
-            // is mandatory?
-            bool mandatory;
-            if (isExpression(node_schema[MANDATORY]))
+            // Load VALUE in case defined in schema
+            if (node_schema[VALUE])
             {
-                try
+                // add node with value (if parent is defined)
+                if (node_input_parent.IsDefined())
                 {
-                    mandatory = evalExpression(node_schema[MANDATORY].as<std::string>(), node_input_parent);
+                    auto field               = filesystem::path(acc_field).filename().string();
+                    node_input_parent[field] = node_schema[VALUE];
                 }
-                catch (const std::exception& e)
+            }
+            // Check if it is mandatory
+            else
+            {
+                assert(tryNodeAs(node_schema[MANDATORY], "bool") or isExpression(node_schema[MANDATORY]));
+                bool mandatory;
+                if (isExpression(node_schema[MANDATORY]))
+                {
+                    try
+                    {
+                        mandatory = evalExpression(node_schema[MANDATORY].as<std::string>(), node_input_parent);
+                    }
+                    catch (const std::exception& e)
+                    {
+                        writeErrorToLog(log,
+                                        acc_field,
+                                        node_schema,
+                                        "Evaluating schema expression for 'mandatory' of field " + acc_field +
+                                            " failed with error: " + e.what() + "\n");
+                        is_valid = false;
+                    }
+                }
+                else
+                    mandatory = node_schema[MANDATORY].as<bool>();
+
+                // complain if mandatory
+                if (mandatory)
                 {
                     writeErrorToLog(log,
                                     acc_field,
                                     node_schema,
-                                    "Evaluating schema expression for 'mandatory' of field " + acc_field +
-                                        " failed with error: " + e.what() + "\n");
+                                    "Missing mandatory field (" + MANDATORY + ": " +
+                                        node_schema[MANDATORY].as<std::string>() + ").");
                     is_valid = false;
                 }
-            }
-            else
-                mandatory = node_schema[MANDATORY].as<bool>();
-
-            // complain if mandatory
-            if (mandatory)
-            {
-                writeErrorToLog(
-                    log,
-                    acc_field,
-                    node_schema,
-                    "Missing mandatory field (" + MANDATORY + ": " + node_schema[MANDATORY].as<std::string>() + ").");
-                is_valid = false;
-            }
-            // add node with default value (if parent is defined)
-            else if (node_schema[DEFAULT] and node_input_parent.IsDefined())
-            {
-                auto field               = filesystem::path(acc_field).filename().string();
-                node_input_parent[field] = node_schema[DEFAULT];
+                // add node with default value (if parent is defined)
+                else if (node_schema[DEFAULT] and node_input_parent.IsDefined())
+                {
+                    auto field               = filesystem::path(acc_field).filename().string();
+                    node_input_parent[field] = node_schema[DEFAULT];
+                }
             }
         }
     }

@@ -120,25 +120,40 @@ Log of applySchema to YAML file
   schema: Example.schema
 ---------------------------------------------------------------------------------
 
-ERROR in 'map1/param2': Wrong value.
- Doc: some doc
- Type: string
- Accepted values:
-- string
-- strong
-- streng
+ERROR in 'map1/param2': Wrong value. Allowed values defined in OPTIONS.
+Schema specification:
+  DOC: some doc
+  MANDATORY: true
+  TYPE: string
+  OPTIONS:
+   - string
+   - strong
+   - streng
 
 ERROR in 'map1/param3': Wrong type.
- Doc: some doc
- Type: double
+Schema specification:
+  DOC: some doc
+  MANDATORY: true
+  TYPE: double
 
-ERROR in 'param4': Missing mandatory field (MANDATORY: true).
- Doc: some doc
- Type: string
+ERROR in 'param4': Missing mandatory field.
+Schema specification:
+  DOC: some doc
+  MANDATORY: true
+  TYPE: string
 
 ERROR in 'param5[1]': Wrong type.
-	Doc: some doc
-	Type: int
+Schema specification:
+	DOC: some doc
+  MANDATORY: false
+	TYPE: int
+
+ERROR in 'param6': Already defined in schema, not allowed to be changed.
+Schema specification:
+  DOC: some doc
+  MANDATORY: false
+  VALUE: 3.14
+  TYPE: double
 
 ```
 
@@ -201,6 +216,11 @@ house:
       _mandatory: $has_corridor
       _type: string
       _doc: "Description of the corridor"
+  address:
+    _mandatory: false
+    _type: string
+    _doc: "Address is hardcoded in this schema file"
+    _value: "Whichever street, 11, Springfield"
 ```
 
 In this example, an input yaml file is specified. In the schema file, an input field can be specified or not (ex: "house", "kitchen", "stove" and "dinning_room" are not specified). There are some reserved fields to specify the input field, presented below.
@@ -220,6 +240,9 @@ A **bool** value or expression (see below) specifying if the input field is requ
 
 #### `_doc`
 A **string** with a brief documentation.
+
+#### `_value` (optional)
+Specify the value in the schema file. It means not allowing to define the field in the input file. This is useful for derived classes, to specify some parameters of its base class.
 
 #### `_default` (optional)
 In case the input field is missing (only allowed if `_mandatory` is `false`), then it is added with the `_default` value in the input yaml node.
