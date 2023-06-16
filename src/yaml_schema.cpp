@@ -342,9 +342,13 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
         if (node_input.IsDefined())
         {
             // If VALUE defined in schema, complain if different
-            if (node_schema[VALUE] and not compare(node_schema[VALUE], node_input, node_schema[TYPE].as<std::string>()))
+            if (node_schema[VALUE] and
+                not compare(node_schema[VALUE], node_input, node_schema[TYPE].as<std::string>()))
             {
-                writeErrorToLog(log, acc_field, node_schema, " already defined in schema with a different value. Not allowed to be changed.");
+                writeErrorToLog(log,
+                                acc_field,
+                                node_schema,
+                                " already defined in schema with a different value. Not allowed to be changed.");
                 is_valid = false;
             }
 
