@@ -7,3 +7,5 @@ param5:
   - -1
   - -7
   - 0
+param6: 3.14 #same as value defined
+param7: [0, 2, 3] #same as value defined

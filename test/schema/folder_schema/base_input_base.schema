@@ -16,6 +16,12 @@ param5:
   _doc: "some doc"
 param6:
   _mandatory: false
+  _type: double
+  _value: 3.14
+  _options: [0, 1.56, 3.14]
+  _doc: "some doc"
+param7:
+  _mandatory: false
   _type: Vector3d
   _value: [0, 2, 3]
   _options: [[0, 1, 2], [0, 2, 3], [1, 1, 1]]

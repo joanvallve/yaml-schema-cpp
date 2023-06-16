@@ -208,16 +208,16 @@ void writeNodeSchemaToLog(std::stringstream& log,
 {
     if (isSpecification(_node_schema))
     {
-        log << _tabs << "DOC: " << _node_schema[DOC].as<std::string>() << "\n";
-        log << _tabs << "MANDATORY: " << _node_schema[MANDATORY].as<std::string>() << "\n";
-        if (_node_schema[VALUE]) log << _tabs << "VALUE: " << _node_schema[VALUE].as<std::string>() << "\n";
-        if (_node_schema[DEFAULT]) log << _tabs << "DEFAULT: " << _node_schema[DEFAULT].as<std::string>() << "\n";
-        log << _tabs << "TYPE: " << _node_schema[TYPE].as<std::string>() << "\n";
+        log << _tabs << "DOC: " << _node_schema[DOC] << "\n";
+        log << _tabs << "MANDATORY: " << _node_schema[MANDATORY] << "\n";
+        if (_node_schema[VALUE]) log << _tabs << "VALUE: " << _node_schema[VALUE] << "\n";
+        if (_node_schema[DEFAULT]) log << _tabs << "DEFAULT: " << _node_schema[DEFAULT] << "\n";
+        log << _tabs << "TYPE: " << _node_schema[TYPE] << "\n";
         if (_node_schema[OPTIONS])
         {
             log << _tabs << "OPTIONS:\n";
             _tabs += " ";
-            for (auto opt : _node_schema[OPTIONS]) log << _tabs << "- " << opt.as<std::string>() << "\n";
+            for (auto opt : _node_schema[OPTIONS]) log << _tabs << "- " << opt << "\n";
         }
     }
     else if (_node_schema.IsMap())

@@ -128,11 +128,29 @@ bool isNonTrivialType(const std::string& type, const std::vector<std::string>& f
 #define COMPARE_EIGEN(size)                                                                                           \
     if (type == "Vector" #size "d" or type == "Eigen::Vector" #size "d")                                              \
     {                                                                                                                 \
-        return node1.as<Eigen::Matrix<double, size, 1> >() == node2.as<Eigen::Matrix<double, size, 1> >();            \
+        try                                                                                                           \
+        {                                                                                                             \
+            return (node1.as<Eigen::Matrix<double, size, 1> >() - node2.as<Eigen::Matrix<double, size, 1> >())        \
+                       .cwiseAbs()                                                                                    \
+                       .maxCoeff() < 1e-9;                                                                            \
+        }                                                                                                             \
+        catch (const std::exception& e)                                                                               \
+        {                                                                                                             \
+            return false;                                                                                             \
+        }                                                                                                             \
     }                                                                                                                 \
     if (type == "Matrix" #size "d" or type == "Eigen::Matrix" #size "d")                                              \
     {                                                                                                                 \
-        return node1.as<Eigen::Matrix<double, size, size> >() == node2.as<Eigen::Matrix<double, size, size> >();      \
+        try                                                                                                           \
+        {                                                                                                             \
+            return (node1.as<Eigen::Matrix<double, size, size> >() - node2.as<Eigen::Matrix<double, size, size> >())  \
+                       .cwiseAbs()                                                                                    \
+                       .maxCoeff() < 1e-9;                                                                            \
+        }                                                                                                             \
+        catch (const std::exception& e)                                                                               \
+        {                                                                                                             \
+            return false;                                                                                             \
+        }                                                                                                             \
     }
 
 static bool compare(const YAML::Node& node1, const YAML::Node& node2, const std::string& type)
@@ -140,6 +158,9 @@ static bool compare(const YAML::Node& node1, const YAML::Node& node2, const std:
     // sequence
     if (type.front() == '[' and type.back() == ']')
     {
+        // both sequences
+        if (not node1.IsSequence() or not node2.IsSequence()) return false;
+
         // same size
         if (node1.size() != node2.size()) return false;
 
