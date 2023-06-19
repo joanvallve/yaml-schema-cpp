@@ -432,7 +432,7 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                 else
                 {
                     // to check all the entries of the sequence, remove the brackets [] from the end of type
-                    YAML::Node node_schema_i = node_schema;
+                    YAML::Node node_schema_i = Clone(node_schema);
                     node_schema_i[TYPE]      = getTypeOfSequence(node_schema);
 
                     for (auto i = 0; i < node_input.size(); i++)

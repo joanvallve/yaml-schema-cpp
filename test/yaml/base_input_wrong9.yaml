@@ -1,0 +1,4 @@
+map1:
+  param1: 1
+  param2: "string"
+param8: [[5.3], ["wrong type should be a double"], [3, 4]] #second element should be a sequence of doubles

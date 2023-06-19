@@ -67,7 +67,9 @@ TEST(schema, wrong)
                                          ROOT_DIR + "/test/yaml/base_input_wrong4.yaml",
                                          ROOT_DIR + "/test/yaml/base_input_wrong5.yaml",
                                          ROOT_DIR + "/test/yaml/base_input_wrong6.yaml",
-                                         ROOT_DIR + "/test/yaml/base_input_wrong7.yaml"};
+                                         ROOT_DIR + "/test/yaml/base_input_wrong7.yaml",
+                                         ROOT_DIR + "/test/yaml/base_input_wrong8.yaml",
+                                         ROOT_DIR + "/test/yaml/base_input_wrong9.yaml"};
     for (auto input : input_yamls)
     {
         std::cout << "testing " << input << std::endl;

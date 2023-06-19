@@ -37,3 +37,7 @@ param7:
   _value: [0, 2, 3]
   _options: [[0, 1, 2], [0, 2, 3], [1, 1, 1]]
   _doc: "some doc"
+param8:
+  _mandatory: false
+  _type: double[][]
+  _doc: "sequence of sequence of doubles"
