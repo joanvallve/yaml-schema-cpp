@@ -23,7 +23,7 @@
 
 using namespace Eigen;
 
-TEST(MapYaml, save_2d)
+TEST(MapYaml, decode)
 {
     MatrixXd M23(2, 3);
     MatrixXd M33(3, 3);
@@ -41,9 +41,9 @@ TEST(MapYaml, save_2d)
     mat_sized_33 = YAML::Load("[[3, 3] ,[1, 2, 3, 4, 5, 6, 7, 8, 9]]");  // insensitive to spacing
     vec_sized_3  = YAML::Load("[[3, 1] ,[1, 2, 3]]");                    // insensitive to spacing
 
-    mat_23 = YAML::Load("[1, 2, 3, 4, 5, 6]");           // insensitive to spacing
-    mat_33 = YAML::Load("[1, 2, 3, 4, 5, 6, 7, 8, 9]");  // insensitive to spacing
-    vec_3  = YAML::Load("[1, 2, 3]");                    // insensitive to spacing
+    mat_23 = YAML::Load("[1, 2, 3, 4, 5, 6]");                           // insensitive to spacing
+    mat_33 = YAML::Load("[1, 2, 3, 4, 5, 6, 7, 8, 9]");                  // insensitive to spacing
+    vec_3  = YAML::Load("[1, 2, 3]");                                    // insensitive to spacing
     // vec_0       = YAML::Load("[]");                             // insensitive to spacing
 
     MatrixXd Mx = mat_sized_23.as<MatrixXd>();
@@ -89,6 +89,53 @@ TEST(MapYaml, save_2d)
     vx = vec_3.as<VectorXd>();
     std::cout << "Dyn [1, 2, 3] = \n" << vx << std::endl;
     ASSERT_MATRIX_APPROX(vx, v3, 1e-12);
+}
+
+TEST(MapYaml, encode)
+{
+    // Matrix
+    MatrixXd M23(2, 3);
+    MatrixXd M33(3, 3);
+    VectorXd v3(3);
+    M23 << 1, 2, 3, 4, 5, 6;
+    M33 << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+    v3 << 1, 2, 3;
+
+    YAML::Node n;
+    n["m23"] = M23;
+    n["m33"] = M33;
+    n["v3"]  = v3;
+    std::cout << n << std::endl;
+
+    // cwiseNullaryOps
+    YAML::Node n2;
+    n2["zero_d23"]     = MatrixXd::Zero(2, 3);
+    n2["zero_33"]      = Matrix3d::Zero();
+    n2["zero_d3"]      = VectorXd::Zero(3);
+    n2["zero_3"]       = Vector3d::Zero();
+    n2["ones_d23"]     = MatrixXd::Ones(2, 3);
+    n2["ones_33"]      = Matrix3d::Ones();
+    n2["ones_d3"]      = VectorXd::Ones(3);
+    n2["ones_3"]       = Vector3d::Ones();
+    n2["twohalf_d23"]  = MatrixXd::Constant(2, 3, 2.5);
+    n2["twohalf_33"]   = Matrix3d::Constant(2.5);
+    n2["twohalf_d3"]   = VectorXd::Constant(3, 2.5);
+    n2["twohalf_3"]    = Vector3d::Constant(2.5);
+    n2["rand_d23"]     = MatrixXd::Random(2, 3);
+    n2["rand_33"]      = Matrix3d::Random();
+    n2["rand_d3"]      = VectorXd::Random(3);
+    n2["rand_3"]       = Vector3d::Random();
+    n2["linspaced_d5"] = VectorXd::LinSpaced(5, 3, 10);
+    std::cout << n2 << std::endl;
+
+    // operations
+    YAML::Node n3;
+    n3["v3twice"]       = v3 * 2;
+    n3["v3twiceB"]      = 2 * v3;
+    n3["v3plustwicev3"] = v3 + 2 * v3;
+    n3["op"]            = M33 * v3 + 2 * v3;
+    n3["M33abs"]        = M33.cwiseAbs();
+    std::cout << n3 << std::endl;
 }
 
 int main(int argc, char **argv)

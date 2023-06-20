@@ -230,4 +230,73 @@ struct convert<Eigen::Quaternion<_Scalar, _Options> >
     }
 };
 
+/**\brief Encoder Eigen::CwiseNullaryOp --> YAML
+ *
+ * Useful for using initilizers like: Zero(), Ones(), Constant() or Random()
+ *
+ */
+template <typename A1, typename A2>
+struct convert<Eigen::CwiseNullaryOp<A1, A2> >
+{
+    static Node encode(const Eigen::CwiseNullaryOp<A1, A2>& matrix)
+    {
+        Node node;
+
+        int nValues = matrix.rows() * matrix.cols();
+
+        for (int i = 0; i < nValues; ++i)
+        {
+            node.push_back(matrix(i / matrix.cols(), i % matrix.cols()));
+        }
+
+        return node;
+    }
+};
+
+/**\brief Encoder Eigen::CwiseBinaryOp --> YAML
+ *
+ * Useful for operations * + -
+ *
+ */
+template <typename A1, typename A2, typename A3>
+struct convert<Eigen::CwiseBinaryOp<A1, A2, A3> >
+{
+    static Node encode(const Eigen::CwiseBinaryOp<A1, A2, A3>& matrix)
+    {
+        Node node;
+
+        int nValues = matrix.rows() * matrix.cols();
+
+        for (int i = 0; i < nValues; ++i)
+        {
+            node.push_back(matrix(i / matrix.cols(), i % matrix.cols()));
+        }
+
+        return node;
+    }
+};
+
+/**\brief Encoder Eigen::CwiseUnaryOp --> YAML
+ *
+ * Useful for cwise operators like .cwiseAbs()
+ *
+ */
+template <typename A1, typename A2>
+struct convert<Eigen::CwiseUnaryOp<A1, A2> >
+{
+    static Node encode(const Eigen::CwiseUnaryOp<A1, A2>& matrix)
+    {
+        Node node;
+
+        int nValues = matrix.rows() * matrix.cols();
+
+        for (int i = 0; i < nValues; ++i)
+        {
+            node.push_back(matrix(i / matrix.cols(), i % matrix.cols()));
+        }
+
+        return node;
+    }
+};
+
 }  // namespace YAML
