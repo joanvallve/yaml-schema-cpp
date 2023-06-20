@@ -38,6 +38,7 @@ class YamlServer
     void addFolderSchema(const std::string& folder_schema, bool before = false);
 
     void loadYaml(const std::string& path_input);
+    void setYaml(const YAML::Node _node_input);
 
     std::string getLog() const;
 

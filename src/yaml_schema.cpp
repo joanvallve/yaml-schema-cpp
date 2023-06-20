@@ -141,6 +141,13 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field, c
             {
                 throw std::runtime_error("YAML schema: " + node_field + ", " + VALUE + " of wrong type");
             }
+
+            // if 'value', 'mandatory' should be false (no sense requiring user to define something already defined)
+            if (isExpression(node_schema[MANDATORY]) or node_schema[MANDATORY].as<bool>())
+            {
+                throw std::runtime_error("YAML schema: " + node_field + ", if " + VALUE + " defined, " + MANDATORY +
+                                         " should be false");
+            }
         }
 
         // OPTIONAL 'default' only if 'mandatory'=false or expression

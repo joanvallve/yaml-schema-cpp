@@ -65,6 +65,11 @@ void YamlServer::loadYaml(const std::string& path_input)
     flattenNode(node_input_, {path_input_.parent_path().string()}, false, override_);
 }
 
+void YamlServer::setYaml(const YAML::Node _node_input)
+{
+    node_input_ = _node_input;
+}
+
 bool YamlServer::applySchema(const std::string& name_schema)
 {
     log_.clear();
