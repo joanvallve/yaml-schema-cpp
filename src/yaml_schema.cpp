@@ -396,13 +396,7 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                     }
                     else
                     {
-                        // Validate with the base schema file
-                        is_valid =
-                            applySchema(
-                                node_input, node_schema[BASE].as<std::string>(), folders, log, acc_field, override) and
-                            is_valid;
-
-                        // Validate with the derived schema file
+                        // Validate with derived schema file
                         is_valid = applySchema(node_input,
                                                node_input["type"].as<std::string>(),
                                                folders,
@@ -410,6 +404,12 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                                                acc_field,
                                                override) and
                                    is_valid;
+
+                        // Validate with base schema file (after derived since it may complete the input node)
+                        is_valid =
+                            applySchema(
+                                node_input, node_schema[BASE].as<std::string>(), folders, log, acc_field, override) and
+                            is_valid;
                     }
                 }
                 // custom non trivial-type
