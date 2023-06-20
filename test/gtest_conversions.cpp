@@ -37,14 +37,13 @@ TEST(MapYaml, decode)
     YAML::Node mat_sized_23, mat_sized_33, mat_23, mat_33;
     YAML::Node vec_sized_3, vec_3, vec_0;
 
-    mat_sized_23 = YAML::Load("[[2, 3] ,[1, 2, 3, 4, 5, 6] ]");          // insensitive to spacing
-    mat_sized_33 = YAML::Load("[[3, 3] ,[1, 2, 3, 4, 5, 6, 7, 8, 9]]");  // insensitive to spacing
-    vec_sized_3  = YAML::Load("[[3, 1] ,[1, 2, 3]]");                    // insensitive to spacing
+    mat_sized_23 = YAML::Load("[[2, 3] ,[1, 2, 3, 4, 5, 6] ]");         // insensitive to spacing
+    mat_sized_33 = YAML::Load("[[3, 3] ,[1,2, 3, 4, 5, 6, 7, 8, 9]]");  // insensitive to spacing
+    vec_sized_3  = YAML::Load("[[3, 1] , [1, 2, 3]]");                  // insensitive to spacing
 
-    mat_23 = YAML::Load("[1, 2, 3, 4, 5, 6]");                           // insensitive to spacing
-    mat_33 = YAML::Load("[1, 2, 3, 4, 5, 6, 7, 8, 9]");                  // insensitive to spacing
-    vec_3  = YAML::Load("[1, 2, 3]");                                    // insensitive to spacing
-    // vec_0       = YAML::Load("[]");                             // insensitive to spacing
+    mat_23 = YAML::Load("[1, 2,3, 4,  5, 6]");                          // insensitive to spacing
+    mat_33 = YAML::Load("[1, 2, 3, 4,5,6,7, 8, 9]");                    // insensitive to spacing
+    vec_3  = YAML::Load("[1, 2, 3 ]");                                  // insensitive to spacing
 
     MatrixXd Mx = mat_sized_23.as<MatrixXd>();
     std::cout << "Dyn-Dyn [[2,3] ,[1, 2, 3, 4, 5, 6] ] = \n" << Mx << std::endl;
