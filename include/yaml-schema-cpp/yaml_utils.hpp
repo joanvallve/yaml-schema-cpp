@@ -47,4 +47,6 @@ filesystem::path findFileRecursive(const std::string& name_with_extension, const
 
 std::list<YAML::Node> findNodesWithKey(const YAML::Node root_node, const std::string& key);
 
+std::string sequenceToString(const YAML::Node& node);
+
 }  // namespace yaml_schema_cpp

@@ -260,4 +260,22 @@ std::list<YAML::Node> findNodesWithKey(const YAML::Node root_node, const std::st
     return nodes_with_key;
 }
 
+std::string sequenceToString(const YAML::Node& node)
+{
+    if (not node.IsSequence()) throw std::runtime_error("sequenceToString is only for sequence nodes");
+
+    std::string ret("[");
+    for (auto i = 0; i < node.size(); i++)
+    {
+        if (i > 0) ret += ", ";
+
+        if (not node[i].IsSequence())
+            ret += node[i].as<std::string>();
+        else
+            ret += sequenceToString(node[i]);
+    }
+    ret += "]";
+    return ret;
+}
+
 }  // namespace yaml_schema_cpp
