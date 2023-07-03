@@ -43,6 +43,7 @@ find_package(Boost REQUIRED COMPONENTS filesystem system)
 list(APPEND LIB_SRCS src/expression.cpp)
 list(APPEND LIB_SRCS src/folders_schema.cpp)
 list(APPEND LIB_SRCS src/type_check.cpp)
+list(APPEND LIB_SRCS src/yaml_generator.cpp)
 list(APPEND LIB_SRCS src/yaml_schema.cpp)
 list(APPEND LIB_SRCS src/yaml_server.cpp)
 list(APPEND LIB_SRCS src/yaml_utils.cpp)
@@ -92,6 +93,13 @@ IF(BUILD_TESTS)
     add_subdirectory(test)
 ENDIF(BUILD_TESTS)
 
+# ------ YAML GENERATOR ------
+MESSAGE(STATUS "Building YAML generator.")
+add_executable(yaml_template_generator src/yaml_template_generator.cpp)
+
+target_link_libraries(yaml_template_generator PUBLIC ${PROJECT_NAME})
+target_link_libraries(yaml_template_generator PUBLIC Boost::filesystem Boost::system)
+
 # ------ INSTALL ------
 install(DIRECTORY include/${PROJECT_NAME} DESTINATION include)
 install(
@@ -103,6 +111,9 @@ install(
     FILE ${PROJECT_NAME}-targets.cmake
     NAMESPACE YamlSchemaCpp::
     DESTINATION lib/cmake/${PROJECT_NAME})
+install(
+    TARGETS yaml_template_generator
+    DESTINATION bin)
 
 # ------ Find ------
 include(CMakePackageConfigHelpers)

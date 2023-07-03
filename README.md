@@ -1,32 +1,33 @@
-# YAML SCHEMA CPP library
+# Introduction
 
-The *yaml-schema-cpp* is a C++ library is intended to be used to specify and validate requirements to YAML files.
+The *yaml-schema-cpp* is a C++ library for specification and validation of YAML files.
+This is useful for C++ applications where the configuration is done via YAML files.
 
-This is useful for applications where the configuration is done via YAML files.
-
-The specification of this input files includes:
+The specification is done by an **schema** file, including:
 - Structure and fields.
-- Type of the fields (allowing custom classes).
+- Documentation of each field.
+- Type of the field (allowing custom classes).
 - Fields can be mandatory or optional.
 - Default values can be specified for optional fields.
 - The values of can be limited to a set of options.
 - Use of polymorfism in type checking.
 - Boolean expressions.
 
-Future features:
-- Building a template YAML file from schema.
+Also, an executable `yaml_template_generator` is provided to automatically generate template YAML files from schema files.
+
+**Future features:**
 - Default values for custom classes.
 - Options for custom classes.
 - Scalar expressions for default and options.
 
 This library uses [exprtk](http://www.partow.net/programming/exprtk/index.html) as boolean expressions interpreter. The file "exprtk.hpp" is redistributed without modifications, under the MIT license.
 
-## Installation
+# Installation
 
 Requirements: C++14 and cmake 3.10 or newer. 
 It is tested with Ubuntu 18.04 and 20.04.
 
-### Dependencies
+## Dependencies
 
 **1. Boost**
 
@@ -59,7 +60,7 @@ make
 sudo make install
 ```
 
-### Clone and compile
+## Clone and compile
 
 ```bash
 git clone -b main https://gitlab.iri.upc.edu/labrobotica/algorithms/yaml-schema-cpp.git
@@ -71,9 +72,119 @@ sudo make install
 ```
 You can run the tests with `ctest -j4`.
 
-## Using yaml_schema_cpp
+# Using `yaml_schema_cpp`
 
-### Load and check YAML inputs
+## The `.schema` file
+
+The specifications are contained in schema files.
+Schema files are YAML files as well, but they have the extension `.schema`.
+
+The following is an example of a schema file:
+```yaml
+house:
+  owners:
+    _mandatory: true
+    _type: string[]
+    _doc: "Sequence of all owners' names"
+  kitchen:
+    oven:
+      _mandatory: true
+      _type: string
+      _doc: "Model of the oven"
+    stove:
+      number:
+        _mandatory: true
+        _type: int
+        _doc: "number of stoves"
+      stove_type:
+        _mandatory: false
+        _type: string
+        _default: "gas"
+        _options: ["natural gas", "butane", "propane", "electric", "induction", "coil", "other"]
+        _doc: "The type of the stoves"
+      power:
+        _mandatory: $stove_type == 'electric' or stove_type == 'induction' or stove_type == 'coil'
+        _type: double
+        _doc: "The power of the stoves (W)"
+  dinning_room:
+    TV:
+      follow: TV.schema
+    table:
+      _mandatory: true
+      _type: Eigen::Vector2d
+      _doc: "Table dimensions (m)"
+  bedrooms:
+    _mandatory: true
+    _type: derived[]
+    _base: BedroomClass
+    _doc: "A sequence of bedrooms" 
+  corridor:
+    has_corridor:
+      _mandatory: true
+      _type: bool
+      _doc: "If the house has corridor or not"
+    corridor_description:
+      _mandatory: $has_corridor
+      _type: string
+      _doc: "Description of the corridor"
+  address:
+    _mandatory: false
+    _type: string
+    _doc: "Address is hardcoded in this schema file"
+    _value: "Whichever street, 11, Springfield"
+```
+
+In this example, the schema specifies the structure and contents of an input YAML file. There are some reserved fields to specify the input field, presented below.
+
+### `_type`
+A **string** specifying which type the input field should be. 
+The `_type` can be:
+- Trivial types (`bool`, `char`, `int`, `unsigned int`, `long int`, `long unsigned int`, `float`, `double`, `std::string`).
+- Eigen types (`Eigen::MatrixXd`, `Eigen::VectorXd`, `Eigen::Matrix2d`, `Eigen::Vector2d`, `Eigen::Matrix3d`, `Eigen::Vector3d`, ...)
+- "derived": The input field can be a custom type deriving from a specified base class (see `_base`).
+- Custom types (new feature comming soon)
+
+If the type string ends with `[]`, the input field is specified to be a sequence.
+
+### `_mandatory`
+A **bool** value or expression (see below) specifying if the input field is required or just optional.
+
+### `_doc`
+A **string** with a brief documentation.
+
+### `_value` (optional)
+Specify the value in the schema file. It means not allowing to define the field in the input file. This is useful for derived classes, to specify some parameters of its base class.
+
+### `_default` (optional)
+In case the input field is missing (only allowed if `_mandatory` is `false`), then it is added with the `_default` value in the input yaml node.
+
+### `_options` (optional)
+A sequence of valid values.
+
+### `_base` (required if `_type` is "derived")
+The base class that the input field type should inherit from. This checks the input against the base class schema.
+
+### The `follow` key
+In both input and schema files, the key `follow` is interpreted as a copy-paste of the contents of another file (either `.schema` or `.yaml`).
+
+### Expressions
+We allow the use of [exprtk](http://www.partow.net/programming/exprtk/index.html) expressions in `_mandatory` field. 
+There are some rules for the expressions:
+1. It should start by a `$` symbol.
+2. All parameters involved in an expression have to be at the same level of the specified node.
+3. All parameters involved in an expression have to be mandatory at all cases (i.e. true, not an expression) or have a default value defined.
+4. The exprtk syntax has to be followed (see [exprtk readme](https://www.partow.net/programming/exprtk/code/readme.txt) for more information).
+5. The result of the expression will be casted to `bool`. If the result is a numeric value, it will be converted to `true` except for 0 (`false`).
+
+Some examples of expresssions:
+```yaml
+  _mandatory: $mode == 'auto'            # assuming 'mode' is a string parameter with mandatory=true
+  _mandatory: $enabled                   # assuming 'enabled' is a bool parameter with mandatory=true
+  _mandatory: $n_threads > 0             # assuming 'n_threads' is a int/double parameter with mandatory=true
+  _mandatory: $enabled and not(disabled) # assuming 'enabled' and 'disabled' are bool parameters with mandatory=true
+```
+
+## C++ API: Load and check YAML inputs
 
 The class `YamlServer` centralizes all the *yaml-schema-cpp* functionalities.
 In your C++ code, you should instantiate an object of this type to load and check the input YAML files.
@@ -157,118 +268,21 @@ Schema specification:
 
 ```
 
-### The `.schema` file
+# YAML template generator
 
-The specifications are contained in schema files.
-Schema files are YAML files as well, but they have the extension `.schema`.
+We provide the executable `yaml_template_generator` to generate automatically YAML input files containing the 
+fields and structure, types, documentation, etc. specified in the schema files. Call it with:
 
-The following is an example of a schema file:
-```yaml
-house:
-  owners:
-    _mandatory: true
-    _type: string[]
-    _doc: "Sequence of all owners' names"
-  kitchen:
-    oven:
-      _mandatory: true
-      _type: string
-      _doc: "Model of the oven"
-    stove:
-      number:
-        _mandatory: true
-        _type: int
-        _doc: "number of stoves"
-      stove_type:
-        _mandatory: false
-        _type: string
-        _default: "gas"
-        _options: ["natural gas", "butane", "propane", "electric", "induction", "coil", "other"]
-        _doc: "The type of the stoves"
-      power:
-        _mandatory: $stove_type == 'electric' or stove_type == 'induction' or stove_type == 'coil'
-        _type: double
-        _doc: "The power of the stoves (W)"
-  dinning_room:
-    TV:
-      _mandatory: false
-      _type: string
-      _doc: "The model of the TV, if any"
-    sofa:
-      _mandatory: true
-      _type: unsigned int
-      _doc: "sofa number of seats"
-    table:
-      _mandatory: true
-      _type: Eigen::Vector2d
-      _doc: "Table dimensions (m)"
-  bedrooms:
-    _mandatory: true
-    _type: derived[]
-    _base: BedroomClass
-    _doc: "A sequence of bedrooms" 
-  corridor:
-    has_corridor:
-      _mandatory: true
-      _type: bool
-      _doc: "If the house has corridor or not"
-    corridor_description:
-      _mandatory: $has_corridor
-      _type: string
-      _doc: "Description of the corridor"
-  address:
-    _mandatory: false
-    _type: string
-    _doc: "Address is hardcoded in this schema file"
-    _value: "Whichever street, 11, Springfield"
+```bash
+yaml_template_generator schema_name schema_folders output_file
 ```
 
-In this example, an input yaml file is specified. In the schema file, an input field can be specified or not (ex: "house", "kitchen", "stove" and "dinning_room" are not specified). There are some reserved fields to specify the input field, presented below.
+**`schema_name`**: Schema to be applied (just its name, without path or extension).
 
-#### `_type`
-A **string** specifying which type the input field should be. 
-The `_type` can be:
-- Trivial types (`bool`, `char`, `int`, `unsigned int`, `long int`, `long unsigned int`, `float`, `double`, `std::string`).
-- Eigen types (`Eigen::MatrixXd`, `Eigen::VectorXd`, `Eigen::Matrix2d`, `Eigen::Vector2d`, `Eigen::Matrix3d`, `Eigen::Vector3d`, ...)
-- "derived": The input field can be a custom type deriving from a specified base class (see `_base`).
-- Custom types (new feature comming soon)
+**`schema_folders`**: Path to the folder(s) that contains all the schema files (they are searched recursively). Provide more than one folder with '[path1 path2 ...]'.
 
-If the type string ends with `[]`, the input field is specified to be a sequence.
+**`output_file`**: (OPTIONAL) Path and name of the output file. If not provided, it will be placed in `$HOME` with a default name based on schema_name (requires `$HOME` to be defined).
 
-#### `_mandatory`
-A **bool** value or expression (see below) specifying if the input field is required or just optional.
+**NOTE 1:** Paths can be absolute (starting by '/') or relative.
 
-#### `_doc`
-A **string** with a brief documentation.
-
-#### `_value` (optional)
-Specify the value in the schema file. It means not allowing to define the field in the input file. This is useful for derived classes, to specify some parameters of its base class.
-
-#### `_default` (optional)
-In case the input field is missing (only allowed if `_mandatory` is `false`), then it is added with the `_default` value in the input yaml node.
-
-#### `_options` (optional)
-A sequence of valid values.
-
-#### `_base` (required if `_type` is "derived")
-The base class that the input field type should inherit from. This checks the input against the base class schema.
-
-### The `follow` key
-In both input and schema files, the key `follow` is interpreted as a copy-paste of the contents of another file (either `.schema` or `.yaml`).
-
-### Expressions
-We allow the use of [exprtk](http://www.partow.net/programming/exprtk/index.html) expressions in `_mandatory` field. 
-There are some rules for the expressions:
-1. It should start by a `$` symbol.
-2. All parameters involved in an expression have to be at the same level of the specified node.
-3. All parameters involved in an expression have to be mandatory at all cases (i.e. true, not an expression) or have a default value defined.
-4. The exprtk syntax has to be followed (see [exprtk readme](https://www.partow.net/programming/exprtk/code/readme.txt) for more information).
-5. The result of the expression will be casted to `bool`. If the result is a numeric value, it will be converted to `true` except for 0 (`false`).
-
-Some examples of expresssions:
-```yaml
-  _mandatory: $mode == 'auto'            # assuming 'mode' is a string parameter with mandatory=true
-  _mandatory: $enabled                   # assuming 'enabled' is a bool parameter with mandatory=true
-  _mandatory: $n_threads > 0             # assuming 'n_threads' is a int/double parameter with mandatory=true
-  _mandatory: $enabled and not(disabled) # assuming 'enabled' and 'disabled' are bool parameters with mandatory=true
-```
+**NOTE 2:** `output_file` will be modified to avoid overriding existing files.

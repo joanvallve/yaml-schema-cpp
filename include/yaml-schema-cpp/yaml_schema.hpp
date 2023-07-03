@@ -31,6 +31,7 @@
 namespace yaml_schema_cpp
 {
 static std::string            SCHEMA_EXTENSION = ".schema";
+static std::string            YAML_EXTENSION   = ".yaml";
 static std::string            SCHEMA_PREFIX    = "_";
 static std::string            TYPE             = SCHEMA_PREFIX + "type";
 static std::string            MANDATORY        = SCHEMA_PREFIX + "mandatory";

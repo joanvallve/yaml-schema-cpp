@@ -1,0 +1,11 @@
+some_param:
+  _mandatory: true
+  _type: Vector3d
+  _options: [[1, 2, 3], [2, 3, 4], [3, 4, 5]]
+  _doc: a vector parameter
+
+sensors:
+  _mandatory: true
+  _type: derived[]
+  _base: type_derived_base
+  _doc: "some doc"
