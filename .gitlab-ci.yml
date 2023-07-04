@@ -25,8 +25,9 @@ stages:
   # update apt
   - apt-get update
   - apt install -y lsb-release
+  - apt install -y clang-format-12
 
-.license_header_template: &license_header_definition
+.license_and_format_template: &license_and_format_definition
   - cd $CI_PROJECT_DIR
 
   # configure git
@@ -53,6 +54,9 @@ stages:
   -   ./license_manager.sh --update --path=${CI_PROJECT_DIR} --license-header=license_header_${CURRENT_YEAR}.txt
   - fi
 
+  # apply clang format
+  - find . -iname *.h -o -iname *.cpp -o -iname *.hpp | xargs clang-format-12 --style=file -i
+
   # push changes (if any)
   - if git commit -a -m "[skip ci] license headers added or modified" ; then
   -   git remote set-url --push origin "ssh://git@gitlab.iri.upc.edu:2202/${CI_PROJECT_PATH}.git"
@@ -60,11 +64,6 @@ stages:
   - else
   -   echo "No changes, nothing to commit!"
   - fi
-
-.clang_validation_template: &clang_validation_definition
-  - apt install -y clang-format-12
-  - cd $CI_PROJECT_DIR
-  - find . -iname *.h -o -iname *.cpp -o -iname *.hpp | xargs clang-format-12 --style=file -i --dry-run --Werror
 
 .yaml_cpp_install_template: &yaml_cpp_install_definition
   - if [ $(lsb_release -rs) == "18.04" ]; then
@@ -97,23 +96,14 @@ stages:
   - ctest -j2 --output-on-failure
   - make install
 
-############ LICENSE HEADERS ############
+############ LICENSE HEADERS AND FORMAT ############
 license_headers:
   stage: license
   image: labrobotica/wolf_deps:20.04
   before_script:
     - *preliminaries_definition
   script:
-    - *license_header_definition
-
-############ CLANG FORMAT CHECK ############
-clang_format:
-  stage: format
-  image: labrobotica/wolf_deps:20.04
-  before_script:
-    - *preliminaries_definition
-  script:
-    - *clang_validation_definition
+    - *license_and_format_definition
 
 ############ UBUNTU 18.04 TESTS ############
 build_and_test_none:bionic:
