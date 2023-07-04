@@ -1,6 +1,5 @@
 stages:
-  - license
-  - format
+  - license_and_format
   - build_and_test
 
 ############ YAML ANCHORS ############
@@ -98,7 +97,7 @@ stages:
 
 ############ LICENSE HEADERS AND FORMAT ############
 license_headers:
-  stage: license
+  stage: license_and_format
   image: labrobotica/wolf_deps:20.04
   before_script:
     - *preliminaries_definition
