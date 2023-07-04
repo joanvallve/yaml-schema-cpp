@@ -62,7 +62,6 @@ int main(int argc, char* argv[])
     if (argc == 3 or argc == 4)
     {
         filesystem::path current_path(filesystem::current_path());
-        std::cout << "Current path is : " << current_path << std::endl;
 
         // Schema name
         std::string schema(argv[1]);

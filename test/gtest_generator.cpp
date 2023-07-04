@@ -32,6 +32,15 @@ TEST(generator, plain_yaml)
     std::cout << "GENERATED YAML:\n" << generateYaml("test1.schema", {ROOT_DIR}) << std::endl;
 }
 
+TEST(generator, expression)
+{
+    std::cout << "SCHEMA:\n"
+              << YAML::LoadFile(ROOT_DIR + "/test/schema/folder_schema/expression.schema") << std::endl
+              << std::endl;
+
+    std::cout << "GENERATED YAML:\n" << generateYaml("expression.schema", {ROOT_DIR}) << std::endl;
+}
+
 TEST(generator, follow)
 {
     std::cout << "SCHEMA:\n"
@@ -77,6 +86,7 @@ TEST(generator, file_template)
     generateTemplate(temporary_folder + "/test1_template.yaml", "test1.schema", {ROOT_DIR});
     generateTemplate(temporary_folder + "/test1_template.yaml", "test1.schema", {ROOT_DIR});  // SHOULD RAISE WARNING
     generateTemplate(temporary_folder + "/test1_template.yaml", "test1.schema", {ROOT_DIR});  // SHOULD RAISE WARNING
+    generateTemplate(temporary_folder + "/expression.yaml", "expression.schema", {ROOT_DIR});
     generateTemplate(temporary_folder + "/single_mandatory_template.yaml", "single_mandatory.schema", {ROOT_DIR});
     generateTemplate(temporary_folder + "/type_derived_final_template.yaml", "type_derived_final.schema", {ROOT_DIR});
     generateTemplate(temporary_folder + "/sequence_derived_template.yaml", "sequence_derived.schema", {ROOT_DIR});

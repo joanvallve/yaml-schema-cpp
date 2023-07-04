@@ -26,6 +26,7 @@
 #include "yaml-schema-cpp/yaml_schema.hpp"
 #include "yaml-schema-cpp/type_check.hpp"
 #include "yaml-schema-cpp/yaml_utils.hpp"
+#include "yaml-schema-cpp/expression.hpp"
 
 namespace yaml_schema_cpp
 {
@@ -50,7 +51,8 @@ std::string generateTemplate(std::string                     filepath,
 
     // Check that directory of the file exists
     filesystem::path fp = filepath;
-    if (not filesystem::exists(fp.parent_path())) throw std::runtime_error("generateTemplateYaml: wrong file path");
+    if (not filesystem::exists(fp.parent_path()))
+        throw std::runtime_error("generateTemplateYaml: wrong file path: " + filepath);
 
     // WARN if file already exists?
     auto new_fp = fp;
@@ -115,12 +117,20 @@ YAML::Node generateYaml(std::string name_schema, const std::vector<std::string>&
     }
     catch (const std::exception& e)
     {
-        throw std::runtime_error("In loadSchema: Couldn't load the schema yaml file " + path_schema.string() +
+        throw std::runtime_error("generateYaml: Couldn't load the schema yaml file " + path_schema.string() +
                                  ". Error: " + e.what());
     }
 
     // Flatten yaml nodes (containing "follow") to a single YAML node containing all the information
-    flattenNode(node_schema, folders_schema, true, override);
+    try
+    {
+        flattenNode(node_schema, folders_schema, true, override);
+    }
+    catch (const std::exception& e)
+    {
+        throw std::runtime_error("generateYaml: Couldn't flatten the schema yaml file " + path_schema.string() +
+                                 ". Error: " + e.what());
+    }
 
     // Check schema
     try
@@ -163,6 +173,10 @@ void schemaToYaml(const YAML::Node&               node_schema,
             {
                 std::string value_str;
 
+                // Mandatory string
+                std::string mandatory_str = isExpression(node_schema[MANDATORY])
+                                                ? "MANDATORY if " + node_schema[MANDATORY].as<std::string>() + " - "
+                                                : (node_schema[MANDATORY].as<bool>() ? "" : "OPTIONAL - ");
                 // Default
                 if (node_schema[DEFAULT])
                 {
@@ -187,15 +201,16 @@ void schemaToYaml(const YAML::Node&               node_schema,
                 if (isStringType(node_schema[TYPE].as<std::string>())) value_str = "'" + value_str + "'";
 
                 // FILL NODE
-                node_output = value_str + "  # " + (node_schema[MANDATORY].as<bool>() ? "" : "OPTIONAL - ") + "DOC " +
-                              node_schema[DOC].as<std::string>() + " - TYPE " + node_schema[TYPE].as<std::string>() +
+                node_output = value_str + "  # " + mandatory_str + "DOC " + node_schema[DOC].as<std::string>() +
+                              " - TYPE " + node_schema[TYPE].as<std::string>() +
                               (node_schema[OPTIONS] ? " - OPTIONS " + sequenceToString(node_schema[OPTIONS]) : "");
             }
             // Derived type
             else if (node_schema[TYPE].as<std::string>() == "derived")
             {
                 node_output["type"] =
-                    "'DerivedType'  # DOC String corresponding to the name of the object class (and its schema file).";
+                    "'DerivedType'  # DOC String corresponding to the name of the object class (and its schema "
+                    "file).";
                 node_output["follow"] = "some/path/to/derived/type/parameters.yaml";
             }
             // custom non trivial-type
