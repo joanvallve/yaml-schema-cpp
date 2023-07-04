@@ -24,9 +24,9 @@ stages:
   # update apt
   - apt-get update
   - apt install -y lsb-release
-  - apt install -y clang-format-12
 
 .license_and_format_template: &license_and_format_definition
+  - apt install -y clang-format-12
   - cd $CI_PROJECT_DIR
 
   # configure git
