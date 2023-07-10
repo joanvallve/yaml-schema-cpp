@@ -25,7 +25,7 @@ namespace yaml_schema_cpp
 {
 namespace filesystem = boost::filesystem;
 
-YamlServer::YamlServer(bool override) : folders_schema_(), override_(override) {}
+YamlServer::YamlServer(bool override) : folders_schema_(), path_input_ (), override_(override) {}
 
 YamlServer::YamlServer(const std::vector<std::string>& folders_schema, bool override)
     : folders_schema_(folders_schema), override_(override)
