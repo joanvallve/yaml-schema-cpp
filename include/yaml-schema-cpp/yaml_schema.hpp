@@ -45,7 +45,10 @@ static std::list<std::string> REQUIRED_KEYS{TYPE, MANDATORY, DOC};
 
 namespace filesystem = boost::filesystem;
 
-YAML::Node loadSchema(std::string schema_file, const std::vector<std::string>& folders_schema, bool override = true);
+YAML::Node loadSchema(std::string                     schema_file,
+                      const std::vector<std::string>& folders_schema,
+                      std::stringstream&              log,
+                      bool                            override = true);
 void       checkSchema(const YAML::Node& node_schema, const std::string& field, const YAML::Node& node_schema_parent);
 
 bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool override = true);

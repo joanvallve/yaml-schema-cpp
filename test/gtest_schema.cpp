@@ -25,14 +25,29 @@ using namespace yaml_schema_cpp;
 
 TEST(schema, plain_yaml)
 {
-    loadSchema("test1.schema",
-               {ROOT_DIR + "/test/schema/folder_schema", ROOT_DIR + "/test/schema/other_folder_schema"});
+    std::stringstream log;
+    auto              node_schema = loadSchema(
+        "test1.schema", {ROOT_DIR + "/test/schema/folder_schema", ROOT_DIR + "/test/schema/other_folder_schema"}, log);
+    ASSERT_TRUE(node_schema.IsDefined());
+    std::cout << log.str() << std::endl;
 }
 
 TEST(schema, follow)
 {
-    loadSchema("test2.schema",
-               {ROOT_DIR + "/test/schema/folder_schema", ROOT_DIR + "/test/schema/other_folder_schema"});
+    std::stringstream log;
+    auto              node_schema = loadSchema(
+        "test2.schema", {ROOT_DIR + "/test/schema/folder_schema", ROOT_DIR + "/test/schema/other_folder_schema"}, log);
+    ASSERT_TRUE(node_schema.IsDefined());
+    std::cout << log.str() << std::endl;
+}
+
+TEST(schema, empty_yaml)
+{
+    std::stringstream log;
+    auto              node_schema = loadSchema(
+        "empty.schema", {ROOT_DIR + "/test/schema/folder_schema", ROOT_DIR + "/test/schema/other_folder_schema"}, log);
+    ASSERT_TRUE(node_schema.IsDefined());
+    std::cout << log.str() << std::endl;
 }
 
 TEST(schema, wrong)
@@ -55,8 +70,11 @@ TEST(schema, wrong)
 
     for (auto w_schema : wrong_schemas)
     {
+        std::stringstream log;
         std::cout << "Checking " << w_schema << ".schema..." << std::endl;
-        ASSERT_THROW(loadSchema(w_schema + ".schema", {ROOT_DIR + "/test/wrong_schema"}), std::runtime_error);
+        auto node_schema = loadSchema(w_schema + ".schema", {ROOT_DIR + "/test/wrong_schema"}, log);
+        ASSERT_FALSE(node_schema.IsDefined());
+        std::cout << log.str() << std::endl;
     }
 }
 
@@ -66,8 +84,11 @@ TEST(schema, override)
 
     for (auto w_schema : wrong_schemas)
     {
+        std::stringstream log;
         std::cout << "Checking " << w_schema << ".schema..." << std::endl;
-        loadSchema(w_schema + ".schema", {ROOT_DIR + "/test/schema"});
+        auto node_schema = loadSchema(w_schema + ".schema", {ROOT_DIR + "/test/schema"}, log);
+        ASSERT_TRUE(node_schema.IsDefined());
+        std::cout << log.str() << std::endl;
     }
 }
 
@@ -77,8 +98,11 @@ TEST(schema, dont_override)
 
     for (auto w_schema : wrong_schemas)
     {
+        std::stringstream log;
         std::cout << "Checking " << w_schema << ".schema..." << std::endl;
-        ASSERT_THROW(loadSchema(w_schema + ".schema", {ROOT_DIR + "/test/schema"}, false), std::runtime_error);
+        auto node_schema = loadSchema(w_schema + ".schema", {ROOT_DIR + "/test/schema"}, log);
+        ASSERT_TRUE(node_schema.IsDefined());
+        std::cout << log.str() << std::endl;
     }
 }
 

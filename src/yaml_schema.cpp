@@ -24,7 +24,10 @@ namespace yaml_schema_cpp
 {
 namespace filesystem = boost::filesystem;
 
-YAML::Node loadSchema(std::string name_schema, const std::vector<std::string>& folders_schema, bool override)
+YAML::Node loadSchema(std::string                     name_schema,
+                      const std::vector<std::string>& folders_schema,
+                      std::stringstream&              log,
+                      bool                            override)
 {
     // Check extension
     if (filesystem::extension(name_schema).empty())
@@ -33,12 +36,16 @@ YAML::Node loadSchema(std::string name_schema, const std::vector<std::string>& f
     }
     else if (filesystem::extension(name_schema) != SCHEMA_EXTENSION)
     {
-        throw std::runtime_error("Wrong schema file extension " + name_schema + ", it should be '" + SCHEMA_EXTENSION +
-                                 "'");
+        log << "ERROR in loadSchema(): Wrong schema file extension " + name_schema + ", it should be '" +
+                   SCHEMA_EXTENSION + "'\n";
+        return YAML::Node(YAML::NodeType::Undefined);
     }
 
     // Find schema file
     filesystem::path path_schema = findFileRecursive(name_schema, folders_schema);
+
+    // write schema file in log
+    log << "schema file found: " << path_schema.string() << std::endl;
 
     // Load schema yaml
     YAML::Node node_schema;
@@ -48,8 +55,10 @@ YAML::Node loadSchema(std::string name_schema, const std::vector<std::string>& f
     }
     catch (const std::exception& e)
     {
-        throw std::runtime_error("In loadSchema: Couldn't load the schema yaml file " + path_schema.string() +
-                                 ". Error: " + e.what());
+        log << "ERROR in loadSchema(): Couldn't load the schema yaml file " + path_schema.string() +
+                   ". Error: " + e.what()
+            << "\n";
+        return YAML::Node(YAML::NodeType::Undefined);
     }
 
     // Flatten yaml nodes (containing "follow") to a single YAML node containing all the information
@@ -62,8 +71,9 @@ YAML::Node loadSchema(std::string name_schema, const std::vector<std::string>& f
     }
     catch (const std::exception& e)
     {
-        throw std::runtime_error("In loadSchema: The schema file " + path_schema.string() +
-                                 " is not valid. Error: " + e.what());
+        log << "ERROR in loadSchema(): The schema file " + path_schema.string() + " is not valid. Error: " + e.what()
+            << "\n";
+        return YAML::Node(YAML::NodeType::Undefined);
     }
 
     return node_schema;
@@ -71,12 +81,35 @@ YAML::Node loadSchema(std::string name_schema, const std::vector<std::string>& f
 
 void checkSchema(const YAML::Node& node_schema, const std::string& node_field, const YAML::Node& node_schema_parent)
 {
-    // skip scalars
-    if (node_schema.IsScalar()) return;
+    // skip scalars and not defined (empty schemas)
+    if (node_schema.IsScalar() or node_schema.IsNull()) return;
 
     // Check that node_schema is map
     if (not node_schema.IsMap())
     {
+        std::cout << "node: " << node_schema << std::endl;
+        std::cout << "defined: " << (node_schema.IsDefined() ? "yes" : "no") << std::endl;
+        std::cout << "null: " << (node_schema.IsNull() ? "yes" : "no") << std::endl;
+        std::cout << "scalar: " << (node_schema.IsScalar() ? "yes" : "no") << std::endl;
+        std::cout << "sequence: " << (node_schema.IsSequence() ? "yes" : "no") << std::endl;
+        std::cout << "map: " << (node_schema.IsMap() ? "yes" : "no") << std::endl;
+
+        YAML::Node n;
+        std::cout << "n node: " << n << std::endl;
+        std::cout << "n defined: " << (n.IsDefined() ? "yes" : "no") << std::endl;
+        std::cout << "n null: " << (n.IsNull() ? "yes" : "no") << std::endl;
+        std::cout << "n scalar: " << (n.IsScalar() ? "yes" : "no") << std::endl;
+        std::cout << "n sequence: " << (n.IsSequence() ? "yes" : "no") << std::endl;
+        std::cout << "n map: " << (n.IsMap() ? "yes" : "no") << std::endl;
+
+        YAML::Node n2(YAML::NodeType::Undefined);
+        std::cout << "n2 node: " << n2 << std::endl;
+        std::cout << "n2 defined: " << (n2.IsDefined() ? "yes" : "no") << std::endl;
+        std::cout << "n2 null: " << (n2.IsNull() ? "yes" : "no") << std::endl;
+        std::cout << "n2 scalar: " << (n2.IsScalar() ? "yes" : "no") << std::endl;
+        std::cout << "n2 sequence: " << (n2.IsSequence() ? "yes" : "no") << std::endl;
+        std::cout << "n2 map: " << (n2.IsMap() ? "yes" : "no") << std::endl;
+
         throw std::runtime_error("YAML schema: " + node_field + " should be a map");
     }
 
@@ -315,18 +348,8 @@ bool applySchema(YAML::Node&                     node_input,
 {
     // Load and check schema
     YAML::Node node_schema(YAML::NodeType::Undefined);
-    try
-    {
-        node_schema = loadSchema(name_schema, folders, override);
-    }
-    catch (const std::exception& e)
-    {
-        writeErrorToLog(log,
-                        acc_field,
-                        node_schema,
-                        "Schema '" + name_schema + "' couldn't be correctly loaded. Error: " + e.what());
-        return false;
-    }
+    node_schema = loadSchema(name_schema, folders, log, override);
+    if (not node_schema.IsDefined()) return false;
 
     // Check node_input against node_schema
     return applySchemaRecursive(node_input, node_input, node_schema, folders, log, acc_field, override);

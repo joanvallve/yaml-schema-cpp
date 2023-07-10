@@ -39,6 +39,8 @@ TEST(schema, plain_yaml)
     ASSERT_TRUE(node["param4"]);
     ASSERT_NEAR(node["map1"]["param3"].as<double>(), 3.5, 1e-12);
     ASSERT_EQ(node["param4"].as<std::string>(), "hello");
+
+    std::cout << "log: \n" << server.getLog() << std::endl;
 }
 
 TEST(schema, follow)
@@ -57,6 +59,8 @@ TEST(schema, follow)
     ASSERT_TRUE(node["param4"]);
     ASSERT_NEAR(node["map1"]["param3"].as<double>(), 3.5, 1e-12);
     ASSERT_EQ(node["param4"].as<std::string>(), "hello");
+
+    std::cout << "log: \n" << server.getLog() << std::endl;
 }
 
 TEST(schema, wrong)
@@ -100,6 +104,8 @@ TEST(schema, optional_map)
         ASSERT_TRUE(server.applySchema("optional_map.schema"));
 
         std::cout << "after: \n" << server.getNode() << std::endl;
+
+        std::cout << "log: \n" << server.getLog() << std::endl;
     }
 }
 

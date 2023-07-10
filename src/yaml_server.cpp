@@ -73,10 +73,14 @@ void YamlServer::setYaml(const YAML::Node _node_input)
 bool YamlServer::applySchema(const std::string& name_schema)
 {
     log_.clear();
+std::string header1, header2, header3;
 
-    std::string header1 = "Log of applySchema to YAML file";
-    std::string header2 = "  yaml file: " + path_input_.string();
-    std::string header3 = "  schema: " + name_schema;
+    header1 = "LOG OUTPUT OF applySchema";
+    if (path_input_.empty())
+        header2 = "  yaml node added via setYaml";
+    else
+        header2 = "  yaml file: " + path_input_.string();
+    header3 = "  schema: " + name_schema;
 
     auto max_size = std::max({header1.size(), header2.size(), header3.size()});
 
