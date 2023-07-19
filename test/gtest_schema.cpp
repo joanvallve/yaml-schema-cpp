@@ -108,8 +108,8 @@ TEST(schema, dont_override)
 
 TEST(schema, validate_all_schemas)
 {
-    ASSERT_TRUE(validateAllSchemas({ROOT_DIR + "/test/schema"}));
-    ASSERT_FALSE(validateAllSchemas({ROOT_DIR + "/test/wrong_schema"}));
+    ASSERT_TRUE(validateAllSchemas({ROOT_DIR + "/test/schema"}, true));
+    ASSERT_FALSE(validateAllSchemas({ROOT_DIR + "/test/wrong_schema"}, true));
 }
 
 int main(int argc, char **argv)

@@ -51,7 +51,7 @@ YAML::Node loadSchema(std::string                     schema_file,
                       bool                            override = true);
 void       checkSchema(const YAML::Node& node_schema, const std::string& field, const YAML::Node& node_schema_parent);
 
-bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool override = true);
+bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool verbose, bool override = true);
 
 bool applySchema(YAML::Node&                     node_input,
                  const std::string&              name_schema,

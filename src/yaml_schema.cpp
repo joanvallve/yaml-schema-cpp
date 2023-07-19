@@ -42,7 +42,16 @@ YAML::Node loadSchema(std::string                     name_schema,
     }
 
     // Find schema file
-    filesystem::path path_schema = findFileRecursive(name_schema, folders_schema);
+    filesystem::path path_schema;
+    try
+    {
+        path_schema = findFileRecursive(name_schema, folders_schema);
+    }
+    catch (const std::exception& e)
+    {
+        log << std::string("ERROR in loadSchema(): ") + e.what() << "\n";
+        return YAML::Node(YAML::NodeType::Undefined);
+    }
 
     // write schema file in log
     log << "schema file found: " << path_schema.string() << std::endl;
@@ -279,7 +288,7 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field, c
     }
 }
 
-bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool override)
+bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool verbose, bool override)
 {
     bool all_valid = true;
 
@@ -293,6 +302,8 @@ bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool ove
                 {
                     std::string schema_file = entry.path().string();
 
+                    if (verbose) std::cout << "Validating " << schema_file << "... ";
+
                     // Load schema yaml
                     YAML::Node node_schema;
                     try
@@ -301,7 +312,9 @@ bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool ove
                     }
                     catch (const std::exception& e)
                     {
-                        std::cout << "Couldn't load schema: " + schema_file + "\nError: " + e.what() << std::endl
+                        std::cout << "ERROR!\n\tCouldn't load schema" + (verbose ? "" : ": " + schema_file) + "\n\t" +
+                                         e.what()
+                                  << std::endl
                                   << std::endl;
                         all_valid = false;
                         continue;
@@ -314,7 +327,9 @@ bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool ove
                     }
                     catch (const std::exception& e)
                     {
-                        std::cout << "Couldn't flatten schema: " + schema_file + "\nError: " + e.what() << std::endl
+                        std::cout << "ERROR!\n\tCouldn't flatten schema" + (verbose ? "" : ": " + schema_file) +
+                                         "\n\t" + e.what()
+                                  << std::endl
                                   << std::endl;
                         all_valid = false;
                         continue;
@@ -327,10 +342,15 @@ bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool ove
                     }
                     catch (const std::exception& e)
                     {
-                        std::cout << "Invalid schema: " + schema_file + "\nError: " + e.what() << std::endl
+                        std::cout << "ERROR!\n\tInvalid schema" + (verbose ? "" : ": " + schema_file) + "\n\t" +
+                                         e.what()
+                                  << std::endl
                                   << std::endl;
                         all_valid = false;
+                        continue;
                     }
+
+                    if (verbose) std::cout << "OK!\n";
                 }
             }
         }
