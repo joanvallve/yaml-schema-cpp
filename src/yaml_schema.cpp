@@ -96,29 +96,6 @@ void checkSchema(const YAML::Node& node_schema, const std::string& node_field, c
     // Check that node_schema is map
     if (not node_schema.IsMap())
     {
-        std::cout << "node: " << node_schema << std::endl;
-        std::cout << "defined: " << (node_schema.IsDefined() ? "yes" : "no") << std::endl;
-        std::cout << "null: " << (node_schema.IsNull() ? "yes" : "no") << std::endl;
-        std::cout << "scalar: " << (node_schema.IsScalar() ? "yes" : "no") << std::endl;
-        std::cout << "sequence: " << (node_schema.IsSequence() ? "yes" : "no") << std::endl;
-        std::cout << "map: " << (node_schema.IsMap() ? "yes" : "no") << std::endl;
-
-        YAML::Node n;
-        std::cout << "n node: " << n << std::endl;
-        std::cout << "n defined: " << (n.IsDefined() ? "yes" : "no") << std::endl;
-        std::cout << "n null: " << (n.IsNull() ? "yes" : "no") << std::endl;
-        std::cout << "n scalar: " << (n.IsScalar() ? "yes" : "no") << std::endl;
-        std::cout << "n sequence: " << (n.IsSequence() ? "yes" : "no") << std::endl;
-        std::cout << "n map: " << (n.IsMap() ? "yes" : "no") << std::endl;
-
-        YAML::Node n2(YAML::NodeType::Undefined);
-        std::cout << "n2 node: " << n2 << std::endl;
-        std::cout << "n2 defined: " << (n2.IsDefined() ? "yes" : "no") << std::endl;
-        std::cout << "n2 null: " << (n2.IsNull() ? "yes" : "no") << std::endl;
-        std::cout << "n2 scalar: " << (n2.IsScalar() ? "yes" : "no") << std::endl;
-        std::cout << "n2 sequence: " << (n2.IsSequence() ? "yes" : "no") << std::endl;
-        std::cout << "n2 map: " << (n2.IsMap() ? "yes" : "no") << std::endl;
-
         throw std::runtime_error("YAML schema: " + node_field + " should be a map");
     }
 
