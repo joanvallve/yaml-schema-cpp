@@ -217,5 +217,3 @@ TEST(Test, Foo)
         C_actual);
 
 }  // namespace testing
-
-#endif /* WOLF_UTILS_GTEST_H */
