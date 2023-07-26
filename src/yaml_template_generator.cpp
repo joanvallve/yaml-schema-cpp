@@ -57,6 +57,7 @@ int main(int argc, char* argv[])
         cout << "                  name based on schema_name (requires `$HOME` to be defined)." << endl << endl;
         cout << "NOTE 1: Paths can be absolute (starting by '/') or relative." << endl;
         cout << "NOTE 2: 'output_file' will be modified to avoid overriding existing files." << endl;
+        return 0;
     }
     // Call
     if (argc == 3 or argc == 4)
@@ -71,24 +72,15 @@ int main(int argc, char* argv[])
         std::vector<std::string> schema_folders;
         if (schema_folders_input.front() == '[' and schema_folders_input.back() == ']')
         {
+            // remove '[' and ']'
+            schema_folders_input.erase(0, 1);
+            schema_folders_input.pop_back();
+
             size_t pos = 0;
-            while ((pos = schema_folders_input.find(" ")) != std::string::npos)
+            while (not schema_folders_input.empty())
             {
+                pos = schema_folders_input.find(" ");
                 schema_folders.push_back(schema_folders_input.substr(0, pos));
-
-                // relative path
-                if (not schema_folders.front().front() == '/')
-                    schema_folders.front() = current_path.string() + "/" + schema_folders.front();
-
-                // HOME char '~'
-                if (schema_folders.front().front() == '~')
-                    if (getenv("HOME") == NULL)
-                    {
-                        cout << red << "ERROR: path contains '~' but environment variable HOME not defined." << reset;
-                        return 1;
-                    }
-                    else
-                        schema_folders.front() = std::string(getenv("HOME")) + schema_folders.front().substr(1);
 
                 // next folder
                 schema_folders_input.erase(0, pos);
@@ -99,6 +91,24 @@ int main(int argc, char* argv[])
         }
         else
             schema_folders.push_back(schema_folders_input);
+
+        // Correct paths to absolute
+        for (auto i = 0; i<schema_folders.size(); i++)
+        {
+            // HOME char '~'
+            if (schema_folders[i].front() == '~')
+                if (getenv("HOME") == NULL)
+                {
+                    cout << red << "ERROR: path contains '~' but environment variable HOME not defined." << reset;
+                    return 1;
+                }
+                else
+                    schema_folders[i] = std::string(getenv("HOME")) + schema_folders[i].substr(1);
+
+            // relative path
+            if (schema_folders[i].front() != '/')
+                schema_folders[i] = current_path.string() + "/" + schema_folders[i];
+        }
 
         // default output_file
         std::string output_file;
