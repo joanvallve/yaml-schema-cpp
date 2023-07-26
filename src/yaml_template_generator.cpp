@@ -93,7 +93,7 @@ int main(int argc, char* argv[])
             schema_folders.push_back(schema_folders_input);
 
         // Correct paths to absolute
-        for (auto i = 0; i<schema_folders.size(); i++)
+        for (auto i = 0; i < schema_folders.size(); i++)
         {
             // HOME char '~'
             if (schema_folders[i].front() == '~')
@@ -106,8 +106,7 @@ int main(int argc, char* argv[])
                     schema_folders[i] = std::string(getenv("HOME")) + schema_folders[i].substr(1);
 
             // relative path
-            if (schema_folders[i].front() != '/')
-                schema_folders[i] = current_path.string() + "/" + schema_folders[i];
+            if (schema_folders[i].front() != '/') schema_folders[i] = current_path.string() + "/" + schema_folders[i];
         }
 
         // default output_file
