@@ -31,7 +31,7 @@ stages:
 
   # configure git
   - if [ `git rev-parse --verify ci_processing 2>/dev/null` ]; then
-  -   git branch -delete ci_processing
+  -   git branch --delete ci_processing
   - fi
   - export CI_NEW_BRANCH=ci_processing
   - echo creating new temporary branch... $CI_NEW_BRANCH
