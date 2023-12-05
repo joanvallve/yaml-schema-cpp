@@ -15,16 +15,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * \file utils_gtest.h
- * \brief Some utils for gtest
- * \author Jeremie Deray
- *  Created on: 26/09/2016
- *  Eigen macros extension by: Joan Sola on 26/04/2017
- */
-
-#ifndef WOLF_UTILS_GTEST_H
-#define WOLF_UTILS_GTEST_H
+#pragma once
 
 #include <gtest/gtest.h>
 #include <Eigen/Dense>
@@ -226,5 +217,3 @@ TEST(Test, Foo)
         C_actual);
 
 }  // namespace testing
-
-#endif /* WOLF_UTILS_GTEST_H */
