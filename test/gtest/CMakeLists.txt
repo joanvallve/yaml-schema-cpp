@@ -8,8 +8,8 @@ FetchContent_Declare(
 SET(INSTALL_GTEST OFF) # Disable installation of googletest
 FetchContent_MakeAvailable(googletest)
 
-function(${PROJECT_NAME}_add_gtest target)
+function(add_gtest target)
   add_executable(${target} ${ARGN})
-  target_link_libraries(${target} gtest_main ${PLUGIN_NAME})
+  target_link_libraries(${target} PUBLIC gtest_main ${PLUGIN_NAME})
   add_test(NAME ${target} COMMAND ${target})
 endfunction()
