@@ -10,6 +10,6 @@ FetchContent_MakeAvailable(googletest)
 
 function(add_gtest target)
   add_executable(${target} ${ARGN})
-  target_link_libraries(${target} PUBLIC gtest_main ${PLUGIN_NAME})
+  target_link_libraries(${target} PUBLIC gtest_main ${PROJECT_NAME})
   add_test(NAME ${target} COMMAND ${target})
 endfunction()
