@@ -1,9 +1,0 @@
-name:
-  _mandatory: True
-  type: string
-type:
-  _mandatory: True
-  type: string
-weight:
-  _mandatory: True
-  type: double

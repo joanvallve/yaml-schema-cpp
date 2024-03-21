@@ -11,10 +11,6 @@ IF(NOT BUILD_TESTS)
     OPTION(BUILD_TESTS "Build Unit tests" ON)
 ENDIF(NOT BUILD_TESTS)
 
-IF(NOT BUILD_EXAMPLES)
-    OPTION(BUILD_EXAMPLES "Build examples" ON)
-ENDIF(NOT BUILD_EXAMPLES)
-
 # ============ config.h ============
 # Define the directory where will be the configured config.h
 SET(YAML_SCHEMA_CONFIG_DIR ${PROJECT_BINARY_DIR}/conf/${PROJECT_NAME}/internal)
@@ -58,33 +54,6 @@ target_include_directories(
 target_link_libraries(${PROJECT_NAME} PUBLIC yaml-cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 target_link_libraries(${PROJECT_NAME} PUBLIC Boost::filesystem Boost::system)
-
-# ------ EXAMPLE LIBRARY ------
-IF(BUILD_EXAMPLES)
-    list(APPEND LIB_EXAMPLE_SRCS examples/src/costs.cpp)
-    list(APPEND LIB_EXAMPLE_SRCS examples/src/stage.cpp)
-
-    add_library(${PROJECT_NAME}_example SHARED ${LIB_EXAMPLE_SRCS})
-
-    target_include_directories(${PROJECT_NAME}_example PUBLIC examples/include)
-
-    target_link_libraries(${PROJECT_NAME}_example PUBLIC ${PROJECT_NAME})
-    target_link_libraries(${PROJECT_NAME}_example PUBLIC Eigen3::Eigen)
-    target_link_libraries(${PROJECT_NAME}_example PUBLIC Boost::filesystem  Boost::system)
-
-    # ------ EXECUTABLES ------
-    set(COST_EX_NAME cost-example)
-    add_executable(${COST_EX_NAME} examples/cost-example.cpp)
-
-    target_link_libraries(${COST_EX_NAME} PUBLIC ${PROJECT_NAME})
-    target_link_libraries(${COST_EX_NAME} PUBLIC ${PROJECT_NAME}_example)
-
-    set(STAGE_EX_NAME stage-example)
-    add_executable(${STAGE_EX_NAME} examples/stage-example.cpp)
-
-    target_link_libraries(${STAGE_EX_NAME} PUBLIC ${PROJECT_NAME})
-    target_link_libraries(${STAGE_EX_NAME} PUBLIC ${PROJECT_NAME}_example)
-ENDIF(BUILD_EXAMPLES)
 
 # ------ TESTS ------
 IF(BUILD_TESTS)

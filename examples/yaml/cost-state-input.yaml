@@ -1,6 +1,0 @@
-name: "reg_state"
-type: state
-weight: 1e-5
-reference: [1, 1e-2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-activation: "ActivationModelWeightedQuad"
-weights: [1, 1e-2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
