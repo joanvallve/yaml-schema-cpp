@@ -101,13 +101,13 @@ void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_sche
                 // Case input yaml
                 else
                 {
-                    addNodeYaml(node_aux, nc.first.as<std::string>(), nc.second, override);
+                    addNodeYaml(
+                        node_aux, nc.first.as<std::string>(), nc.second, override, path_follow.parent_path().string());
                 }
             }
         }
         else
         {
-            // Recursively flatten the "follow" file
             flattenNode(n.second, folders, is_schema, override);
 
             // Case schema
@@ -118,7 +118,7 @@ void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_sche
             // Case input yaml
             else
             {
-                addNodeYaml(node_aux, n.first.as<std::string>(), n.second, override);
+                addNodeYaml(node_aux, n.first.as<std::string>(), n.second, override, folders[0]);
             }
         }
     }
@@ -126,7 +126,11 @@ void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_sche
     node = node_aux;
 }
 
-void addNodeYaml(YAML::Node& node, const std::string& key, const YAML::Node& value, bool override)
+void addNodeYaml(YAML::Node&        node,
+                 const std::string& key,
+                 const YAML::Node&  value,
+                 bool               override,
+                 std::string        parent_path)
 {
     if (node[key])
     {
@@ -153,7 +157,11 @@ void addNodeYaml(YAML::Node& node, const std::string& key, const YAML::Node& val
                 for (auto value_map_node : value)
                 {
                     YAML::Node node_key = node[key];
-                    addNodeYaml(node_key, value_map_node.first.as<std::string>(), value_map_node.second, override);
+                    addNodeYaml(node_key,
+                                value_map_node.first.as<std::string>(),
+                                value_map_node.second,
+                                override,
+                                parent_path);
                 }
                 break;
             }
@@ -165,6 +173,18 @@ void addNodeYaml(YAML::Node& node, const std::string& key, const YAML::Node& val
     else
     {
         node[key] = value;
+    }
+
+    // relative path input case
+    if (node[key].Type() == YAML::NodeType::Scalar)
+    {
+        std::string value_str = node[key].as<std::string>();
+        if ((value_str.size() > 1 and value_str.substr(0, 2) == "./") or
+            (value_str.size() > 2 and value_str.substr(0, 3) == "../"))
+        {
+            filesystem::path path_value = filesystem::path(parent_path) / filesystem::path(value.as<std::string>());
+            node[key]                   = path_value.string();
+        }
     }
 }
 

@@ -268,6 +268,21 @@ Schema specification:
 
 ```
 
+## The `.yaml` file
+
+The `.yaml` file is the user input file that will be checked against the specifications defined in `.schema` file(s).
+It should be a regular YAML file.
+The following features are included in the library:
+
+### `follow` 
+Analogoulsy to schemas, the user can copy the content of a different YAML file into another one using `follow` key and providing the relative or absolute path of the included file. `follow` can be used recursively.
+
+### Relative paths
+This library handles relative paths parameters. In case a string value starts by `./` or `../`, it is interpreted as relative path and it is properly concatenated to its absolute location. This is useful in case of using `follow` to a YAML containing a relative path.
+
+### Tree structure
+This library is intended to be used to validate a given YAML file with parameters. Then, loops are not suported in the input YAML file. It is assumed to have tree structure. Note that `follow` copies the content of the other file, so multiple `follow` instantes to the same file is supported.
+
 # YAML template generator
 
 We provide the executable `yaml_template_generator` to generate automatically YAML input files containing the 
