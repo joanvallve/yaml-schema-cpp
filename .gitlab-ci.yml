@@ -59,7 +59,7 @@ stages:
   - find . -iname *.h -o -iname *.cpp -o -iname *.hpp | xargs clang-format-12 --style=file -i
 
   # push changes (if any)
-  - if git commit -a -m "[skip ci] license headers added or modified" ; then
+  - if git commit -a -m "[skip ci] clang format" ; then
   -   git remote set-url --push origin "ssh://git@gitlab.iri.upc.edu:2202/${CI_PROJECT_PATH}.git"
   -   git push origin $CI_NEW_BRANCH:${CI_COMMIT_REF_NAME}
   - else
