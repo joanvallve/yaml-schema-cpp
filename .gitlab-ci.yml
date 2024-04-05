@@ -1,5 +1,5 @@
 stages:
-  - license_and_format
+  - format
   - build_and_test
 
 ############ YAML ANCHORS ############
@@ -25,7 +25,7 @@ stages:
   - apt-get update
   - apt install -y lsb-release
 
-.license_and_format_template: &license_and_format_definition
+.format_template: &format_definition
   - apt install -y clang-format-12
   - cd $CI_PROJECT_DIR
 
@@ -38,22 +38,6 @@ stages:
   - git config --global user.email "${CI_EMAIL}"
   - git config --global user.name "${CI_USERNAME}"
   - git checkout -b $CI_NEW_BRANCH # temporary branch
-
-  # license headers
-  - export CURRENT_YEAR=$( date +'%Y' )
-  - echo "current year:" ${CURRENT_YEAR}
-  - if [ -f license_header_${CURRENT_YEAR}.txt ]; then
-      # add license headers to new files
-  -   echo "File license_header_${CURRENT_YEAR}.txt already exists. License headers are assumed to be updated. Adding headers to new files..."
-  -   ./license_manager.sh --add --path=${CI_PROJECT_DIR} --license-header=license_header_${CURRENT_YEAR}.txt
-  - else
-      # update license headers of all files
-  -   export PREV_YEAR=$(( CURRENT_YEAR-1 ))
-  -   echo "Creating new file license_header_${CURRENT_YEAR}.txt..."
-  -   git mv license_header_${PREV_YEAR}.txt license_header_${CURRENT_YEAR}.txt
-  -   sed -i "s/${PREV_YEAR}/${PREV_YEAR},${CURRENT_YEAR}/g" license_header_${CURRENT_YEAR}.txt
-  -   ./license_manager.sh --update --path=${CI_PROJECT_DIR} --license-header=license_header_${CURRENT_YEAR}.txt
-  - fi
 
   # apply clang format
   - find . -iname *.h -o -iname *.cpp -o -iname *.hpp | xargs clang-format-12 --style=file -i
@@ -85,7 +69,7 @@ stages:
   -   make install
   -   ldconfig
   - else
-  -   echo "Ubuntu 20.04. Already installed yaml-cpp via apt."
+  -   echo "Ubuntu > 18.04. Already installed yaml-cpp via apt."
   - fi
 
 .build_and_test_template: &build_and_test_definition
@@ -98,13 +82,13 @@ stages:
   - make install
 
 ############ LICENSE HEADERS AND FORMAT ############
-license_headers:
-  stage: license_and_format
+clang_format:
+  stage: format
   image: labrobotica/wolf_deps:20.04
   before_script:
     - *preliminaries_definition
   script:
-    - *license_and_format_definition
+    - *format_definition
 
 ############ UBUNTU 18.04 TESTS ############
 build_and_test_none:bionic:
@@ -120,6 +104,16 @@ build_and_test_none:bionic:
 build_and_test_none:focal:
   stage: build_and_test
   image: labrobotica/wolf_deps:20.04
+  before_script:
+    - *preliminaries_definition
+    - *yaml_cpp_install_definition
+  script:
+    - *build_and_test_definition
+
+############ UBUNTU 22.04 TESTS ############
+build_and_test_none:jammy:
+  stage: build_and_test
+  image: labrobotica/wolf_deps:22.04
   before_script:
     - *preliminaries_definition
     - *yaml_cpp_install_definition
