@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        container: [labrobotica/wolf_deps:18.04, labrobotica/wolf_deps:20.04, labrobotica/wolf_deps:22.04]
+        container: ["labrobotica/wolf_deps:18.04", "labrobotica/wolf_deps:20.04", "labrobotica/wolf_deps:22.04"]
         build_type: [Debug, Release]
 
     steps:
