@@ -15,8 +15,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@main
-    - name: clone and install yaml-cpp
-      run: sudo apt install libeigen3-dev
+    - name: dependencies
+      run: sudo apt install libeigen3-dev libboost-all-dev -y
     - name: clone and install yaml-cpp
       run: |
         git clone https://github.com/jbeder/yaml-cpp.git
