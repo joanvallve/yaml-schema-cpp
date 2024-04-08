@@ -27,10 +27,8 @@ jobs:
     steps:
     
     - name: dependencies
-      uses: awalsh128/cache-apt-pkgs-action@latest
-      with:
-        packages: googletest libeigen3-dev libboost-filesystem-dev
-        version: 1.0
+      run: |
+        sudo apt install libboost-filesystem-dev libeigen3-dev -y
         
     - name: install yaml-cpp
       run: |
