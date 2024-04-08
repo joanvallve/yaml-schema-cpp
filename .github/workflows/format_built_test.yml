@@ -1,7 +1,18 @@
 name: CI
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+  
+permissions: read-all
 
+defaults:
+  run:
+    shell: bash
+    
 jobs:
   build_and_test:
     runs-on: ${{ matrix.os }}
@@ -14,10 +25,14 @@ jobs:
         cxx_standard: [11, 17, 20]
 
     steps:
-    - uses: actions/checkout@main
+    
     - name: dependencies
-      run: sudo apt install libeigen3-dev libboost-all-dev -y
-    - name: clone and install yaml-cpp
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: googletest libeigen3-dev libboost-all-dev
+        version: 1.0
+        
+    - name: install yaml-cpp
       run: |
         git clone https://github.com/jbeder/yaml-cpp.git
         mkdir -pv yaml-cpp/build
@@ -25,10 +40,43 @@ jobs:
         cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ..
         make -j2
         sudo make install
-    - run: |
-        mkdir -pv build
-        cd build
-        cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ..
-        make -j2
-        ctest -j2
+        
+    - uses: actions/checkout@v4
+    
+    - name: Configure
+        run: |
+          cmake \
+            ${{ env.CMAKE_GENERATOR }} \
+            -S "${{ github.workspace }}" \
+            -B build \
+            -D CMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
+            -D CMAKE_INSTALL_PREFIX="${{ env.CMAKE_INSTALL_PREFIX }}" \
+            -D CMAKE_BUILD_TYPE=${{ env.CMAKE_BUILD_TYPE }} \
+            -D CMAKE_CXX_FLAGS_DEBUG="${{ env.CMAKE_CXX_FLAGS_DEBUG }}" \
+            -D YAML_BUILD_SHARED_LIBS=${{ env.YAML_BUILD_SHARED_LIBS }} \
+            -D YAML_USE_SYSTEM_GTEST=${{ env.YAML_USE_SYSTEM_GTEST }} \
+            -D YAML_CPP_BUILD_TESTS=ON
 
+    - name: Build
+      run: |
+        cmake \
+          --build build \
+          --config ${{ env.CMAKE_BUILD_TYPE }} \
+          --verbose \
+          --parallel
+
+    - name: Run Tests
+      shell: bash
+      run: |
+        ctest \
+          --test-dir build \
+          --build-config ${{ env.CMAKE_BUILD_TYPE }} \
+          --output-on-failure \
+          --verbose
+          
+    # - run: |
+    #     mkdir -pv build
+    #     cd build
+    #     cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ..
+    #     make -j2
+    #     ctest -j2
