@@ -29,10 +29,10 @@ It is tested with Ubuntu 18.04 and 20.04.
 
 ## Dependencies
 
-**1. Boost**
+**1. Boost::Filesystem**
 
 ```bash
-sudo apt-get install libboost-all-dev
+sudo apt-get install libboost-filesystem-dev
 ```
 
 **2. Eigen 3**
@@ -41,9 +41,9 @@ sudo apt-get install libboost-all-dev
 sudo apt install libeigen3-dev
 ```
 
-**3. yaml-cpp 0.6.2**
+**3. yaml-cpp (minimum required 0.6.2)**
 
-In ubuntu 20.04, it is the version available via apt: 
+In ubuntu from 20.04, it is the version available via apt: 
 
 ```bash
 sudo apt install libyaml-cpp-dev
@@ -141,8 +141,8 @@ A **string** specifying which type the input field should be.
 The `_type` can be:
 - Trivial types (`bool`, `char`, `int`, `unsigned int`, `long int`, `long unsigned int`, `float`, `double`, `std::string`).
 - Eigen types (`Eigen::MatrixXd`, `Eigen::VectorXd`, `Eigen::Matrix2d`, `Eigen::Vector2d`, `Eigen::Matrix3d`, `Eigen::Vector3d`, ...)
+- Custom types: The input field can be a custom type defined in the corresponding schema file.
 - "derived": The input field can be a custom type deriving from a specified base class (see `_base`).
-- Custom types (new feature comming soon)
 
 If the type string ends with `[]`, the input field is specified to be a sequence.
 
@@ -152,14 +152,14 @@ A **bool** value or expression (see below) specifying if the input field is requ
 ### `_doc`
 A **string** with a brief documentation.
 
-### `_value` (optional)
-Specify the value in the schema file. It means not allowing to define the field in the input file. This is useful for derived classes, to specify some parameters of its base class.
-
 ### `_default` (optional)
-In case the input field is missing (only allowed if `_mandatory` is `false`), then it is added with the `_default` value in the input yaml node.
+In case the input field is missing (only allowed if `_mandatory` is `false`), then the field is added with the `_default` value in the input yaml node.
+
+### `_value` (optional)
+Specify the value in the schema file. It means not allowing the field to be defined in the input file. This is useful for derived classes, to specify some parameters of its base class.
 
 ### `_options` (optional)
-A sequence of valid values.
+A sequence of accepted values.
 
 ### `_base` (required if `_type` is "derived")
 The base class that the input field type should inherit from. This checks the input against the base class schema.
@@ -275,10 +275,12 @@ It should be a regular YAML file.
 The following features are included in the library:
 
 ### `follow` 
-Analogoulsy to schemas, the user can copy the content of a different YAML file into another one using `follow` key and providing the relative or absolute path of the included file. `follow` can be used recursively.
+Analogoulsy to schemas, the user can specify that some part of a YAML files is defined in a different YAML file. 
+Use the key `follow` to provide the relative or absolute path of the file to be copy-pasted. Note: `follow` can be used recursively.
 
 ### Relative paths
-This library handles relative paths parameters. In case a string value starts by `./` or `../`, it is interpreted as relative path and it is properly concatenated to its absolute location. This is useful in case of using `follow` to a YAML containing a relative path.
+This library handles relative paths parameters. In case a string value starts by `./` or `../`, it is interpreted as relative path and it is properly concatenated to its absolute location. 
+This is useful in case of using `follow` to a YAML in a different folder that contains a path parameter.
 
 ### Tree structure
 This library is intended to be used to validate a given YAML file with parameters. Then, loops are not suported in the input YAML file. It is assumed to have tree structure. Note that `follow` copies the content of the other file, so multiple `follow` instantes to the same file is supported.
