@@ -4,20 +4,29 @@ on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build_and_test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     container: ${{ matrix.container }}
     strategy:
       fail-fast: false
       matrix:
-        container: ["labrobotica/wolf_deps:18.04", "labrobotica/wolf_deps:20.04", "labrobotica/wolf_deps:22.04"]
+        os: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04]
         build_type: [Debug, Release]
+        cxx_standard: [11, 17, 20]
 
     steps:
     - uses: actions/checkout@main
+    - name: clone and install yaml-cpp
+      run: |
+        git clone https://github.com/jbeder/yaml-cpp.git
+        mkdir -pv yaml-cpp/build
+        cd yaml-cpp/build
+        cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ..
+        make -j2
+        make install
     - run: |
-        mkdir -pv build_${{matrix.build_type}}
-        cd build_${{matrix.build_type}}
-        cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} ..
+        mkdir -pv build
+        cd build
+        cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ..
         make -j2
         ctest -j2
 
