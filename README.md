@@ -1,3 +1,5 @@
+# YAML Schema CPP library
+
 The *yaml-schema-cpp* is a C++ library for specification and validation of YAML files.
 This is useful for C++ applications where the configuration is done via YAML files.
 
