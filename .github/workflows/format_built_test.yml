@@ -25,8 +25,10 @@ jobs:
     - uses: actions/checkout@v3
     - run: pwd
     - run: ls
-    - run: mkdir build_${{env.BUILD_TYPE}}
+    - run: mkdir -pv build_${{env.BUILD_TYPE}}
     - run: cd build_${{env.BUILD_TYPE}}
+    - run: pwd
+    - run: ls ..
     - name: Configure CMake
       run: cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ..
     - name: Build
