@@ -1,32 +1,23 @@
-# This starter workflow is for a CMake project running on multiple platforms. There is a different starter workflow if you just want a single platform.
-# See: https://github.com/actions/starter-workflows/blob/main/ci/cmake-single-platform.yml
 name: CI
 
-on:
-  push:
-    branches: [ $default-branch ]
-  pull_request:
-    branches: [ $default-branch ]
-  workflow_dispatch:
-
-env:
-  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Release
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build_and_test:
-    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
-    # You can convert this to a matrix build if you need cross-platform coverage.
-    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ubuntu-latest
-    container: labrobotica/wolf_deps:20.04
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix:
+        container: [labrobotica/wolf_deps:18.04, labrobotica/wolf_deps:20.04, labrobotica/wolf_deps:22.04]
+        build_type: [Debug, Release]
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@main
     - run: |
-        mkdir -pv build_${{env.BUILD_TYPE}}
-        cd build_${{env.BUILD_TYPE}}
-        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ..
+        mkdir -pv build_${{matrix.build_type}}
+        cd build_${{matrix.build_type}}
+        cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} ..
         make -j2
         ctest -j2
 
