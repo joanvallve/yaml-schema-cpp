@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, ubuntu-20.04, ubuntu-22.04]
+        os: [ubuntu-20.04, ubuntu-22.04]
         build_type: [Debug, Release]
         cxx_standard: [11, 17, 20]
 
@@ -29,7 +29,7 @@ jobs:
     - name: dependencies
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: googletest libeigen3-dev libboost-all-dev
+        packages: googletest libeigen3-dev libboost-filesystem-dev
         version: 1.0
         
     - name: install yaml-cpp
@@ -57,7 +57,6 @@ jobs:
         cmake \
           --build build \
           --config ${{ matrix.build_type }} \
-          --verbose \
           --parallel
 
     - name: Run Tests
@@ -66,12 +65,4 @@ jobs:
         ctest \
           --test-dir build \
           --build-config ${{ matrix.build_type }} \
-          --output-on-failure \
-          --verbose
-          
-    # - run: |
-    #     mkdir -pv build
-    #     cd build
-    #     cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ..
-    #     make -j2
-    #     ctest -j2
+          --output-on-failure
