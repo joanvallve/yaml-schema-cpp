@@ -22,7 +22,7 @@ jobs:
         cd yaml-cpp/build
         cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ..
         make -j2
-        make install
+        sudo make install
     - run: |
         mkdir -pv build
         cd build
