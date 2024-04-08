@@ -2,7 +2,16 @@ cmake_minimum_required(VERSION 3.16)
 project(yaml-schema-cpp VERSION 0.0.0)
 
 # ------ PROJECT REQUIREMENTS ------
-set(CMAKE_CXX_STANDARD 14)
+#Set compiler according C++14 support
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
+if(NOT COMPILER_SUPPORTS_CXX14)
+  message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++14 support. Please use a different C++ compiler.")
+endif()
+if (CMAKE_CXX_STANDARD AND CMAKE_CXX_STANDARD LESS 14)
+    message(FATAL_ERROR "Required standard C++14 or higher.")
+endif()
+#set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -53,7 +62,7 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PUBLIC yaml-cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
-target_link_libraries(${PROJECT_NAME} PUBLIC Boost::filesystem Boost::system)
+target_link_libraries(${PROJECT_NAME} PUBLIC Boost::filesystem)
 
 # ------ TESTS ------
 IF(BUILD_TESTS)
@@ -78,7 +87,7 @@ install(
 install(
     EXPORT ${PROJECT_NAME}-targets
     FILE ${PROJECT_NAME}-targets.cmake
-    NAMESPACE YamlSchemaCpp::
+    NAMESPACE yaml-schema-cpp::
     DESTINATION lib/cmake/${PROJECT_NAME})
 install(
     TARGETS yaml_template_generator
