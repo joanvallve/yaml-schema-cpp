@@ -1,9 +1,11 @@
 # YAML Schema CPP library
 
 The *yaml-schema-cpp* is a C++ library for specification and validation of YAML files.
-This is useful for C++ applications where the configuration is done via YAML files.
+This is a useful feature for C++ applications where the configuration is done via YAML files. 
+Relegating the validation/completion of input YAML files to *yaml-schema-cpp* allows the code to be free of checkings, 
+exceptions and error messages about missing parameters, wrong types, etc.
 
-The specification is done by an **schema** file, including:
+In *yaml-schema-cpp*, the specification is stated in **schema** files. The schemas can specify the following:
 - Structure and fields.
 - Documentation of each field.
 - Type of the field (allowing custom classes).
@@ -13,12 +15,8 @@ The specification is done by an **schema** file, including:
 - Use of polymorfism in type checking.
 - Boolean expressions.
 
-Also, an executable `yaml_template_generator` is provided to automatically generate template YAML files from schema files.
-
-**Future features:**
-- Default values for custom classes.
-- Options for custom classes.
-- Scalar expressions for default and options.
+Also, an executable **yaml_template_generator** is provided to automatically generate template YAML files from schema files. 
+Offering YAML templates for our application will facilitate its usage and reduce user errors, improving the user experience.
 
 This library uses [exprtk](http://www.partow.net/programming/exprtk/index.html) as boolean expressions interpreter. The file "exprtk.hpp" is redistributed without modifications, under the MIT license.
 
@@ -79,7 +77,7 @@ You can run the tests with `ctest -j4`.
 The specifications are contained in schema files.
 Schema files are YAML files as well, but they have the extension `.schema`.
 
-The following is an example of a schema file:
+The following is a toy example of a schema file for input YAML files describing houses:
 ```yaml
 house:
   owners:
@@ -134,7 +132,8 @@ house:
     _value: "Whichever street, 11, Springfield"
 ```
 
-In this example, the schema specifies the structure and contents of an input YAML file. There are some reserved fields to specify the input field, presented below.
+In this example, the schema specifies the structure and contents of input YAML files.
+There are some reserved fields to specify the input field, presented below.
 
 ### `_type`
 A **string** specifying which type the input field should be. 
