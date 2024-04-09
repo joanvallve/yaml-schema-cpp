@@ -22,8 +22,8 @@ This library uses [exprtk](http://www.partow.net/programming/exprtk/index.html) 
 
 # Installation
 
-Requirements: C++14 and cmake 3.10 or newer. 
-It is tested with Ubuntu 18.04 and 20.04.
+Requirements: C++11 and cmake 3.16 or newer. 
+It is tested with C++11, C++14, C++17, C++20, Ubuntu 20.04 and 22.04.
 
 ## Dependencies
 
