@@ -203,7 +203,7 @@ YAML::Node input_node = server.getNode();
 Or, if you have more than one yaml file to load:
 
 ```c++
-YamlServer server = YamlServer({"one/path","another/path"});
+YamlServer server = YamlServer({"one/path/with/schemas","another/path/with/schemas","yet/another/path/with/schemas"});
 
 server.loadYaml("path/to/input1.yaml")
 
@@ -236,9 +236,9 @@ Schema specification:
   MANDATORY: true
   TYPE: string
   OPTIONS:
-   - string
-   - strong
-   - streng
+   - what
+   - the
+   - hell
 
 ERROR in 'map1/param3': Wrong type.
 Schema specification:
@@ -254,9 +254,9 @@ Schema specification:
 
 ERROR in 'param5[1]': Wrong type.
 Schema specification:
-	DOC: some doc
+  DOC: some doc
   MANDATORY: false
-	TYPE: int
+  TYPE: int
 
 ERROR in 'param6': Already defined in schema, not allowed to be changed.
 Schema specification:
