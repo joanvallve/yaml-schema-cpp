@@ -16,18 +16,18 @@ jobs:
     - name: install clang
       run: sudo apt install -y clang-format-12
       
-    - name: apply clang format
+    - name: config git & temporary branch
       run: |
         if [ `git rev-parse --verify ci_processing 2>/dev/null` ]; then
           git branch -D ci_processing
         fi
         git config --global user.email "cont-int@github.com"
         git config --global user.name "continuous integration"
-        # temporary branch
         git checkout -b ci_processing
-        # apply clang format
-        find . -iname *.h -o -iname *.cpp -o -iname *.hpp | xargs clang-format-12 --style=file -i
-        # push changes (if any)
+    - name: apply clang format
+      run: find . -iname *.h -o -iname *.cpp -o -iname *.hpp | xargs clang-format-12 --style=file -i
+    - name: push changes if any
+      run: |
         if git commit -a -m "[skip ci] clang format" ; then
           git push origin ci_processing:${BRANCH_NAME}
         else
