@@ -6,7 +6,7 @@ project(yaml-schema-cpp VERSION 0.0.0)
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
 if(NOT COMPILER_SUPPORTS_CXX14)
-  message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++14 support. Please use a different C++ compiler.")
+    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++14 support. Please use a different C++ compiler.")
 endif()
 if (CMAKE_CXX_STANDARD AND CMAKE_CXX_STANDARD LESS 14)
     message(FATAL_ERROR "Required standard C++14 or higher.")
@@ -14,6 +14,11 @@ endif()
 #set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Paths
+SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+SET(LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+SET(LIB_INSTALL_DIR lib)
 
 # ------ PROJECT OPTIONS ------
 IF(NOT BUILD_TESTS)
