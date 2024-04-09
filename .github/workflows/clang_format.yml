@@ -13,9 +13,11 @@ jobs:
         
     - uses: actions/checkout@v4
 
+    - name: install clang
+      run: sudo apt install -y clang-format-12
+      
     - name: apply clang format
       run: |
-        sudo apt install -y clang-format-12
         if [ `git rev-parse --verify ci_processing 2>/dev/null` ]; then
           git branch -D ci_processing
         fi
