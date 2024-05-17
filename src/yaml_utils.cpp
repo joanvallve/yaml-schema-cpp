@@ -13,15 +13,19 @@ namespace yaml_schema_cpp
 {
 namespace filesystem = boost::filesystem;
 
-void flattenNode(YAML::Node& node, std::vector<std::string> folders, bool is_schema, bool override)
+void flattenNode(YAML::Node&              node,
+                 std::string              current_folder,
+                 std::vector<std::string> schema_folders,
+                 bool                     is_schema,
+                 bool                     override)
 {
     switch (node.Type())
     {
         case YAML::NodeType::Map:
-            flattenMap(node, folders, is_schema, override);
+            flattenMap(node, current_folder, schema_folders, is_schema, override);
             break;
         case YAML::NodeType::Sequence:
-            flattenSequence(node, folders, is_schema, override);
+            flattenSequence(node, current_folder, schema_folders, is_schema, override);
             break;
         case YAML::NodeType::Scalar:
         default:
@@ -29,31 +33,49 @@ void flattenNode(YAML::Node& node, std::vector<std::string> folders, bool is_sch
     }
 }
 
-void flattenSequence(YAML::Node& node, std::vector<std::string> folders, bool is_schema, bool override)
+void flattenSequence(YAML::Node&              node,
+                     std::string              current_folder,
+                     std::vector<std::string> schema_folders,
+                     bool                     is_schema,
+                     bool                     override)
 {
     for (auto node_i : node)
     {
-        flattenNode(node_i, folders, is_schema, override);
+        flattenNode(node_i, current_folder, schema_folders, is_schema, override);
     }
 }
 
-void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_schema, bool override)
+void flattenMap(YAML::Node&              node,
+                std::string              current_folder,
+                std::vector<std::string> schema_folders,
+                bool                     is_schema,
+                bool                     override)
 {
     YAML::Node node_aux;  // Done using copy to preserve order of follow
     for (auto n : node)
     {
         if (n.first.as<std::string>() == "follow")
         {
+            std::string      path_follow_str = n.second.as<std::string>();
             filesystem::path path_follow;
 
-            if (is_schema)
+            // follow schema: empty or .schema
+            bool followed_is_schema = filesystem::extension(path_follow_str).empty() or
+                                      filesystem::extension(path_follow_str) == SCHEMA_EXTENSION;
+            if (followed_is_schema)
             {
-                path_follow = findFileRecursive(n.second.as<std::string>(), folders);
+                path_follow = findFileRecursive(path_follow_str, schema_folders);
+            }
+            // follow yaml file
+            else if (filesystem::extension(path_follow_str) == ".yaml")
+            {
+                const filesystem::path follow_value(path_follow_str);
+                path_follow = current_folder / follow_value;
             }
             else
             {
-                const filesystem::path follow_value(n.second.as<std::string>());
-                path_follow = folders.front() / follow_value;
+                throw std::runtime_error("In flattenNode: follow '" + path_follow_str +
+                                         "' bad extension, should be '.yaml', '.schema' or empty (assumed '.schema')");
             }
 
             if (not filesystem::exists(path_follow))
@@ -65,21 +87,22 @@ void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_sche
             YAML::Node node_child = YAML::LoadFile(path_follow.string());
 
             // Recursively flatten the "follow" file
-            if (is_schema)
+            if (followed_is_schema)
             {
-                flattenNode(node_child, folders, is_schema, override);
+                flattenNode(node_child, current_folder, schema_folders, followed_is_schema, override);
             }
             else
             {
-                flattenNode(node_child, {path_follow.parent_path().string()}, is_schema, override);
+                flattenNode(node_child, path_follow.parent_path().string(), {}, followed_is_schema, override);
             }
 
             for (auto nc : node_child)
             {
                 // Case schema
-                if (is_schema)
+                if (followed_is_schema)
                 {
-                    addNodeSchema(node_aux, nc.first.as<std::string>(), nc.second, override);
+                    addNodeSchema(
+                        node_aux, nc.first.as<std::string>(), nc.second, override, path_follow.parent_path().string());
                 }
                 // Case input yaml
                 else
@@ -91,7 +114,7 @@ void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_sche
         }
         else
         {
-            flattenNode(n.second, folders, is_schema, override);
+            flattenNode(n.second, current_folder, schema_folders, is_schema, override);
 
             // Case schema
             if (is_schema)
@@ -101,7 +124,7 @@ void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_sche
             // Case input yaml
             else
             {
-                addNodeYaml(node_aux, n.first.as<std::string>(), n.second, override, folders[0]);
+                addNodeYaml(node_aux, n.first.as<std::string>(), n.second, override, current_folder);
             }
         }
     }

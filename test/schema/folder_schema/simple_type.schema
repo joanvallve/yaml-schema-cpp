@@ -1,0 +1,17 @@
+int_param: 
+  _mandatory: true
+  _type: int
+  _doc: "some doc"
+string_param: 
+  _mandatory: true
+  _type: string
+  _doc: "some doc"
+  _options: 
+    - "string"
+    - "strong"
+    - "streng"
+optional_bool_param:
+  _mandatory: false
+  _type: bool
+  _doc: "blah"
+  _default: true

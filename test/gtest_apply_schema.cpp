@@ -92,6 +92,19 @@ TEST(schema, optional_map)
     }
 }
 
+TEST(schema, nontrivial_options_default_value)
+{
+    YamlServer server = YamlServer({ROOT_DIR}, ROOT_DIR + "/test/yaml/nontrivial_options_default_value.yaml");
+
+    std::cout << "before: \n" << server.getNode() << std::endl;
+
+    ASSERT_TRUE(server.applySchema("nontrivial_options_default_value.schema"));
+
+    std::cout << "after: \n" << server.getNode() << std::endl;
+
+    std::cout << "log: \n" << server.getLog() << std::endl;
+}
+
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);

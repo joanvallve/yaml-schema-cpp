@@ -12,9 +12,21 @@ namespace filesystem = boost::filesystem;
 // 'folders'
 // -> input node (is_schema = false): path to file allowed (either relative or absolute). Relative paths will be done
 // with respect to the first item specified in folders. No search will be performed.
-void flattenNode(YAML::Node& node, std::vector<std::string> folders, bool is_schema, bool override);
-void flattenMap(YAML::Node& node, std::vector<std::string> folders, bool is_schema, bool override);
-void flattenSequence(YAML::Node& node, std::vector<std::string> folders, bool is_schema, bool override);
+void flattenNode(YAML::Node&              node,
+                 std::string              current_folder,
+                 std::vector<std::string> schema_folders,
+                 bool                     is_schema,
+                 bool                     override);
+void flattenMap(YAML::Node&              node,
+                std::string              current_folder,
+                std::vector<std::string> schema_folders,
+                bool                     is_schema,
+                bool                     override);
+void flattenSequence(YAML::Node&              node,
+                     std::string              current_folder,
+                     std::vector<std::string> schema_folders,
+                     bool                     is_schema,
+                     bool                     override);
 
 void writeErrorToLog(std::stringstream& log,
                      const std::string& _acc_field,
