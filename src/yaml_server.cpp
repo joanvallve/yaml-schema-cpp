@@ -45,7 +45,7 @@ void YamlServer::loadYaml(const std::string& path_input)
     node_input_ = YAML::LoadFile(path_input);
 
     // flatten
-    flattenNode(node_input_, {path_input_.parent_path().string()}, false, override_);
+    flattenNode(node_input_, path_input_.parent_path().string(), {}, false, override_);
 }
 
 void YamlServer::setYaml(const YAML::Node _node_input)

@@ -1,0 +1,29 @@
+map1:
+  param_simple_options: 
+    _mandatory: true
+    _type: simple_type
+    _doc: "some doc"
+    _options: 
+      - 
+        int_param: 3
+        string_param: "strong"
+        optional_bool_param: false
+      - 
+        int_param: 0
+        string_param: "streng"
+      - follow: "../../yaml/simple_type_default.yaml"
+  param_simple_default:
+    _mandatory: false
+    _type: simple_type
+    _default: 
+      int_param: 3
+      string_param: "strong"
+      optional_bool_param: false
+    _doc: "some doc"
+  param_simple_value:
+    _mandatory: false
+    _type: simple_type
+    _value:  
+      int_param: 3
+      string_param: "strong"
+    _doc: "some doc"

@@ -107,7 +107,7 @@ YAML::Node generateYaml(std::string name_schema, const std::vector<std::string>&
     // Flatten yaml nodes (containing "follow") to a single YAML node containing all the information
     try
     {
-        flattenNode(node_schema, folders_schema, true, override);
+        flattenNode(node_schema, path_schema.parent_path().string(), folders_schema, true, override);
     }
     catch (const std::exception& e)
     {
@@ -118,7 +118,7 @@ YAML::Node generateYaml(std::string name_schema, const std::vector<std::string>&
     // Check schema
     try
     {
-        checkSchema(node_schema, "", node_schema);
+        checkSchema(node_schema, "", node_schema, folders_schema);
     }
     catch (const std::exception& e)
     {

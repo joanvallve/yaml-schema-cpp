@@ -1,0 +1,6 @@
+map1:
+  param_simple_options: 
+    int_param: 3
+    string_param: strong
+    optional_bool_param: false
+  param2: "string"

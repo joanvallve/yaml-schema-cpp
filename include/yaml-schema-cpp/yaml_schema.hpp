@@ -33,7 +33,10 @@ YAML::Node loadSchema(std::string                     schema_file,
                       const std::vector<std::string>& folders_schema,
                       std::stringstream&              log,
                       bool                            override = true);
-void       checkSchema(const YAML::Node& node_schema, const std::string& field, const YAML::Node& node_schema_parent);
+void       checkSchema(const YAML::Node&               node_schema,
+                       const std::string&              field,
+                       const YAML::Node&               node_schema_parent,
+                       const std::vector<std::string>& folders_schema);
 
 bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool verbose, bool override = true);
 
@@ -58,7 +61,11 @@ bool hasAnyReservedKey(const YAML::Node& node_schema);
 bool isSpecification(const YAML::Node& node_schema);
 bool isSequenceSchema(const YAML::Node& node_schema);
 
-void addNodeSchema(YAML::Node& node, const std::string& key, const YAML::Node& value, bool override);
+void addNodeSchema(YAML::Node&        node,
+                   const std::string& key,
+                   const YAML::Node&  value,
+                   bool               override,
+                   std::string        parent_path = "");
 
 std::string getTypeOfSequence(const YAML::Node& node_schema);
 

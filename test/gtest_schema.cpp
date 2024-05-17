@@ -24,12 +24,23 @@ TEST(schema, follow)
     std::cout << log.str() << std::endl;
 }
 
-TEST(schema, empty_yaml)
+TEST(schema, empty)
 {
     std::stringstream log;
     auto              node_schema = loadSchema(
         "empty.schema", {ROOT_DIR + "/test/schema/folder_schema", ROOT_DIR + "/test/schema/other_folder_schema"}, log);
+
     ASSERT_TRUE(node_schema.IsDefined());
+    std::cout << log.str() << std::endl;
+}
+
+TEST(schema, nontrivial_options_default_value)
+{
+    std::stringstream log;
+    auto              node_schema = loadSchema(
+        "nontrivial_options_default_value.schema", {ROOT_DIR + "/test/schema/folder_schema", ROOT_DIR + "/test/schema/other_folder_schema"}, log);
+    ASSERT_TRUE(node_schema.IsDefined());
+    std::cout << "node_schema: \n" << node_schema << std::endl;
     std::cout << log.str() << std::endl;
 }
 

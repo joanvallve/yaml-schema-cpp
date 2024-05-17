@@ -88,7 +88,7 @@ bool isNonTrivialType(const std::string& type, const std::vector<std::string>& f
     }
     catch (const std::exception& e)
     {
-        // non existing file
+        // non existing schema file
         return false;
     }
 
