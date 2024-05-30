@@ -54,7 +54,18 @@ YAML::Node loadSchema(std::string                     name_schema,
     }
 
     // Flatten yaml nodes (containing "follow") to a single YAML node containing all the information
-    flattenNode(node_schema, path_schema.parent_path().string(), folders_schema, true, override);
+
+    try
+    {
+        flattenNode(node_schema, path_schema.parent_path().string(), folders_schema, true, override);
+    }
+    catch (const std::exception& e)
+    {
+        log << "ERROR in loadSchema(): Couldn't flatten schema file " + path_schema.string() + ". Error: " + e.what()
+            << "\n";
+        
+        return YAML::Node(YAML::NodeType::Undefined);
+    }
 
     // Check schema
     try

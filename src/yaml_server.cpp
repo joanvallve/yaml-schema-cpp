@@ -69,14 +69,19 @@ bool YamlServer::applySchema(const std::string& name_schema)
     else
         header2 = "  yaml file: " + path_input_.string();
     header3 = "  schema: " + name_schema;
+    std::stringstream header4ss;
+    header4ss << "  folders_schema: ";
+    for (auto folder : folders_schema_)
+        header4ss << folder <<  ", ";
 
-    auto max_size = std::max({header1.size(), header2.size(), header3.size()});
+    auto max_size = std::max({header1.size(), header2.size(), header3.size(), header4ss.str().size()});
 
     log_ << std::endl;
     log_ << std::string(max_size, '-') << std::endl;
     log_ << header1 << std::endl;
     log_ << header2 << std::endl;
     log_ << header3 << std::endl;
+    log_ << header4ss.str() << std::endl;
     log_ << std::string(max_size, '-') << std::endl << std::endl;
 
     return yaml_schema_cpp::applySchema(node_input_, name_schema, folders_schema_, log_, "", override_);

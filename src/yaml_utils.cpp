@@ -209,8 +209,12 @@ filesystem::path findFileRecursive(const std::string& name_with_extension, const
             }
         }
     }
-
-    throw std::runtime_error("File '" + name_with_extension + "' not found in provided folders.");
+    std::string folders_str;
+    for (auto folder : folders)
+        folders_str += folder + ", ";
+    folders_str.pop_back();
+    folders_str.back() = '.';
+    throw std::runtime_error("File '" + name_with_extension + "' not found in provided folders: " + folders_str);
 }
 
 void writeErrorToLog(std::stringstream& log,
