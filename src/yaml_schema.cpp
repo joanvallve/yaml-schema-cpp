@@ -63,7 +63,7 @@ YAML::Node loadSchema(std::string                     name_schema,
     {
         log << "ERROR in loadSchema(): Couldn't flatten schema file " + path_schema.string() + ". Error: " + e.what()
             << "\n";
-        
+
         return YAML::Node(YAML::NodeType::Undefined);
     }
 

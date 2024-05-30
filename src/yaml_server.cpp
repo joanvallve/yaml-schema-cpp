@@ -32,7 +32,7 @@ void YamlServer::addFolderSchema(const std::string& folder_schema, bool before)
     folders_schema_.insert(before ? folders_schema_.begin() : folders_schema_.end(), folder_schema);
 }
 
-std::vector<std::string> YamlServer::getFolderSchema() const 
+std::vector<std::string> YamlServer::getFolderSchema() const
 {
     return folders_schema_;
 }
@@ -71,8 +71,7 @@ bool YamlServer::applySchema(const std::string& name_schema)
     header3 = "  schema: " + name_schema;
     std::stringstream header4ss;
     header4ss << "  folders_schema: ";
-    for (auto folder : folders_schema_)
-        header4ss << folder <<  ", ";
+    for (auto folder : folders_schema_) header4ss << folder << ", ";
 
     auto max_size = std::max({header1.size(), header2.size(), header3.size(), header4ss.str().size()});
 
