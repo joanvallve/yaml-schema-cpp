@@ -20,6 +20,7 @@ class YamlServer
 
     void addFolderSchema(const std::vector<std::string>& folders_schema, bool before = false);
     void addFolderSchema(const std::string& folder_schema, bool before = false);
+    std::vector<std::string> getFolderSchema() const;
 
     void loadYaml(const std::string& path_input);
     void setYaml(const YAML::Node _node_input);

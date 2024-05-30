@@ -32,6 +32,11 @@ void YamlServer::addFolderSchema(const std::string& folder_schema, bool before)
     folders_schema_.insert(before ? folders_schema_.begin() : folders_schema_.end(), folder_schema);
 }
 
+std::vector<std::string> YamlServer::getFolderSchema() const 
+{
+    return folders_schema_;
+}
+
 void YamlServer::loadYaml(const std::string& path_input)
 {
     // Check file exists
