@@ -53,7 +53,6 @@ find_package(Boost REQUIRED COMPONENTS filesystem system)
 
 # ------ LIBRARY ------
 list(APPEND LIB_SRCS src/expression.cpp)
-list(APPEND LIB_SRCS src/folders_schema.cpp)
 list(APPEND LIB_SRCS src/type_check.cpp)
 list(APPEND LIB_SRCS src/yaml_generator.cpp)
 list(APPEND LIB_SRCS src/yaml_schema.cpp)
