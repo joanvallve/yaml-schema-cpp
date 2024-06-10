@@ -6,93 +6,256 @@ std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
 
 using namespace yaml_schema_cpp;
 
-TEST(check_type, num)
+TEST(check_type, integer)
 {
     YAML::Node node;
-    node = 3;
+    node = "3";
 
-    EXPECT_FALSE(tryNodeAs(node, "unknown_class"));
-    EXPECT_FALSE(tryNodeAs(node, "bool"));
-    EXPECT_TRUE(tryNodeAs(node, "char"));
     EXPECT_TRUE(tryNodeAs(node, "int"));
     EXPECT_TRUE(tryNodeAs(node, "unsigned int"));
     EXPECT_TRUE(tryNodeAs(node, "long int"));
     EXPECT_TRUE(tryNodeAs(node, "long unsigned int"));
+
+    node = "-3";
+
+    EXPECT_TRUE(tryNodeAs(node, "int"));
+    EXPECT_FALSE(tryNodeAs(node, "unsigned int"));
+    EXPECT_TRUE(tryNodeAs(node, "long int"));
+    EXPECT_FALSE(tryNodeAs(node, "long unsigned int"));
+
+    node = "1e3";
+
+    EXPECT_FALSE(tryNodeAs(node, "int"));
+    EXPECT_FALSE(tryNodeAs(node, "unsigned int"));
+    EXPECT_FALSE(tryNodeAs(node, "long int"));
+    EXPECT_FALSE(tryNodeAs(node, "long unsigned int"));
+
+    node = "-1e9";
+
+    EXPECT_FALSE(tryNodeAs(node, "int"));
+    EXPECT_FALSE(tryNodeAs(node, "unsigned int"));
+    EXPECT_FALSE(tryNodeAs(node, "long int"));
+    EXPECT_FALSE(tryNodeAs(node, "long unsigned int"));
+
+    node = "-3.2";
+
+    EXPECT_FALSE(tryNodeAs(node, "int"));
+    EXPECT_FALSE(tryNodeAs(node, "unsigned int"));
+    EXPECT_FALSE(tryNodeAs(node, "long int"));
+    EXPECT_FALSE(tryNodeAs(node, "long unsigned int"));
+
+    node = "1e-3";
+
+    EXPECT_FALSE(tryNodeAs(node, "int"));
+    EXPECT_FALSE(tryNodeAs(node, "unsigned int"));
+    EXPECT_FALSE(tryNodeAs(node, "long int"));
+    EXPECT_FALSE(tryNodeAs(node, "long unsigned int"));
+
+    node = "a";
+
+    EXPECT_FALSE(tryNodeAs(node, "int"));
+    EXPECT_FALSE(tryNodeAs(node, "unsigned int"));
+    EXPECT_FALSE(tryNodeAs(node, "long int"));
+    EXPECT_FALSE(tryNodeAs(node, "long unsigned int"));
+
+    node = "gromenauer";
+
+    EXPECT_FALSE(tryNodeAs(node, "int"));
+    EXPECT_FALSE(tryNodeAs(node, "unsigned int"));
+    EXPECT_FALSE(tryNodeAs(node, "long int"));
+    EXPECT_FALSE(tryNodeAs(node, "long unsigned int"));
+
+    YAML::Node node_seq;
+    node_seq[0] = 0;
+    node_seq[1] = 0.2;
+    node_seq[2] = 1e-5;
+    node_seq[3] = 1000;
+
+    EXPECT_FALSE(tryNodeAs(node_seq, "int"));
+    EXPECT_FALSE(tryNodeAs(node_seq, "unsigned int"));
+    EXPECT_FALSE(tryNodeAs(node_seq, "long int"));
+    EXPECT_FALSE(tryNodeAs(node_seq, "long unsigned int"));
+}
+
+TEST(check_type, real)
+{
+    YAML::Node node;
+    node = "3";
+
     EXPECT_TRUE(tryNodeAs(node, "float"));
     EXPECT_TRUE(tryNodeAs(node, "double"));
-    EXPECT_TRUE(tryNodeAs(node, "string"));
-    EXPECT_TRUE(tryNodeAs(node, "std::string"));
-    EXPECT_FALSE(tryNodeAs(node, "VectorXd"));
-    EXPECT_FALSE(tryNodeAs(node, "Eigen::VectorXd"));
-    EXPECT_FALSE(tryNodeAs(node, "MatrixXd"));
+
+    node = "-3";
+
+    EXPECT_TRUE(tryNodeAs(node, "float"));
+    EXPECT_TRUE(tryNodeAs(node, "double"));
+
+    node = "1e3";
+
+    EXPECT_TRUE(tryNodeAs(node, "float"));
+    EXPECT_TRUE(tryNodeAs(node, "double"));
+
+    node = "-1e9";
+
+    EXPECT_TRUE(tryNodeAs(node, "float"));
+    EXPECT_TRUE(tryNodeAs(node, "double"));
+
+    node = "-3.2";
+
+    EXPECT_TRUE(tryNodeAs(node, "float"));
+    EXPECT_TRUE(tryNodeAs(node, "double"));
+
+    node = "1e-3";
+
+    EXPECT_TRUE(tryNodeAs(node, "float"));
+    EXPECT_TRUE(tryNodeAs(node, "double"));
+
+    node = "a";
+
+    EXPECT_FALSE(tryNodeAs(node, "float"));
+    EXPECT_FALSE(tryNodeAs(node, "double"));
+
+    node = "gromenauer";
+
+    EXPECT_FALSE(tryNodeAs(node, "float"));
+    EXPECT_FALSE(tryNodeAs(node, "double"));
+
+    YAML::Node node_seq;
+    node_seq[0] = 0;
+    node_seq[1] = 0.2;
+    node_seq[2] = 1e-5;
+    node_seq[3] = 1000;
+
+    EXPECT_FALSE(tryNodeAs(node_seq, "float"));
+    EXPECT_FALSE(tryNodeAs(node_seq, "double"));
 }
 
 TEST(check_type, char)
 {
     YAML::Node node;
-    node = 'g';
+    node = "3";
 
-    EXPECT_FALSE(tryNodeAs(node, "unknown_class"));
-    EXPECT_FALSE(tryNodeAs(node, "bool"));
     EXPECT_TRUE(tryNodeAs(node, "char"));
-    EXPECT_FALSE(tryNodeAs(node, "int"));
-    EXPECT_FALSE(tryNodeAs(node, "unsigned int"));
-    EXPECT_FALSE(tryNodeAs(node, "long int"));
-    EXPECT_FALSE(tryNodeAs(node, "long unsigned int"));
-    EXPECT_FALSE(tryNodeAs(node, "float"));
-    EXPECT_FALSE(tryNodeAs(node, "double"));
-    EXPECT_TRUE(tryNodeAs(node, "string"));
-    EXPECT_TRUE(tryNodeAs(node, "std::string"));
-    EXPECT_FALSE(tryNodeAs(node, "VectorXd"));
-    EXPECT_FALSE(tryNodeAs(node, "Eigen::VectorXd"));
-    EXPECT_FALSE(tryNodeAs(node, "MatrixXd"));
+
+    node = "-3";
+
+    EXPECT_FALSE(tryNodeAs(node, "char"));
+
+    node = "1e3";
+
+    EXPECT_FALSE(tryNodeAs(node, "char"));
+
+    node = "-1e9";
+
+    EXPECT_FALSE(tryNodeAs(node, "char"));
+
+    node = "-3.2";
+
+    EXPECT_FALSE(tryNodeAs(node, "char"));
+
+    node = "1e-3";
+
+    EXPECT_FALSE(tryNodeAs(node, "char"));
+
+    node = "a";
+
+    EXPECT_TRUE(tryNodeAs(node, "char"));
+
+    node = "gromenauer";
+
+    EXPECT_FALSE(tryNodeAs(node, "char"));
+
+    YAML::Node node_seq;
+    node_seq[0] = 0;
+    node_seq[1] = 0.2;
+    node_seq[2] = 1e-5;
+    node_seq[3] = 1000;
+
+    EXPECT_FALSE(tryNodeAs(node_seq, "char"));
 }
 
 TEST(check_type, string)
 {
     YAML::Node node;
+    node = "3";
+
+    EXPECT_TRUE(tryNodeAs(node, "string"));
+
+    node = "-3";
+
+    EXPECT_TRUE(tryNodeAs(node, "string"));
+
+    node = "1e3";
+
+    EXPECT_TRUE(tryNodeAs(node, "string"));
+
+    node = "-1e9";
+
+    EXPECT_TRUE(tryNodeAs(node, "string"));
+
+    node = "-3.2";
+
+    EXPECT_TRUE(tryNodeAs(node, "string"));
+
+    node = "1e-3";
+
+    EXPECT_TRUE(tryNodeAs(node, "string"));
+
+    node = "a";
+
+    EXPECT_TRUE(tryNodeAs(node, "string"));
+
     node = "gromenauer";
 
-    EXPECT_FALSE(tryNodeAs(node, "unknown_class"));
-    EXPECT_FALSE(tryNodeAs(node, "bool"));
-    EXPECT_FALSE(tryNodeAs(node, "char"));
-    EXPECT_FALSE(tryNodeAs(node, "int"));
-    EXPECT_FALSE(tryNodeAs(node, "unsigned int"));
-    EXPECT_FALSE(tryNodeAs(node, "long int"));
-    EXPECT_FALSE(tryNodeAs(node, "long unsigned int"));
-    EXPECT_FALSE(tryNodeAs(node, "float"));
-    EXPECT_FALSE(tryNodeAs(node, "double"));
     EXPECT_TRUE(tryNodeAs(node, "string"));
-    EXPECT_TRUE(tryNodeAs(node, "std::string"));
-    EXPECT_FALSE(tryNodeAs(node, "VectorXd"));
-    EXPECT_FALSE(tryNodeAs(node, "Eigen::VectorXd"));
-    EXPECT_FALSE(tryNodeAs(node, "MatrixXd"));
+
+    YAML::Node node_seq;
+    node_seq[0] = 0;
+    node_seq[1] = 0.2;
+    node_seq[2] = 1e-5;
+    node_seq[3] = 1000;
+
+    EXPECT_FALSE(tryNodeAs(node_seq, "string"));
 }
 
 TEST(check_type, Eigen)
 {
     YAML::Node node;
-    node[0] = 0;
-    node[1] = 0.2;
-    node[2] = 1e-5;
-    node[3] = 1000;
+    node = "1e-3";
 
-    EXPECT_FALSE(tryNodeAs(node, "unknown_class"));
-    EXPECT_FALSE(tryNodeAs(node, "bool"));
-    EXPECT_FALSE(tryNodeAs(node, "char"));
-    EXPECT_FALSE(tryNodeAs(node, "int"));
-    EXPECT_FALSE(tryNodeAs(node, "unsigned int"));
-    EXPECT_FALSE(tryNodeAs(node, "long int"));
-    EXPECT_FALSE(tryNodeAs(node, "long unsigned int"));
-    EXPECT_FALSE(tryNodeAs(node, "float"));
-    EXPECT_FALSE(tryNodeAs(node, "double"));
-    EXPECT_FALSE(tryNodeAs(node, "string"));
-    EXPECT_FALSE(tryNodeAs(node, "std::string"));
-    EXPECT_TRUE(tryNodeAs(node, "VectorXd"));
-    EXPECT_TRUE(tryNodeAs(node, "Eigen::VectorXd"));
-    EXPECT_TRUE(tryNodeAs(node, "Vector4d"));
-    EXPECT_TRUE(tryNodeAs(node, "Matrix2d"));
+    EXPECT_FALSE(tryNodeAs(node, "VectorXd"));
+    EXPECT_FALSE(tryNodeAs(node, "Eigen::VectorXd"));
+    EXPECT_FALSE(tryNodeAs(node, "Vector4d"));
+    EXPECT_FALSE(tryNodeAs(node, "Matrix2d"));
     EXPECT_FALSE(tryNodeAs(node, "MatrixXd"));
+
+    node = "a";
+
+    EXPECT_FALSE(tryNodeAs(node, "VectorXd"));
+    EXPECT_FALSE(tryNodeAs(node, "Eigen::VectorXd"));
+    EXPECT_FALSE(tryNodeAs(node, "Vector4d"));
+    EXPECT_FALSE(tryNodeAs(node, "Matrix2d"));
+    EXPECT_FALSE(tryNodeAs(node, "MatrixXd"));
+
+    node = "gromenauer";
+
+    EXPECT_FALSE(tryNodeAs(node, "VectorXd"));
+    EXPECT_FALSE(tryNodeAs(node, "Eigen::VectorXd"));
+    EXPECT_FALSE(tryNodeAs(node, "Vector4d"));
+    EXPECT_FALSE(tryNodeAs(node, "Matrix2d"));
+    EXPECT_FALSE(tryNodeAs(node, "MatrixXd"));
+
+    YAML::Node node_seq;
+    node_seq[0] = 0;
+    node_seq[1] = 0.2;
+    node_seq[2] = 1e-5;
+    node_seq[3] = 1000;
+
+    EXPECT_TRUE(tryNodeAs(node_seq, "VectorXd"));
+    EXPECT_TRUE(tryNodeAs(node_seq, "Eigen::VectorXd"));
+    EXPECT_TRUE(tryNodeAs(node_seq, "Vector4d"));
+    EXPECT_TRUE(tryNodeAs(node_seq, "Matrix2d"));
+    EXPECT_FALSE(tryNodeAs(node_seq, "MatrixXd"));
 }
 
 TEST(check_type, EigenEmpty)
@@ -104,17 +267,6 @@ TEST(check_type, EigenEmpty)
     EXPECT_EQ(node.size(), 0);
     EXPECT_TRUE(node.IsSequence());
 
-    EXPECT_FALSE(tryNodeAs(node, "unknown_class"));
-    EXPECT_FALSE(tryNodeAs(node, "bool"));
-    EXPECT_FALSE(tryNodeAs(node, "char"));
-    EXPECT_FALSE(tryNodeAs(node, "int"));
-    EXPECT_FALSE(tryNodeAs(node, "unsigned int"));
-    EXPECT_FALSE(tryNodeAs(node, "long int"));
-    EXPECT_FALSE(tryNodeAs(node, "long unsigned int"));
-    EXPECT_FALSE(tryNodeAs(node, "float"));
-    EXPECT_FALSE(tryNodeAs(node, "double"));
-    EXPECT_FALSE(tryNodeAs(node, "string"));
-    EXPECT_FALSE(tryNodeAs(node, "std::string"));
     EXPECT_TRUE(tryNodeAs(node, "VectorXd"));
     EXPECT_TRUE(tryNodeAs(node, "Eigen::VectorXd"));
     EXPECT_FALSE(tryNodeAs(node, "Vector4d"));
@@ -136,17 +288,6 @@ TEST(check_type, Eigen_matrix)
     node[0]        = node_sizes;
     node[1]        = node_values;
 
-    EXPECT_FALSE(tryNodeAs(node, "unknown_class"));
-    EXPECT_FALSE(tryNodeAs(node, "bool"));
-    EXPECT_FALSE(tryNodeAs(node, "char"));
-    EXPECT_FALSE(tryNodeAs(node, "int"));
-    EXPECT_FALSE(tryNodeAs(node, "unsigned int"));
-    EXPECT_FALSE(tryNodeAs(node, "long int"));
-    EXPECT_FALSE(tryNodeAs(node, "long unsigned int"));
-    EXPECT_FALSE(tryNodeAs(node, "float"));
-    EXPECT_FALSE(tryNodeAs(node, "double"));
-    EXPECT_FALSE(tryNodeAs(node, "string"));
-    EXPECT_FALSE(tryNodeAs(node, "std::string"));
     EXPECT_FALSE(tryNodeAs(node, "VectorXd"));
     EXPECT_FALSE(tryNodeAs(node, "Eigen::VectorXd"));
     EXPECT_FALSE(tryNodeAs(node, "Matrix2d"));

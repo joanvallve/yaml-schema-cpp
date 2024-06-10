@@ -12,7 +12,10 @@ TEST(schema, plain_yaml)
 
     std::cout << "before: \n" << server.getNode() << std::endl;
 
-    ASSERT_TRUE(server.applySchema("base_input.schema"));
+    bool ok = server.applySchema("base_input.schema");
+    if (not ok)
+        std::cout << server.getLog();
+    ASSERT_TRUE(ok);
 
     std::cout << "after: \n" << server.getNode() << std::endl;
 
@@ -32,7 +35,10 @@ TEST(schema, follow)
 
     std::cout << "before: \n" << server.getNode() << std::endl;
 
-    ASSERT_TRUE(server.applySchema("base_input_base.schema"));
+    bool ok = server.applySchema("base_input_base.schema");
+    if (not ok)
+        std::cout << server.getLog();
+    ASSERT_TRUE(ok);
 
     std::cout << "after: \n" << server.getNode() << std::endl;
 
