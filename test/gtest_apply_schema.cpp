@@ -111,12 +111,13 @@ TEST(schema, nontrivial_options_default_value)
 
 TEST(schema, complex_case)
 {
-    YamlServer server = YamlServer({ROOT_DIR + "/test/schema/folder_schema"}, ROOT_DIR + "/test/yaml/complex_case.yaml");
+    YamlServer server =
+        YamlServer({ROOT_DIR + "/test/schema/folder_schema"}, ROOT_DIR + "/test/yaml/complex_case.yaml");
 
     std::cout << "before: \n" << server.getNode() << std::endl;
 
     server.addFolderSchema(ROOT_DIR + "/test/schema/complex_case");
-    
+
     EXPECT_TRUE(server.applySchema("Problem.schema"));
 
     std::cout << "after Problem.schema: \n" << server.getNode() << std::endl;

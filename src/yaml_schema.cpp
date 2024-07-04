@@ -111,7 +111,7 @@ void checkSchema(const YAML::Node&               node_schema,
         auto type =
             isSequenceSchema(node_schema) ? getTypeOfSequence(node_schema) : node_schema[TYPE].as<std::string>();
         // If type=="derived" or "derived[]", 'BASE' of type string is required
-        if (type == "derived") 
+        if (type == "derived")
         {
             if (not node_schema[BASE])
             {
