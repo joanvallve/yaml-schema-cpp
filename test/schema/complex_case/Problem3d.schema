@@ -1,0 +1,20 @@
+follow: Problem.schema
+problem:
+  first_frame:
+    P:
+      _mandatory: false
+      _type: StateP3d
+      _doc: "specification for the first frame position state"
+    O:
+      _mandatory: false
+      _type: StateO3d
+      _doc: "specification for the first frame orientation state"
+    V:
+      _mandatory: false
+      _type: StateV3d
+      _doc: "specification for the first frame linear velocity state"
+  dimension:
+    _type: int
+    _mandatory: true
+    _options: [3]
+    _doc: "Dimension of the problem: '3' for 3D"

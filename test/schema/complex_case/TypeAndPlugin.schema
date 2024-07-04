@@ -1,0 +1,9 @@
+type:
+  _mandatory: true
+  _type: string
+  _doc: The class name
+
+plugin:
+  _mandatory: true
+  _type: string
+  _doc: plugin where the class is implemented

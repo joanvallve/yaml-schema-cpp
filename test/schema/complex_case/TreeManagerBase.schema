@@ -1,0 +1,4 @@
+type:
+  _mandatory: true
+  _type: string
+  _doc: Type of the TreeManager. To keep all frames, use "none".

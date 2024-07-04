@@ -1,0 +1,15 @@
+type:
+  _mandatory: true
+  _type: string
+  _doc: Type of the Map used in the problem.
+
+plugin:
+  _mandatory: true
+  _type: string
+  _doc: Name of the wolf plugin where the map type is implemented.
+
+landmarks:
+  _mandatory: false
+  _type: derived[]
+  _base: LandmarkBase
+  _doc: Sequence of derived landmarks.

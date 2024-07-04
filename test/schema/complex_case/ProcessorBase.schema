@@ -1,0 +1,22 @@
+follow: TypeAndPlugin.schema
+
+name:
+  _mandatory: true
+  _type: string
+  _doc: The processor's name. It has to be unique.
+
+time_tolerance:
+  _mandatory: true
+  _type: double
+  _doc: Maximum time difference between a Keyframe time stamp and a particular Capture of this processor to allow assigning this Capture to the Keyframe. [s].
+
+keyframe_vote:
+  voting_active:
+    _mandatory: true
+    _type: bool
+    _doc: If the processor is allowed to decide to create a frame.
+
+apply_loss_function:
+  _mandatory: true
+  _type: bool
+  _doc: If the factors created by the processor have loss function.

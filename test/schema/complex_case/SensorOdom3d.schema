@@ -1,0 +1,32 @@
+follow: SensorBase.schema
+
+k_disp_to_disp:
+  _mandatory: true
+  _type: double
+  _doc: ratio of displacement variance to displacement, for odometry noise calculation.
+
+k_disp_to_rot:
+  _mandatory: true
+  _type: double
+  _doc: ratio of displacement variance to rotation, for odometry noise calculation.
+
+k_rot_to_rot:
+  _mandatory: true
+  _type: double
+  _doc: ratio of rotation variance to rotation, for odometry noise calculation.
+
+min_disp_var:
+  _mandatory: true
+  _type: double
+  _doc: minimum displacement variance, for odometry noise calculation.
+
+min_rot_var:
+  _mandatory: true
+  _type: double
+  _doc: minimum rotation variance, for odometry noise calculation.
+
+states:
+  P:
+    follow: StateSensorP3d.schema
+  O:
+    follow: StateSensorO3d.schema

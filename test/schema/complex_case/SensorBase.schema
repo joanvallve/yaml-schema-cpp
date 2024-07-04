@@ -1,0 +1,6 @@
+follow: TypeAndPlugin.schema
+
+name:
+  _mandatory: true
+  _type: string
+  _doc: The sensor's name. It has to be unique.

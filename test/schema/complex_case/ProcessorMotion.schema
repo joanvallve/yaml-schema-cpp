@@ -1,0 +1,23 @@
+follow: ProcessorBase.schema
+follow: MotionProvider.schema
+keyframe_vote:
+  max_time_span:
+    _mandatory: $voting_active
+    _type: double
+    _doc: Time threshold to create a new frame [s].
+  max_buff_length:
+    _mandatory: $voting_active
+    _type: unsigned int
+    _doc: Maximum size of the buffer of motions.
+  max_dist_traveled:
+    _mandatory: $voting_active
+    _type: double
+    _doc: Distance traveled threshold to create a new frame [m].
+  max_angle_turned:
+    _mandatory: $voting_active
+    _type: double
+    _doc: Angle turned threshold to create a new frame [rad].
+unmeasured_perturbation_std:
+  _mandatory: true
+  _type: double
+  _doc: Noise (standard deviation) of the integrated movement in the not observed directions.

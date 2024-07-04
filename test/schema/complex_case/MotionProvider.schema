@@ -1,0 +1,9 @@
+state_provider:
+  _mandatory: true
+  _type: bool
+  _doc: If the processor is used by the problem as provider of state.
+
+state_provider_order:
+  _mandatory: $state_provider
+  _type: double
+  _doc: The order number of this processor when problem gets the state (only used if state_provider = true). Two processors cannot have the same priority (if so, when installing the second is increased).

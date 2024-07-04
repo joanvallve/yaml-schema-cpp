@@ -108,9 +108,11 @@ void checkSchema(const YAML::Node&               node_schema,
         {
             throw std::runtime_error("YAML schema: In " + node_field + ", " + TYPE + " should be a string");
         }
-        if (node_schema[TYPE].as<std::string>().find("derived") != std::string::npos)
+        auto type =
+            isSequenceSchema(node_schema) ? getTypeOfSequence(node_schema) : node_schema[TYPE].as<std::string>();
+        // If type=="derived" or "derived[]", 'BASE' of type string is required
+        if (type == "derived") 
         {
-            // If type=="derived" or "derived[]", 'base' of type string is required
             if (not node_schema[BASE])
             {
                 throw std::runtime_error("YAML schema: " + node_field + " of derived type does not contain " + BASE);
@@ -119,6 +121,8 @@ void checkSchema(const YAML::Node&               node_schema,
             {
                 throw std::runtime_error("YAML schema: In " + node_field + ", " + BASE + " should be a string");
             }
+            // store type as BASE to check OPTIONS, VALUE & DEFAULT
+            type = node_schema[BASE].as<std::string>();
         }
         // Required 'doc' of type string
         if (not node_schema[DOC])
@@ -150,9 +154,7 @@ void checkSchema(const YAML::Node&               node_schema,
         // OPTIONAL 'value'
         if (node_schema[VALUE])
         {
-            // check type
-            auto type =
-                isSequenceSchema(node_schema) ? getTypeOfSequence(node_schema) : node_schema[TYPE].as<std::string>();
+            // CHECK TYPE (take BASE if "derived")
             // trivial type
             if (isTrivialType(type))
             {
@@ -194,9 +196,7 @@ void checkSchema(const YAML::Node&               node_schema,
                                          " value cannot be defined in mandatory field");
             }
 
-            // check type
-            auto type =
-                isSequenceSchema(node_schema) ? getTypeOfSequence(node_schema) : node_schema[TYPE].as<std::string>();
+            // CHECK TYPE (take BASE if "derived")
             // trivial type
             if (isTrivialType(type))
             {
@@ -229,9 +229,7 @@ void checkSchema(const YAML::Node&               node_schema,
             {
                 throw std::runtime_error("YAML schema: " + node_field + ", " + OPTIONS + " should be a sequence");
             }
-            // check that all items have valid type
-            auto type =
-                isSequenceSchema(node_schema) ? getTypeOfSequence(node_schema) : node_schema[TYPE].as<std::string>();
+            // CHECK TYPE (take BASE if "derived")
             for (auto n_i = 0; n_i < node_schema[OPTIONS].size(); n_i++)
             {
                 // trivial type

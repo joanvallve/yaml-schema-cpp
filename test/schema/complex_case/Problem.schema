@@ -1,0 +1,29 @@
+problem:
+  tree_manager:
+    _type: derived
+    _base: TreeManagerBase.schema
+    _mandatory: true
+    _doc: Tree manager parameters
+  dimension:
+    _type: int
+    _mandatory: true
+    _options: [2, 3]
+    _doc: "Dimension of the problem. '2' for 2D or '3' for 3D"
+map:
+  _type: derived
+  _base: MapBase.schema
+  _mandatory: false
+  _default:
+    type: MapBase
+    plugin: core
+  _doc: The map used in the wolf problem.
+sensors:
+  _type: derived[]
+  _base: SensorBase.schema
+  _mandatory: true
+  _doc: A sequence of all the sensors.
+processors:
+  _type: derived[]
+  _base: ProcessorBaseWithSensor.schema
+  _mandatory: true
+  _doc: A sequence of all the processors.

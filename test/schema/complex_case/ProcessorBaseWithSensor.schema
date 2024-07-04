@@ -1,0 +1,6 @@
+follow: ProcessorBase.schema
+
+sensor_name:
+  _mandatory: true
+  _type: string
+  _doc: The name of the sensor corresponding to this processor.

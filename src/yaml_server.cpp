@@ -60,6 +60,7 @@ void YamlServer::setYaml(const YAML::Node _node_input)
 
 bool YamlServer::applySchema(const std::string& name_schema)
 {
+    log_.str("");
     log_.clear();
     std::string header1, header2, header3;
 

@@ -1,0 +1,55 @@
+problem:
+  dimension: 3
+  first_frame:
+    P:
+      value: [0,0,0]
+      prior:
+        mode: "factor"
+        factor_std: [0.31, 0.31, 0.31]
+    O: 
+      value: [0,0,0,1]
+      prior:
+        mode: "factor"
+        factor_std: [0.31, 0.31, 0.31]
+  tree_manager: 
+    type: "None"
+sensors:  
+  -
+    type: "SensorOdom3d"
+    name: "odom"
+    plugin: "core"
+    k_disp_to_disp: 0.1
+    k_disp_to_rot: 0.1
+    k_rot_to_rot: 0.1 
+    min_disp_var: 0.1 
+    min_rot_var: 0.1
+    states:
+      P:
+        value: [1,2,3]
+        prior:
+          mode: fix
+        dynamic: false
+      O:
+        value: [0,0,0,1]
+        prior:
+          mode: "fix"
+        dynamic: false
+processors:
+  -
+    type: "ProcessorOdom3d"
+    name: "my_proc_odom3d"
+    sensor_name: "odom"
+    plugin: "core"
+    apply_loss_function: false
+    time_tolerance:         0.01  # seconds
+    keyframe_vote:
+      voting_active:        true
+      max_time_span:          1.95  # seconds
+      max_buff_length:        999   # motion deltas
+      max_dist_traveled:          999   # meters
+      max_angle_turned:           999   # radians (1 rad approx 57 deg, approx 60 deg)
+    
+    unmeasured_perturbation_std: 0.00111
+    
+    state_provider: true
+    state_provider_order: 1

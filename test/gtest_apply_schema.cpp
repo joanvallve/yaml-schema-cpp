@@ -109,6 +109,28 @@ TEST(schema, nontrivial_options_default_value)
     std::cout << "log: \n" << server.getLog() << std::endl;
 }
 
+TEST(schema, complex_case)
+{
+    YamlServer server = YamlServer({ROOT_DIR + "/test/schema/folder_schema"}, ROOT_DIR + "/test/yaml/complex_case.yaml");
+
+    std::cout << "before: \n" << server.getNode() << std::endl;
+
+    server.addFolderSchema(ROOT_DIR + "/test/schema/complex_case");
+    
+    EXPECT_TRUE(server.applySchema("Problem.schema"));
+
+    std::cout << "after Problem.schema: \n" << server.getNode() << std::endl;
+
+    std::cout << "log: \n" << server.getLog() << std::endl;
+
+    bool is2D = server.getNode()["problem"]["dimension"].as<int>() == 2;
+    EXPECT_TRUE(server.applySchema(is2D ? "Problem2d.schema" : "Problem3d.schema"));
+
+    std::cout << "after Problem3d.schema: \n" << server.getNode() << std::endl;
+
+    std::cout << "log: \n" << server.getLog() << std::endl;
+}
+
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);

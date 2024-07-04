@@ -1,0 +1,22 @@
+type:
+  _type: string
+  _mandatory: false
+  _value: StatePoint3d
+  _doc: "The type of the state for position in 3D: StatePoint3d. Not required to be filled by the user"
+
+value:
+  _type: Vector3d
+  _mandatory: true
+  _doc: A vector containing the position (x, y, z) [m].
+
+prior:
+  mode:
+    _type: string
+    _mandatory: true
+    _options: ["fix", "factor", "initial_guess"]
+    _doc: Can be 'factor' to add an absolute factor (with covariance defined in 'factor_std'), 'fix' to set the values constant or 'initial_guess' to just set the values.
+
+  factor_std:
+    _type: Vector3d
+    _mandatory: $mode == 'factor'
+    _doc: A vector containing the stdev values of the noise of the factor, i.e. the sqrt of the diagonal elements of the covariance matrix [m].
