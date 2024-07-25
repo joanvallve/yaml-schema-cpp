@@ -271,8 +271,7 @@ void checkSchema(const YAML::Node&               node_schema,
                         std::stringstream log;
                         YAML::Node        node_schema_default = node_schema[DEFAULT][n_i];
                         // type
-                        if (not applySchema(
-                                node_schema_default, type, folders_schema, log, ""))
+                        if (not applySchema(node_schema_default, type, folders_schema, log, ""))
                         {
                             throw std::runtime_error("YAML schema: " + node_field + ", " + DEFAULT + "[" +
                                                      std::to_string(n_i) +
@@ -303,8 +302,7 @@ void checkSchema(const YAML::Node&               node_schema,
                 {
                     std::stringstream log;
                     YAML::Node        node_schema_default = node_schema[DEFAULT];
-                    if (not applySchema(
-                            node_schema_default, type, folders_schema, log, ""))
+                    if (not applySchema(node_schema_default, type, folders_schema, log, ""))
                     {
                         throw std::runtime_error("YAML schema: " + node_field + ", " + DEFAULT +
                                                  " value did not pass the schema check with error: " + log.str());
