@@ -154,32 +154,79 @@ void checkSchema(const YAML::Node&               node_schema,
         // OPTIONAL 'value'
         if (node_schema[VALUE])
         {
-            // CHECK TYPE (take BASE if "derived")
-            // trivial type
-            if (isTrivialType(type))
+            // schema is a sequence type
+            if (isSequenceSchema(node_schema))
             {
-                if (not tryNodeAs(node_schema[VALUE], type))
+                // check value is sequence as well
+                if (not node_schema[VALUE].IsSequence())
                 {
-                    throw std::runtime_error("YAML schema: " + node_field + ", " + VALUE + " of wrong type");
+                    throw std::runtime_error("YAML schema: " + node_field + ", " + VALUE + " should be a sequence");
+                }
+
+                // check type for each node
+                for (auto n_i = 0; n_i < node_schema[VALUE].size(); n_i++)
+                {
+                    // CHECK TYPE (taking BASE if "derived")
+                    // trivial type
+                    if (isTrivialType(type))
+                    {
+                        if (not tryNodeAs(node_schema[VALUE][n_i], type))
+                        {
+                            throw std::runtime_error("YAML schema: " + node_field + ", " + VALUE + "[" +
+                                                     std::to_string(n_i) + "] of wrong type");
+                        }
+                    }
+                    // type with schema
+                    else if (isNonTrivialType(type, folders_schema))
+                    {
+                        std::stringstream log;
+                        YAML::Node        node_schema_value = node_schema[VALUE][n_i];
+
+                        if (not applySchema(node_schema_value, type, folders_schema, log, ""))
+                        {
+                            throw std::runtime_error("YAML schema: " + node_field + ", " + VALUE + "[" +
+                                                     std::to_string(n_i) +
+                                                     "] did not pass the schema check with error: " + log.str());
+                        }
+                    }
+                    else
+                    {
+                        throw std::runtime_error("YAML schema: " + node_field + ", " + VALUE + " value unknown type.");
+                    }
                 }
             }
-            // type with schema
-            else if (isNonTrivialType(type, folders_schema))
-            {
-                std::stringstream log;
-                YAML::Node        node_schema_value = node_schema[VALUE];
-                if (not applySchema(node_schema_value, type, folders_schema, log, ""))
-                {
-                    throw std::runtime_error("YAML schema: " + node_field + ", " + VALUE +
-                                             " value did not pass the schema check with error: " + log.str());
-                }
-            }
+            // schema is a scalar type
             else
             {
-                throw std::runtime_error("YAML schema: " + node_field + ", " + VALUE + " value unknown type.");
+                // CHECK TYPE (taking BASE if "derived")
+                // trivial type
+                if (isTrivialType(type))
+                {
+                    if (not tryNodeAs(node_schema[VALUE], type))
+                    {
+                        throw std::runtime_error("YAML schema: " + node_field + ", " + VALUE + " of wrong type");
+                    }
+                }
+                // type with schema
+                else if (isNonTrivialType(type, folders_schema))
+                {
+                    std::stringstream log;
+                    YAML::Node        node_schema_value = node_schema[VALUE];
+
+                    if (not applySchema(node_schema_value, type, folders_schema, log, ""))
+                    {
+                        throw std::runtime_error("YAML schema: " + node_field + ", " + VALUE +
+                                                 " did not pass the schema check with error: " + log.str());
+                    }
+                }
+                else
+                {
+                    throw std::runtime_error("YAML schema: " + node_field + ", " + VALUE + " value unknown type.");
+                }
             }
 
-            // if 'value', 'mandatory' should be false (no sense requiring user to define something already defined)
+            // if 'value', 'mandatory' should be false (no sense requiring user to define something already
+            // defined)
             if (isExpression(node_schema[MANDATORY]) or node_schema[MANDATORY].as<bool>())
             {
                 throw std::runtime_error("YAML schema: " + node_field + ", if " + VALUE + " defined, " + MANDATORY +
@@ -196,29 +243,77 @@ void checkSchema(const YAML::Node&               node_schema,
                                          " value cannot be defined in mandatory field");
             }
 
-            // CHECK TYPE (take BASE if "derived")
-            // trivial type
-            if (isTrivialType(type))
+            // schema is a sequence type
+            if (isSequenceSchema(node_schema))
             {
-                if (not tryNodeAs(node_schema[DEFAULT], type))
+                // check value is sequence as well
+                if (not node_schema[DEFAULT].IsSequence())
                 {
-                    throw std::runtime_error("YAML schema: " + node_field + ", " + DEFAULT + " value wrong type");
+                    throw std::runtime_error("YAML schema: " + node_field + ", " + DEFAULT + " should be a sequence");
+                }
+
+                // check type for each node
+                for (auto n_i = 0; n_i < node_schema[DEFAULT].size(); n_i++)
+                {
+                    // CHECK TYPE (take BASE if "derived")
+                    // trivial type
+                    if (isTrivialType(type))
+                    {
+                        if (not tryNodeAs(node_schema[DEFAULT][n_i], type))
+                        {
+                            throw std::runtime_error("YAML schema: " + node_field + ", " + DEFAULT + "[" +
+                                                     std::to_string(n_i) + "] wrong type");
+                        }
+                    }
+                    // type with schema
+                    else if (isNonTrivialType(type, folders_schema))
+                    {
+                        std::stringstream log;
+                        YAML::Node        node_schema_default = node_schema[DEFAULT][n_i];
+                        // type
+                        if (not applySchema(
+                                node_schema_default, type, folders_schema, log, ""))
+                        {
+                            throw std::runtime_error("YAML schema: " + node_field + ", " + DEFAULT + "[" +
+                                                     std::to_string(n_i) +
+                                                     "] did not pass the schema check with error: " + log.str());
+                        }
+                    }
+                    else
+                    {
+                        throw std::runtime_error("YAML schema: " + node_field + ", " + DEFAULT + "[" +
+                                                 std::to_string(n_i) + "] unknown type.");
+                    }
                 }
             }
-            // type with schema
-            else if (isNonTrivialType(type, folders_schema))
-            {
-                std::stringstream log;
-                YAML::Node        node_schema_default = node_schema[DEFAULT];
-                if (not applySchema(node_schema_default, type, folders_schema, log, ""))
-                {
-                    throw std::runtime_error("YAML schema: " + node_field + ", " + DEFAULT +
-                                             " value did not pass the schema check with error: " + log.str());
-                }
-            }
+            // schema is a scalar type
             else
             {
-                throw std::runtime_error("YAML schema: " + node_field + ", " + DEFAULT + " value unknown type.");
+                // CHECK TYPE (take BASE if "derived")
+                // trivial type
+                if (isTrivialType(type))
+                {
+                    if (not tryNodeAs(node_schema[DEFAULT], type))
+                    {
+                        throw std::runtime_error("YAML schema: " + node_field + ", " + DEFAULT + " value wrong type");
+                    }
+                }
+                // type with schema
+                else if (isNonTrivialType(type, folders_schema))
+                {
+                    std::stringstream log;
+                    YAML::Node        node_schema_default = node_schema[DEFAULT];
+                    if (not applySchema(
+                            node_schema_default, type, folders_schema, log, ""))
+                    {
+                        throw std::runtime_error("YAML schema: " + node_field + ", " + DEFAULT +
+                                                 " value did not pass the schema check with error: " + log.str());
+                    }
+                }
+                else
+                {
+                    throw std::runtime_error("YAML schema: " + node_field + ", " + DEFAULT + " value unknown type.");
+                }
             }
         }
         // OPTIONAL sequence 'options'
@@ -352,7 +447,8 @@ bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool ver
                         continue;
                     }
 
-                    // Flatten yaml nodes (containing "follow") to a single YAML node containing all the information
+                    // Flatten yaml nodes (containing "follow") to a single YAML node containing all the
+                    // information
                     try
                     {
                         flattenNode(node_schema, entry.path().parent_path().string(), folders_schema, true, override);

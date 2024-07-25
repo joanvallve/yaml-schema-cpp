@@ -11,7 +11,7 @@ TEST(schema, plain_yaml)
     std::stringstream log;
     auto              node_schema = loadSchema(
         "test1.schema", {ROOT_DIR + "/test/schema/folder_schema", ROOT_DIR + "/test/schema/other_folder_schema"}, log);
-    ASSERT_TRUE(node_schema.IsDefined());
+    EXPECT_TRUE(node_schema.IsDefined());
     std::cout << log.str() << std::endl;
 }
 
@@ -20,7 +20,7 @@ TEST(schema, follow)
     std::stringstream log;
     auto              node_schema = loadSchema(
         "test2.schema", {ROOT_DIR + "/test/schema/folder_schema", ROOT_DIR + "/test/schema/other_folder_schema"}, log);
-    ASSERT_TRUE(node_schema.IsDefined());
+    EXPECT_TRUE(node_schema.IsDefined());
     std::cout << log.str() << std::endl;
 }
 
@@ -30,7 +30,7 @@ TEST(schema, empty)
     auto              node_schema = loadSchema(
         "empty.schema", {ROOT_DIR + "/test/schema/folder_schema", ROOT_DIR + "/test/schema/other_folder_schema"}, log);
 
-    ASSERT_TRUE(node_schema.IsDefined());
+    EXPECT_TRUE(node_schema.IsDefined());
     std::cout << log.str() << std::endl;
 }
 
@@ -41,7 +41,7 @@ TEST(schema, nontrivial_options_default_value)
         loadSchema("nontrivial_options_default_value.schema",
                    {ROOT_DIR + "/test/schema/folder_schema", ROOT_DIR + "/test/schema/other_folder_schema"},
                    log);
-    ASSERT_TRUE(node_schema.IsDefined());
+    EXPECT_TRUE(node_schema.IsDefined());
     std::cout << "node_schema: \n" << node_schema << std::endl;
     std::cout << log.str() << std::endl;
 }
@@ -69,7 +69,7 @@ TEST(schema, wrong)
         std::stringstream log;
         std::cout << "Checking " << w_schema << ".schema..." << std::endl;
         auto node_schema = loadSchema(w_schema + ".schema", {ROOT_DIR + "/test/wrong_schema"}, log);
-        ASSERT_FALSE(node_schema.IsDefined());
+        EXPECT_FALSE(node_schema.IsDefined());
         std::cout << log.str() << std::endl;
     }
 }
@@ -83,7 +83,7 @@ TEST(schema, override)
         std::stringstream log;
         std::cout << "Checking " << w_schema << ".schema..." << std::endl;
         auto node_schema = loadSchema(w_schema + ".schema", {ROOT_DIR + "/test/schema"}, log);
-        ASSERT_TRUE(node_schema.IsDefined());
+        EXPECT_TRUE(node_schema.IsDefined());
         std::cout << log.str() << std::endl;
     }
 }
@@ -97,15 +97,15 @@ TEST(schema, dont_override)
         std::stringstream log;
         std::cout << "Checking " << w_schema << ".schema..." << std::endl;
         auto node_schema = loadSchema(w_schema + ".schema", {ROOT_DIR + "/test/schema"}, log);
-        ASSERT_TRUE(node_schema.IsDefined());
+        EXPECT_TRUE(node_schema.IsDefined());
         std::cout << log.str() << std::endl;
     }
 }
 
 TEST(schema, validate_all_schemas)
 {
-    ASSERT_TRUE(validateAllSchemas({ROOT_DIR + "/test/schema"}, true));
-    ASSERT_FALSE(validateAllSchemas({ROOT_DIR + "/test/wrong_schema"}, true));
+    EXPECT_TRUE(validateAllSchemas({ROOT_DIR + "/test/schema"}, true));
+    EXPECT_FALSE(validateAllSchemas({ROOT_DIR + "/test/wrong_schema"}, true));
 }
 
 int main(int argc, char **argv)

@@ -10,3 +10,13 @@ param2:
     - "string"
     - "strong"
     - "streng"
+param10:
+  _mandatory: false
+  _type: int[]
+  _default: []
+  _doc: "seq of ints"
+param12:
+  _mandatory: false
+  _type: int[]
+  _value: []
+  _doc: "seq of ints"
