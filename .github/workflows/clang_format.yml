@@ -1,35 +1,29 @@
-name: clang-format
+name: clang-format Check
 
 on: [push, pull_request]
 
 env:
  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
-    
-jobs:
-  format:
-    runs-on: ubuntu-latest
-    
-    steps:
-        
-    - uses: actions/checkout@v4
 
-    - name: install clang
-      run: sudo apt install -y clang-format-13
-      
-    - name: config git & temporary branch
-      run: |
-        if [ `git rev-parse --verify ci_processing 2>/dev/null` ]; then
-          git branch -D ci_processing
-        fi
-        git config --global user.email "cont-int@github.com"
-        git config --global user.name "continuous integration"
-        git checkout -b ci_processing
-    - name: apply clang format
-      run: find . -iname *.h -o -iname *.cpp -o -iname *.hpp | xargs clang-format-13 --style=file -i
-    - name: push changes if any
-      run: |
-        if git commit -a -m "[skip ci] clang format" ; then
-          git push origin ci_processing:${BRANCH_NAME}
-        else
-          echo "No changes, nothing to commit!"
-        fi
+jobs:
+  formatting-check:
+    name: Formatting Check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        path:
+          - check: 'src'
+            exclude: ''              # Nothing to exclude
+          - check: 'include'
+            exclude: 'exprtk.hpp'    # Exclude file
+          - check: 'test'
+            exclude: ''              # Nothing to exclude
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run clang-format style check for C/C++/Protobuf programs.
+      uses: jidicula/clang-format-action@v4.14.0
+      with:
+        clang-format-version: '12'
+        check-path: ${{ matrix.path['check'] }}
+        exclude-regex: ${{ matrix.path['exclude'] }}
+        fallback-style: 'Mozilla' # optional
