@@ -21,3 +21,14 @@ param4:
   _type: bool
   _default: true
   _doc: "some parameter"
+params5:
+  _mandatory: false
+  _type: double
+  _value: 0.0
+  _doc: "some parameter"
+namespace2:
+  param6:
+    _mandatory: false
+    _type: double
+    _value: 0.0
+    _doc: "some parameter"

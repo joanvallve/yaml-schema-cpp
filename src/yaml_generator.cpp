@@ -139,14 +139,15 @@ void schemaToYaml(const YAML::Node&               node_schema,
                   const std::vector<std::string>& folders_schema,
                   bool                            override)
 {
-    // std::cout << "SCHEMA:\n" << node_schema << std::endl;
-    // std::cout << "OUTPUT:\n" << node_output << std::endl;
-
     // Specification (has _mandatory, _type and _doc)
     if (isSpecification(node_schema))
     {
         // If VALUE defined in schema, not needed to be added to yaml
-        if (node_schema[VALUE]) return;
+        if (node_schema[VALUE])
+        {
+            node_output = YAML::Null;
+            return;
+        }
 
         // Not sequence
         if (not isSequenceSchema(node_schema))
@@ -211,7 +212,7 @@ void schemaToYaml(const YAML::Node&               node_schema,
         // sequence
         else
         {
-            // to check all the entries of the sequence, remove the brackets [] from the end of type
+            // remove the brackets [] from the end of type
             YAML::Node node_schema_i = Clone(node_schema);
             node_schema_i[TYPE]      = getTypeOfSequence(node_schema);
 
@@ -220,8 +221,8 @@ void schemaToYaml(const YAML::Node&               node_schema,
                 YAML::Node node_output_i;
                 schemaToYaml(node_schema_i, node_output_i, folders_schema, override);
 
-                // add node if it was created (if VALUE defined, it won't)
-                if (node_output_i.IsDefined()) node_output.push_back(node_output_i);
+                // add node if it was created (if VALUE defined, it wasn't)
+                if (not node_output_i.IsNull()) node_output.push_back(node_output_i);
             }
         }
     }
@@ -233,14 +234,13 @@ void schemaToYaml(const YAML::Node&               node_schema,
         // iterate all childs
         for (auto node_schema_child : node_schema)
         {
-            YAML::Node node_output_child = node_output[node_schema_child.first];
+            YAML::Node node_output_child;
             schemaToYaml(node_schema_child.second, node_output_child, folders_schema, override);
 
-            // remove node if it wasn't created (for example, if VALUE defined)
-            if (not node_output_child.IsDefined()) node_output.remove(node_schema_child.first);
+            // add node if it was created (if VALUE defined, it wasn't)
+            if (not node_output_child.IsNull()) node_output[node_schema_child.first] = node_output_child;
         }
     }
-    // std::cout << "OUTPUT:\n" << node_output << std::endl;
 }
 
 }  // namespace yaml_schema_cpp
