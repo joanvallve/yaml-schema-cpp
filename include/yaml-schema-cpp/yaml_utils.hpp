@@ -1,12 +1,12 @@
 #pragma once
 
 #include <list>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 #include "yaml-cpp/yaml.h"
 
 namespace yaml_schema_cpp
 {
-namespace filesystem = boost::filesystem;
+namespace filesystem = std::filesystem;
 // 'follow' behavior:
 // -> schema node (is_schema = true): only allowed single file names. It will be searched inside folders specified by
 // 'folders'

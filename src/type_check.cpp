@@ -72,11 +72,11 @@ bool isNonTrivialType(const std::string& type, const std::vector<std::string>& f
 {
     std::string name_schema = type;
 
-    if (filesystem::extension(name_schema).empty())
+    if (filesystem::path(name_schema).extension().empty())
     {
         name_schema += SCHEMA_EXTENSION;
     }
-    else if (filesystem::extension(name_schema) != SCHEMA_EXTENSION)
+    else if (filesystem::path(name_schema).extension() != SCHEMA_EXTENSION)
     {
         // bad extension
         return false;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include "yaml-cpp/yaml.h"
 
@@ -10,7 +10,7 @@ const std::string red("\033[0;31m");
 const std::string yellow("\033[1;33m");
 const std::string reset("\033[0m");
 
-namespace filesystem = boost::filesystem;
+namespace filesystem = std::filesystem;
 
 std::string generateTemplate(std::string                     filepath,
                              const std::string&              name_schema,

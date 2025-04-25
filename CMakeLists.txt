@@ -49,7 +49,9 @@ include_directories("${PROJECT_BINARY_DIR}/conf")
 # ------ DEPENDENCIES ------
 find_package(yaml-cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(Boost REQUIRED COMPONENTS filesystem system)
+# C++17 is required for std::filesystem
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # ------ LIBRARY ------
 list(APPEND LIB_SRCS src/expression.cpp)
@@ -68,7 +70,9 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PUBLIC yaml-cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
-target_link_libraries(${PROJECT_NAME} PUBLIC Boost::filesystem)
+if(CMAKE_COMPILER_IS_GNUCXX)
+    target_link_libraries(${PROJECT_NAME} PUBLIC stdc++fs)
+endif()
 
 # ------ TESTS ------
 IF(BUILD_TESTS)
@@ -82,7 +86,9 @@ MESSAGE(STATUS "Building YAML generator.")
 add_executable(yaml_template_generator src/yaml_template_generator.cpp)
 
 target_link_libraries(yaml_template_generator PUBLIC ${PROJECT_NAME})
-target_link_libraries(yaml_template_generator PUBLIC Boost::filesystem Boost::system)
+if(CMAKE_COMPILER_IS_GNUCXX)
+    target_link_libraries(yaml_template_generator PUBLIC stdc++fs)
+endif()
 
 # ------ INSTALL ------
 install(DIRECTORY include/${PROJECT_NAME} DESTINATION include)

@@ -8,7 +8,7 @@
 
 namespace yaml_schema_cpp
 {
-namespace filesystem = boost::filesystem;
+namespace filesystem = std::filesystem;
 
 #define CHECK_STRING_TYPE_CASE(yaml_string, TypeName)                                                                 \
     if (type == #yaml_string)                                                                                         \
