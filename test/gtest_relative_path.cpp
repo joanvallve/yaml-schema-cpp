@@ -21,7 +21,7 @@ TEST(relative_path, same_folder)
 
     ASSERT_EQ(input_node["map1"]["param2"].as<std::string>(), ROOT_DIR + "/test/yaml/./base_input.yaml");
 
-    ASSERT_TRUE(boost::filesystem::exists(input_node["map1"]["param2"].as<std::string>()));
+    ASSERT_TRUE(std::filesystem::exists(input_node["map1"]["param2"].as<std::string>()));
 }
 
 TEST(relative_path, other_folder)
@@ -36,7 +36,7 @@ TEST(relative_path, other_folder)
     ASSERT_TRUE(input_node["map1"]["param2"]);
 
     ASSERT_EQ(input_node["map1"]["param2"].as<std::string>(), ROOT_DIR + "/test/yaml/../../src/yaml_utils.cpp");
-    ASSERT_TRUE(boost::filesystem::exists(input_node["map1"]["param2"].as<std::string>()));
+    ASSERT_TRUE(std::filesystem::exists(input_node["map1"]["param2"].as<std::string>()));
 }
 
 int main(int argc, char **argv)
