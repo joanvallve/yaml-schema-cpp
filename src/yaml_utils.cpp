@@ -60,6 +60,7 @@ void flattenMap(YAML::Node&              node,
             filesystem::path path_follow;
 
             // follow schema: empty or .schema
+#if BOOST_VERSION < 108500
             bool followed_is_schema = filesystem::extension(path_follow_str).empty() or
                                       filesystem::extension(path_follow_str) == SCHEMA_EXTENSION;
             if (followed_is_schema)
@@ -77,6 +78,26 @@ void flattenMap(YAML::Node&              node,
                 throw std::runtime_error("In flattenNode: follow '" + path_follow_str +
                                          "' bad extension, should be '.yaml', '.schema' or empty (assumed '.schema')");
             }
+#else
+            const filesystem::path path_follow_str_extension = filesystem::path(n.second.as<std::string>()).extension();
+            bool followed_is_schema = path_follow_str_extension.empty() or
+                                      path_follow_str_extension == SCHEMA_EXTENSION;
+            if (followed_is_schema)
+            {
+                path_follow = findFileRecursive(path_follow_str, schema_folders);
+            }
+            // follow yaml file
+            else if (path_follow_str_extension == ".yaml")
+            {
+                const filesystem::path follow_value(path_follow_str);
+                path_follow = current_folder / follow_value;
+            }
+            else
+            {
+                throw std::runtime_error("In flattenNode: follow '" + path_follow_str +
+                                         "' bad extension, should be '.yaml', '.schema' or empty (assumed '.schema')");
+            }
+#endif
 
             if (not filesystem::exists(path_follow))
             {

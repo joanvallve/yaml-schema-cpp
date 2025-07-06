@@ -72,6 +72,7 @@ bool isNonTrivialType(const std::string& type, const std::vector<std::string>& f
 {
     std::string name_schema = type;
 
+#if BOOST_VERSION < 108500
     if (filesystem::extension(name_schema).empty())
     {
         name_schema += SCHEMA_EXTENSION;
@@ -81,6 +82,18 @@ bool isNonTrivialType(const std::string& type, const std::vector<std::string>& f
         // bad extension
         return false;
     }
+#else
+    const filesystem::path name_schema_extension = filesystem::path(name_schema).extension();
+    if (name_schema_extension.empty())
+    {
+        name_schema += SCHEMA_EXTENSION;
+    }
+    else if (name_schema_extension != SCHEMA_EXTENSION)
+    {
+        // bad extension
+        return false;
+    }
+#endif
 
     try
     {

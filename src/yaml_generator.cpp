@@ -21,6 +21,7 @@ std::string generateTemplate(std::string                     filepath,
                              bool                            override)
 {
     // Check extension
+#if BOOST_VERSION < 108500
     if (filesystem::extension(filepath).empty())
     {
         filepath += YAML_EXTENSION;
@@ -31,6 +32,19 @@ std::string generateTemplate(std::string                     filepath,
                   << "WARNING: storing template YAML file with an extension different than '.yaml': " + filepath
                   << reset << std::endl;
     }
+#else
+    const filesystem::path filepath_extension = filesystem::path(filepath).extension();
+    if (filepath_extension.empty())
+    {
+        filepath += YAML_EXTENSION;
+    }
+    else if (filepath_extension != YAML_EXTENSION)
+    {
+        std::cout << yellow
+                  << "WARNING: storing template YAML file with an extension different than '.yaml': " + filepath
+                  << reset << std::endl;
+    }
+#endif
 
     // Check that directory of the file exists
     filesystem::path fp = filepath;
@@ -79,15 +93,28 @@ std::string generateTemplate(std::string                     filepath,
 YAML::Node generateYaml(std::string name_schema, const std::vector<std::string>& folders_schema, bool override)
 {
     // Check extension
-    if (filesystem::extension(name_schema).empty())
+#if BOOST_VERSION < 108500
+    if (filesystem::path(name_schema).extension().empty())
     {
         name_schema += SCHEMA_EXTENSION;
     }
-    else if (filesystem::extension(name_schema) != SCHEMA_EXTENSION)
+    else if (filesystem::path(name_schema).extension() != SCHEMA_EXTENSION)
     {
         throw std::runtime_error("Wrong schema file extension " + name_schema + ", it should be '" + SCHEMA_EXTENSION +
                                  "'");
     }
+#else
+    const filesystem::path name_schema_extension = filesystem::path(name_schema).extension();
+    if (name_schema_extension.empty())
+    {
+        name_schema += SCHEMA_EXTENSION;
+    }
+    else if (name_schema_extension != SCHEMA_EXTENSION)
+    {
+        throw std::runtime_error("Wrong schema file extension " + name_schema + ", it should be '" + SCHEMA_EXTENSION +
+                                 "'");
+    }
+#endif
 
     // Find schema file
     filesystem::path path_schema = findFileRecursive(name_schema, folders_schema);

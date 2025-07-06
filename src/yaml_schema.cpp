@@ -13,6 +13,7 @@ YAML::Node loadSchema(std::string                     name_schema,
                       bool                            override)
 {
     // Check extension
+#if BOOST_VERSION < 108500
     if (filesystem::extension(name_schema).empty())
     {
         name_schema += SCHEMA_EXTENSION;
@@ -23,6 +24,19 @@ YAML::Node loadSchema(std::string                     name_schema,
                    SCHEMA_EXTENSION + "'\n";
         return YAML::Node(YAML::NodeType::Undefined);
     }
+#else
+    const filesystem::path name_schema_extension = filesystem::path(name_schema).extension();
+    if (name_schema_extension.empty())
+    {
+        name_schema += SCHEMA_EXTENSION;
+    }
+    else if (name_schema_extension != SCHEMA_EXTENSION)
+    {
+        log << "ERROR in loadSchema(): Wrong schema file extension " + name_schema + ", it should be '" +
+                   SCHEMA_EXTENSION + "'\n";
+        return YAML::Node(YAML::NodeType::Undefined);
+    }
+#endif
 
     // Find schema file
     filesystem::path path_schema;
@@ -423,7 +437,7 @@ bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool ver
         {
             for (auto const& entry : filesystem::recursive_directory_iterator(folder))
             {
-                if (filesystem::is_regular_file(entry) and filesystem::extension(entry) == SCHEMA_EXTENSION)
+                if (filesystem::is_regular_file(entry) and filesystem::path(entry).extension() == SCHEMA_EXTENSION)
                 {
                     std::string schema_file = entry.path().string();
 
