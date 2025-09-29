@@ -79,11 +79,11 @@ std::string generateTemplate(std::string                     filepath,
 YAML::Node generateYaml(std::string name_schema, const std::vector<std::string>& folders_schema, bool override)
 {
     // Check extension
-    if (filesystem::extension(name_schema).empty())
+    if (filesystem::path(name_schema).extension().empty())
     {
         name_schema += SCHEMA_EXTENSION;
     }
-    else if (filesystem::extension(name_schema) != SCHEMA_EXTENSION)
+    else if (filesystem::path(name_schema).extension() != SCHEMA_EXTENSION)
     {
         throw std::runtime_error("Wrong schema file extension " + name_schema + ", it should be '" + SCHEMA_EXTENSION +
                                  "'");
