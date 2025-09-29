@@ -48,6 +48,11 @@ include_directories("${PROJECT_BINARY_DIR}/conf")
 
 # ------ DEPENDENCIES ------
 find_package(yaml-cpp REQUIRED)
+if (yaml-cpp_FOUND)
+    message(STATUS "Found yaml-cpp ${yaml-cpp_VERSION}")
+else()
+    message(FATAL_ERROR "yaml-cpp NOT FOUND. Please install yaml-cpp.")
+endif()
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem system)
 
