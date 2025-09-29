@@ -31,7 +31,7 @@ jobs:
         git clone -b ${{matrix.yaml_cpp_version}} https://github.com/jbeder/yaml-cpp.git
         mkdir -pv yaml-cpp/build
         cd yaml-cpp/build
-        cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ..
+        cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DYAML_BUILD_SHARED_LIBS=ON ..
         make -j2
         sudo make install
         
