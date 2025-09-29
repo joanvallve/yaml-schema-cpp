@@ -27,7 +27,7 @@ It is tested with C++11, 14, 17 and 20 in Ubuntu 20.04 and 22.04.
 
 ## Dependencies
 
-**1. Boost::Filesystem**
+**1. Boost::Filesystem (if C++ < 17)**
 
 ```bash
 sudo apt-get install libboost-filesystem-dev

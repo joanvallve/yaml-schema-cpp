@@ -5,7 +5,6 @@
 
 namespace yaml_schema_cpp
 {
-namespace filesystem = boost::filesystem;
 
 YAML::Node loadSchema(std::string                     name_schema,
                       const std::vector<std::string>& folders_schema,

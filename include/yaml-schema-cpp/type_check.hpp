@@ -5,11 +5,10 @@
 #include "yaml-schema-cpp/yaml_conversion.hpp"
 #include "yaml-cpp/yaml.h"
 #include "yaml-schema-cpp/yaml_utils.hpp"
+#include "yaml-schema-cpp/filesystem_wrapper.hpp"
 
 namespace yaml_schema_cpp
 {
-namespace filesystem = boost::filesystem;
-
 #define CHECK_STRING_TYPE_CASE(yaml_string, TypeName)                                                                 \
     if (type == #yaml_string)                                                                                         \
     {                                                                                                                 \

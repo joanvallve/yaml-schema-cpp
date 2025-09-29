@@ -64,7 +64,7 @@ TEST(generator, file_template)
 {
     // Create temporary folder at home
     std::string temporary_folder = ROOT_DIR + "/test/temp_folder";
-    if (not boost::filesystem::exists(temporary_folder)) boost::filesystem::create_directory(temporary_folder);
+    if (not filesystem::exists(temporary_folder)) filesystem::create_directory(temporary_folder);
 
     generateTemplate(temporary_folder + "/test1_template.yaml", "test1.schema", {ROOT_DIR});
     generateTemplate(temporary_folder + "/test1_template.yaml", "test1.schema", {ROOT_DIR});  // SHOULD RAISE WARNING
@@ -75,7 +75,7 @@ TEST(generator, file_template)
     generateTemplate(temporary_folder + "/sequence_derived_template.yaml", "sequence_derived.schema", {ROOT_DIR});
 
     // remove temporary folder
-    boost::filesystem::remove_all(temporary_folder);
+    filesystem::remove_all(temporary_folder);
 }
 
 int main(int argc, char **argv)

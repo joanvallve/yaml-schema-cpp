@@ -11,7 +11,6 @@
 
 namespace yaml_schema_cpp
 {
-namespace filesystem = boost::filesystem;
 
 void flattenNode(YAML::Node&              node,
                  std::string              current_folder,

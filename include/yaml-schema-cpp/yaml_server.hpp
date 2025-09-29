@@ -3,11 +3,10 @@
 #include <iostream>
 #include <fstream>
 #include "yaml-cpp/yaml.h"
-#include <boost/filesystem.hpp>
+#include "yaml-schema-cpp/filesystem_wrapper.hpp"
 
 namespace yaml_schema_cpp
 {
-namespace filesystem = boost::filesystem;
 
 class YamlServer
 {

@@ -3,7 +3,6 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
-#include <boost/filesystem.hpp>
 
 #include <Eigen/Dense>
 
@@ -11,6 +10,7 @@
 #include "yaml-schema-cpp/yaml_conversion.hpp"
 #include "yaml-schema-cpp/type_check.hpp"
 #include "yaml-schema-cpp/yaml_utils.hpp"
+#include "yaml-schema-cpp/filesystem_wrapper.hpp"
 
 namespace yaml_schema_cpp
 {
@@ -26,8 +26,6 @@ static std::string            VALUE            = SCHEMA_PREFIX + "value";
 static std::string            BASE             = SCHEMA_PREFIX + "base";
 static std::list<std::string> RESERVED_KEYS{TYPE, MANDATORY, DOC, OPTIONS, DEFAULT, BASE};
 static std::list<std::string> REQUIRED_KEYS{TYPE, MANDATORY, DOC};
-
-namespace filesystem = boost::filesystem;
 
 YAML::Node loadSchema(std::string                     schema_file,
                       const std::vector<std::string>& folders_schema,

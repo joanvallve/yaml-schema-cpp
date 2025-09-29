@@ -6,7 +6,6 @@
 
 namespace yaml_schema_cpp
 {
-namespace filesystem = boost::filesystem;
 
 YamlServer::YamlServer(bool override) : folders_schema_(), path_input_(), override_(override) {}
 
