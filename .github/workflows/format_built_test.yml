@@ -28,7 +28,7 @@ jobs:
         
     - name: install yaml-cpp
       run: |
-        git clone -b =${{matrix.yaml_cpp_version}} https://github.com/jbeder/yaml-cpp.git
+        git clone -b ${{matrix.yaml_cpp_version}} https://github.com/jbeder/yaml-cpp.git
         mkdir -pv yaml-cpp/build
         cd yaml-cpp/build
         cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ..
