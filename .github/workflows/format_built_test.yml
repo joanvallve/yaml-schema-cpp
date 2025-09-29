@@ -15,10 +15,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, ubuntu-22.04]
+        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04]
         build_type: [Debug, Release]
         cxx_standard: [11, 14, 17, 20]
-        yaml_cpp_version: [yaml-cpp-0.6.0, yaml-cpp-0.6.1, yaml-cpp-0.6.2, yaml-cpp-0.6.3, yaml-cpp-0.7.0]
+        yaml_cpp_version: [yaml-cpp-0.6.0, yaml-cpp-0.6.1, yaml-cpp-0.6.2, yaml-cpp-0.6.3, yaml-cpp-0.7.0, master]
 
     steps:
     
@@ -28,10 +28,10 @@ jobs:
         
     - name: install yaml-cpp
       run: |
-        git clone -b ${{matrix.yaml_cpp_version}} https://github.com/jbeder/yaml-cpp.git
+        git clone -b ${{matrix.yaml_cpp_version}} --depth 1 https://github.com/jbeder/yaml-cpp.git
         mkdir -pv yaml-cpp/build
         cd yaml-cpp/build
-        cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DYAML_BUILD_SHARED_LIBS=ON ..
+        cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DYAML_BUILD_SHARED_LIBS=ON -DBUILD_SHARED_LIBS=ON ..
         make -j2
         sudo make install
         
