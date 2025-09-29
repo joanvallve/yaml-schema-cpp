@@ -18,6 +18,7 @@ jobs:
         os: [ubuntu-20.04, ubuntu-22.04]
         build_type: [Debug, Release]
         cxx_standard: [11, 14, 17, 20]
+        yaml_cpp_version: [yaml-cpp-0.6.0, yaml-cpp-0.6.1, yaml-cpp-0.6.2, yaml-cpp-0.6.3, yaml-cpp-0.7.0]
 
     steps:
     
@@ -27,7 +28,7 @@ jobs:
         
     - name: install yaml-cpp
       run: |
-        git clone https://github.com/jbeder/yaml-cpp.git
+        git clone -b =${{matrix.yaml_cpp_version}} https://github.com/jbeder/yaml-cpp.git
         mkdir -pv yaml-cpp/build
         cd yaml-cpp/build
         cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ..
