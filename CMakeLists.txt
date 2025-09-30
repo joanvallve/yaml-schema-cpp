@@ -29,11 +29,11 @@ IF(NOT BUILD_TESTS)
 ENDIF(NOT BUILD_TESTS)
 IF(CMAKE_CXX_STANDARD LESS 17)
     message(STATUS "C++ less than 17, Boost::filesystem is required")
-    SET(FILESYSTEM_LIB BOOST)
+    SET(BOOST_FILESYSTEM_LIB 1)
 ELSE()
-    SET(FILESYSTEM_LIB STD)
+    SET(BOOST_FILESYSTEM_LIB 0)
 ENDIF()
-message(STATUS "FILESYSTEM_LIB: ${FILESYSTEM_LIB}")
+message(STATUS "BOOST_FILESYSTEM_LIB: ${BOOST_FILESYSTEM_LIB}")
 
 # ============ config.h ============
 # Define the directory where will be the configured config.h
@@ -57,7 +57,7 @@ include_directories("${PROJECT_BINARY_DIR}/conf")
 # ------ DEPENDENCIES ------
 find_package(yaml-cpp 0.7 REQUIRED)
 find_package(Eigen3 REQUIRED)
-IF(FILESYSTEM_LIB STREQUAL BOOST)
+IF(BOOST_FILESYSTEM_LIB)
     message(STATUS "Finding Boost::filesystem")
     find_package(Boost REQUIRED COMPONENTS filesystem system)
 ENDIF()
@@ -79,10 +79,10 @@ target_include_directories(
 
 target_link_libraries(${PROJECT_NAME} PUBLIC yaml-cpp)
 target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
-IF(FILESYSTEM_LIB STREQUAL BOOST)
+IF(BOOST_FILESYSTEM_LIB)
     message(STATUS "Linking with Boost::filesystem")
     target_link_libraries(${PROJECT_NAME} PUBLIC Boost::filesystem)
-ELSE()
+ELSEIF(CMAKE_COMPILER_IS_GNUCXX)
     message(STATUS "Linking with stdc++fs")
     target_link_libraries(${PROJECT_NAME} PUBLIC stdc++fs)
 ENDIF()
@@ -99,10 +99,10 @@ MESSAGE(STATUS "Building YAML generator.")
 add_executable(yaml_template_generator src/yaml_template_generator.cpp)
 
 target_link_libraries(yaml_template_generator PUBLIC ${PROJECT_NAME})
-IF(FILESYSTEM_LIB STREQUAL BOOST)
+IF(BOOST_FILESYSTEM_LIB)
     message(STATUS "Linking with Boost::filesystem")
     target_link_libraries(yaml_template_generator PUBLIC Boost::filesystem Boost::system)
-ELSE()
+ELSEIF(CMAKE_COMPILER_IS_GNUCXX)
     message(STATUS "Linking with stdc++fs")
     target_link_libraries(yaml_template_generator PUBLIC stdc++fs)
 ENDIF()
@@ -126,7 +126,7 @@ install(
 include(CMakePackageConfigHelpers)
 
 # generate the config file that is includes the exports
-IF(FILESYSTEM_LIB STREQUAL BOOST)
+IF(BOOST_FILESYSTEM_LIB)
     configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
         "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
         INSTALL_DESTINATION "lib/cmake/${PROJECT_NAME}"

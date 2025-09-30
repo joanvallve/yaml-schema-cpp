@@ -21,11 +21,11 @@ std::string generateTemplate(std::string                     filepath,
                              bool                            override)
 {
     // Check extension
-    if (filesystem::extension(filepath).empty())
+    if (filesystem::path(filepath).extension().empty())
     {
         filepath += YAML_EXTENSION;
     }
-    else if (filesystem::extension(filepath) != YAML_EXTENSION)
+    else if (filesystem::path(filepath).extension() != YAML_EXTENSION)
     {
         std::cout << yellow
                   << "WARNING: storing template YAML file with an extension different than '.yaml': " + filepath

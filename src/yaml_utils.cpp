@@ -59,14 +59,14 @@ void flattenMap(YAML::Node&              node,
             filesystem::path path_follow;
 
             // follow schema: empty or .schema
-            bool followed_is_schema = filesystem::extension(path_follow_str).empty() or
-                                      filesystem::extension(path_follow_str) == SCHEMA_EXTENSION;
+            bool followed_is_schema = filesystem::path(path_follow_str).extension().empty() or
+                                      filesystem::path(path_follow_str).extension() == SCHEMA_EXTENSION;
             if (followed_is_schema)
             {
                 path_follow = findFileRecursive(path_follow_str, schema_folders);
             }
             // follow yaml file
-            else if (filesystem::extension(path_follow_str) == ".yaml")
+            else if (filesystem::path(path_follow_str).extension() == ".yaml")
             {
                 const filesystem::path follow_value(path_follow_str);
                 path_follow = current_folder / follow_value;
