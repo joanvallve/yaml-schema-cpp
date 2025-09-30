@@ -40,7 +40,7 @@
 //    * {ASSERT|EXPECT}_NO_FATAL_FAILURE(statement);
 
 /* Macros related to testing Eigen classes:
-*/
+ */
 
 namespace testing
 {
