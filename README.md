@@ -27,7 +27,7 @@ It is tested with C++11, 14, 17 and 20 in Ubuntu 20.04 and 22.04.
 
 ## Dependencies
 
-**1. Boost::Filesystem**
+**1. Boost::Filesystem (if C++ < 17)**
 
 ```bash
 sudo apt-get install libboost-filesystem-dev
@@ -39,17 +39,17 @@ sudo apt-get install libboost-filesystem-dev
 sudo apt install libeigen3-dev
 ```
 
-**3. yaml-cpp (minimum required 0.6.2)**
+**3. yaml-cpp (minimum required 0.7)**
 
-In ubuntu from 20.04, it is the version available via apt: 
+In ubuntu from 22.04, it can be installed via apt: 
 
 ```bash
 sudo apt install libyaml-cpp-dev
 ```
-In ubuntu 18.04, it has to be installed from source:
+In previous ubuntu distributions, it has to be installed from source:
 
 ```bash
-git clone -b yaml-cpp-0.6.2 --depth 1 https://github.com/jbeder/yaml-cpp.git
+git clone -b yaml-cpp-0.7.0 --depth 1 https://github.com/jbeder/yaml-cpp.git
 cd yaml-cpp
 mkdir -pv build
 cd build
