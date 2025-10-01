@@ -5,6 +5,7 @@
 #include <iostream>
 #include <fstream>
 
+#include "yaml-schema-cpp/filesystem_wrapper.hpp"
 #include "yaml-schema-cpp/yaml_conversion.hpp"
 #include "yaml-schema-cpp/yaml_schema.hpp"
 #include "yaml-schema-cpp/type_check.hpp"
@@ -90,28 +91,28 @@ YAML::Node generateYaml(std::string name_schema, const std::vector<std::string>&
     }
 
     // Find schema file
-    filesystem::path path_schema = findFileRecursive(name_schema, folders_schema);
+    auto path_schema = findFileRecursive(name_schema, folders_schema);
 
     // Load schema yaml
     YAML::Node node_schema;
     try
     {
-        node_schema = YAML::LoadFile(path_schema.string());
+        node_schema = YAML::LoadFile(path_schema);
     }
     catch (const std::exception& e)
     {
-        throw std::runtime_error("generateYaml: Couldn't load the schema yaml file " + path_schema.string() +
+        throw std::runtime_error("generateYaml: Couldn't load the schema yaml file " + path_schema +
                                  ". Error: " + e.what());
     }
 
     // Flatten yaml nodes (containing "follow") to a single YAML node containing all the information
     try
     {
-        flattenNode(node_schema, path_schema.parent_path().string(), folders_schema, true, override);
+        flattenNode(node_schema, filesystem::path(path_schema).parent_path().string(), folders_schema, true, override);
     }
     catch (const std::exception& e)
     {
-        throw std::runtime_error("generateYaml: Couldn't flatten the schema yaml file " + path_schema.string() +
+        throw std::runtime_error("generateYaml: Couldn't flatten the schema yaml file " + path_schema +
                                  ". Error: " + e.what());
     }
 
@@ -122,7 +123,7 @@ YAML::Node generateYaml(std::string name_schema, const std::vector<std::string>&
     }
     catch (const std::exception& e)
     {
-        throw std::runtime_error("In loadSchema: The schema file " + path_schema.string() +
+        throw std::runtime_error("In loadSchema: The schema file " + path_schema +
                                  " is not valid. Error: " + e.what());
     }
 

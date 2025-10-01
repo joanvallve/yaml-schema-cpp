@@ -1,6 +1,7 @@
 #include <stdexcept>
 
 #include "yaml-schema-cpp/yaml_schema.hpp"
+#include "yaml-schema-cpp/filesystem_wrapper.hpp"
 #include "yaml-schema-cpp/expression.hpp"
 
 namespace yaml_schema_cpp

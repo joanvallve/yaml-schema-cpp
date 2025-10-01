@@ -3,7 +3,6 @@
 #include <iostream>
 #include <fstream>
 #include "yaml-cpp/yaml.h"
-#include "yaml-schema-cpp/filesystem_wrapper.hpp"
 
 namespace yaml_schema_cpp
 {
@@ -31,7 +30,7 @@ class YamlServer
   private:
     std::vector<std::string> folders_schema_;
 
-    filesystem::path path_input_;
+    std::string path_input_;
 
     std::stringstream log_;
 

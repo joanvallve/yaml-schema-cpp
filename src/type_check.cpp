@@ -1,4 +1,5 @@
 #include "yaml-schema-cpp/type_check.hpp"
+#include "yaml-schema-cpp/filesystem_wrapper.hpp"
 #include "yaml-schema-cpp/yaml_schema.hpp"
 
 namespace yaml_schema_cpp
@@ -84,7 +85,7 @@ bool isNonTrivialType(const std::string& type, const std::vector<std::string>& f
 
     try
     {
-        filesystem::path path = findFileRecursive(name_schema, folders);
+        auto path = findFileRecursive(name_schema, folders);
     }
     catch (const std::exception& e)
     {

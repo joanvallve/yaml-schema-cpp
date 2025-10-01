@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "yaml-schema-cpp/yaml_generator.hpp"
+#include "yaml-schema-cpp/filesystem_wrapper.hpp"
 
 using std::cerr;
 using std::cout;

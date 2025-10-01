@@ -10,7 +10,6 @@
 #include "yaml-schema-cpp/yaml_conversion.hpp"
 #include "yaml-schema-cpp/type_check.hpp"
 #include "yaml-schema-cpp/yaml_utils.hpp"
-#include "yaml-schema-cpp/filesystem_wrapper.hpp"
 
 namespace yaml_schema_cpp
 {

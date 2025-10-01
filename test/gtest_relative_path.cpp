@@ -1,5 +1,6 @@
 #include "gtest/utils_gtest.h"
 #include "yaml-schema-cpp/internal/config.h"
+#include "yaml-schema-cpp/filesystem_wrapper.hpp"
 #include "yaml-schema-cpp/yaml_utils.hpp"
 #include "yaml-schema-cpp/yaml_server.hpp"
 #include "yaml-schema-cpp/yaml_conversion.hpp"

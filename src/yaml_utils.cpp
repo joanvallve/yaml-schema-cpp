@@ -7,6 +7,7 @@
 #include <Eigen/Dense>
 
 #include "yaml-schema-cpp/type_check.hpp"
+#include "yaml-schema-cpp/filesystem_wrapper.hpp"
 #include "yaml-schema-cpp/yaml_schema.hpp"
 
 namespace yaml_schema_cpp
@@ -55,8 +56,8 @@ void flattenMap(YAML::Node&              node,
     {
         if (n.first.as<std::string>() == "follow")
         {
-            std::string      path_follow_str = n.second.as<std::string>();
-            filesystem::path path_follow;
+            std::string path_follow_str = n.second.as<std::string>();
+            std::string path_follow;
 
             // follow schema: empty or .schema
             bool followed_is_schema = filesystem::path(path_follow_str).extension().empty() or
@@ -68,8 +69,8 @@ void flattenMap(YAML::Node&              node,
             // follow yaml file
             else if (filesystem::path(path_follow_str).extension() == ".yaml")
             {
-                const filesystem::path follow_value(path_follow_str);
-                path_follow = current_folder / follow_value;
+                // const filesystem::path follow_value(path_follow_str);
+                path_follow = current_folder + "/" + path_follow_str;
             }
             else
             {
@@ -79,11 +80,11 @@ void flattenMap(YAML::Node&              node,
 
             if (not filesystem::exists(path_follow))
             {
-                throw std::runtime_error("In flattenNode: the file '" + path_follow.string() + "' does not exists");
+                throw std::runtime_error("In flattenNode: the file '" + path_follow + "' does not exists");
             }
 
             // load "follow" file
-            YAML::Node node_child = YAML::LoadFile(path_follow.string());
+            YAML::Node node_child = YAML::LoadFile(path_follow);
 
             // Recursively flatten the "follow" file
             if (followed_is_schema)
@@ -92,7 +93,11 @@ void flattenMap(YAML::Node&              node,
             }
             else
             {
-                flattenNode(node_child, path_follow.parent_path().string(), {}, followed_is_schema, override);
+                flattenNode(node_child,
+                            filesystem::path(path_follow).parent_path().string(),
+                            {},
+                            followed_is_schema,
+                            override);
             }
 
             for (auto nc : node_child)
@@ -100,14 +105,20 @@ void flattenMap(YAML::Node&              node,
                 // Case schema
                 if (followed_is_schema)
                 {
-                    addNodeSchema(
-                        node_aux, nc.first.as<std::string>(), nc.second, override, path_follow.parent_path().string());
+                    addNodeSchema(node_aux,
+                                  nc.first.as<std::string>(),
+                                  nc.second,
+                                  override,
+                                  filesystem::path(path_follow).parent_path().string());
                 }
                 // Case input yaml
                 else
                 {
-                    addNodeYaml(
-                        node_aux, nc.first.as<std::string>(), nc.second, override, path_follow.parent_path().string());
+                    addNodeYaml(node_aux,
+                                nc.first.as<std::string>(),
+                                nc.second,
+                                override,
+                                filesystem::path(path_follow).parent_path().string());
                 }
             }
         }
@@ -193,7 +204,7 @@ void addNodeYaml(YAML::Node&        node,
     }
 }
 
-filesystem::path findFileRecursive(const std::string& name_with_extension, const std::vector<std::string>& folders)
+std::string findFileRecursive(const std::string& name_with_extension, const std::vector<std::string>& folders)
 {
     for (auto folder : folders)
     {
@@ -203,7 +214,7 @@ filesystem::path findFileRecursive(const std::string& name_with_extension, const
             {
                 if (filesystem::is_regular_file(entry) and entry.path().filename().string() == name_with_extension)
                 {
-                    return entry;
+                    return entry.path().string();
                 }
             }
         }

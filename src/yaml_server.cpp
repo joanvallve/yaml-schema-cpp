@@ -1,6 +1,7 @@
 #include "yaml-schema-cpp/yaml_server.hpp"
 
 #include <stdexcept>
+#include "yaml-schema-cpp/filesystem_wrapper.hpp"
 #include "yaml-schema-cpp/yaml_schema.hpp"
 #include "yaml-schema-cpp/yaml_utils.hpp"
 
@@ -45,11 +46,11 @@ void YamlServer::loadYaml(const std::string& path_input)
     }
 
     // load yamlfile
-    path_input_ = filesystem::path(path_input);
+    path_input_ = path_input;
     node_input_ = YAML::LoadFile(path_input);
 
     // flatten
-    flattenNode(node_input_, path_input_.parent_path().string(), {}, false, override_);
+    flattenNode(node_input_, filesystem::path(path_input).parent_path().string(), {}, false, override_);
 }
 
 void YamlServer::setYaml(const YAML::Node _node_input)
@@ -67,7 +68,7 @@ bool YamlServer::applySchema(const std::string& name_schema)
     if (path_input_.empty())
         header2 = "  yaml node added via setYaml";
     else
-        header2 = "  yaml file: " + path_input_.string();
+        header2 = "  yaml file: " + path_input_;
     header3 = "  schema: " + name_schema;
     std::stringstream header4ss;
     header4ss << "  folders_schema: ";

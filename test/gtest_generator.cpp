@@ -1,5 +1,6 @@
 #include "gtest/utils_gtest.h"
 #include "yaml-schema-cpp/internal/config.h"
+#include "yaml-schema-cpp/filesystem_wrapper.hpp"
 #include "yaml-schema-cpp/yaml_generator.hpp"
 
 std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;

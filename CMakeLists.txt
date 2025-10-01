@@ -109,10 +109,13 @@ ENDIF()
 
 # ------ INSTALL ------
 #install headers
-install(DIRECTORY include/${PROJECT_NAME} DESTINATION include)
+install(
+    DIRECTORY include/${PROJECT_NAME} 
+    DESTINATION include)
 #install config.h
-INSTALL(FILES ${YAML_SCHEMA_CONFIG_DIR}/config.h
-  DESTINATION ${INCLUDE_INSTALL_DIR}/${PROJECT_NAME}/internal)
+INSTALL(
+    FILES ${YAML_SCHEMA_CONFIG_DIR}/config.h
+    DESTINATION include/${PROJECT_NAME}/internal)
 install(
     TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}-targets

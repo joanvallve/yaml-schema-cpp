@@ -1,7 +1,5 @@
 #pragma once
 
-#include "yaml-schema-cpp/filesystem_wrapper.hpp"
-
 #include "yaml-cpp/yaml.h"
 
 namespace yaml_schema_cpp

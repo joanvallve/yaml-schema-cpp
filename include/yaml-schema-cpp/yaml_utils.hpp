@@ -2,7 +2,6 @@
 
 #include <list>
 #include "yaml-cpp/yaml.h"
-#include "yaml-schema-cpp/filesystem_wrapper.hpp"
 
 namespace yaml_schema_cpp
 {
@@ -42,7 +41,7 @@ void addNodeYaml(YAML::Node&        node,
                  bool               override,
                  std::string        parent_path = "");
 
-filesystem::path findFileRecursive(const std::string& name_with_extension, const std::vector<std::string>& folders);
+std::string findFileRecursive(const std::string& name_with_extension, const std::vector<std::string>& folders);
 
 std::list<YAML::Node> findNodesWithKey(const YAML::Node root_node, const std::string& key);
 

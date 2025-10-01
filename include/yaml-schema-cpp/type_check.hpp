@@ -5,7 +5,6 @@
 #include "yaml-schema-cpp/yaml_conversion.hpp"
 #include "yaml-cpp/yaml.h"
 #include "yaml-schema-cpp/yaml_utils.hpp"
-#include "yaml-schema-cpp/filesystem_wrapper.hpp"
 
 namespace yaml_schema_cpp
 {
