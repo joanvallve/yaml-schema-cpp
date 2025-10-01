@@ -1,6 +1,7 @@
 #include "yaml-schema-cpp/type_check.hpp"
 #include "yaml-schema-cpp/filesystem_wrapper.hpp"
 #include "yaml-schema-cpp/yaml_schema.hpp"
+#include "yaml-schema-cpp/yaml_utils.hpp"
 
 namespace yaml_schema_cpp
 {
@@ -71,29 +72,8 @@ bool isEigenType(const std::string& type)
 
 bool isNonTrivialType(const std::string& type, const std::vector<std::string>& folders)
 {
-    std::string name_schema = type;
-
-    if (filesystem::path(name_schema).extension().empty())
-    {
-        name_schema += SCHEMA_EXTENSION;
-    }
-    else if (filesystem::path(name_schema).extension() != SCHEMA_EXTENSION)
-    {
-        // bad extension
-        return false;
-    }
-
-    try
-    {
-        auto path = findFileRecursive(name_schema, folders);
-    }
-    catch (const std::exception& e)
-    {
-        // non existing schema file
-        return false;
-    }
-
-    return true;
+    std::stringstream log;
+    return not findSchema(type, folders, log).empty();
 }
 
 }  // namespace yaml_schema_cpp

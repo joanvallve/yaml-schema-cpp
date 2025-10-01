@@ -1,6 +1,7 @@
 #pragma once
 
 #include <list>
+#include <iostream>
 #include "yaml-cpp/yaml.h"
 
 namespace yaml_schema_cpp
@@ -42,6 +43,10 @@ void addNodeYaml(YAML::Node&        node,
                  std::string        parent_path = "");
 
 std::string findFileRecursive(const std::string& name_with_extension, const std::vector<std::string>& folders);
+
+std::string findSchema(std::string                     name_schema,
+                       const std::vector<std::string>& folders,
+                       std::ostream&                   log = std::cout);
 
 std::list<YAML::Node> findNodesWithKey(const YAML::Node root_node, const std::string& key);
 

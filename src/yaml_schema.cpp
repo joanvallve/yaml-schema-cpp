@@ -12,43 +12,27 @@ YAML::Node loadSchema(std::string                     name_schema,
                       std::stringstream&              log,
                       bool                            override)
 {
-    // Check extension
-    if (filesystem::path(name_schema).extension().empty())
+    // Find schema file + check extension
+    std::stringstream log_find_schema;
+    auto              path_schema = findSchema(name_schema, folders_schema, log_find_schema);
+    if (path_schema.empty())
     {
-        name_schema += SCHEMA_EXTENSION;
-    }
-    else if (filesystem::path(name_schema).extension() != SCHEMA_EXTENSION)
-    {
-        log << "ERROR in loadSchema(): Wrong schema file extension " + name_schema + ", it should be '" +
-                   SCHEMA_EXTENSION + "'\n";
-        return YAML::Node(YAML::NodeType::Undefined);
-    }
-
-    // Find schema file
-    filesystem::path path_schema;
-    try
-    {
-        path_schema = findFileRecursive(name_schema, folders_schema);
-    }
-    catch (const std::exception& e)
-    {
-        log << std::string("ERROR in loadSchema(): ") + e.what() << "\n";
+        log << "ERROR in loadSchema(): findSchema() failed with error: " << log_find_schema.str()<< "\n";
         return YAML::Node(YAML::NodeType::Undefined);
     }
 
     // write schema file in log
-    log << "schema file found: " << path_schema.string() << std::endl;
+    log << "schema file found: " << path_schema << std::endl;
 
     // Load schema yaml
     YAML::Node node_schema;
     try
     {
-        node_schema = YAML::LoadFile(path_schema.string());
+        node_schema = YAML::LoadFile(path_schema);
     }
     catch (const std::exception& e)
     {
-        log << "ERROR in loadSchema(): Couldn't load the schema yaml file " + path_schema.string() +
-                   ". Error: " + e.what()
+        log << "ERROR in loadSchema(): Couldn't load the schema yaml file " + path_schema + ". Error: " + e.what()
             << "\n";
         return YAML::Node(YAML::NodeType::Undefined);
     }
@@ -57,12 +41,11 @@ YAML::Node loadSchema(std::string                     name_schema,
 
     try
     {
-        flattenNode(node_schema, path_schema.parent_path().string(), folders_schema, true, override);
+        flattenNode(node_schema, filesystem::path(path_schema).parent_path().string(), folders_schema, true, override);
     }
     catch (const std::exception& e)
     {
-        log << "ERROR in loadSchema(): Couldn't flatten schema file " + path_schema.string() + ". Error: " + e.what()
-            << "\n";
+        log << "ERROR in loadSchema(): Couldn't flatten schema file " + path_schema + ". Error: " + e.what() << "\n";
 
         return YAML::Node(YAML::NodeType::Undefined);
     }
@@ -74,8 +57,7 @@ YAML::Node loadSchema(std::string                     name_schema,
     }
     catch (const std::exception& e)
     {
-        log << "ERROR in loadSchema(): The schema file " + path_schema.string() + " is not valid. Error: " + e.what()
-            << "\n";
+        log << "ERROR in loadSchema(): The schema file " + path_schema + " is not valid. Error: " + e.what() << "\n";
         return YAML::Node(YAML::NodeType::Undefined);
     }
 

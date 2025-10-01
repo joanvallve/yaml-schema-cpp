@@ -79,19 +79,13 @@ std::string generateTemplate(std::string                     filepath,
 
 YAML::Node generateYaml(std::string name_schema, const std::vector<std::string>& folders_schema, bool override)
 {
-    // Check extension
-    if (filesystem::path(name_schema).extension().empty())
+    // Find schema file + check extension
+    std::stringstream log;
+    auto path_schema = findSchema(name_schema, folders_schema, log);
+    if (path_schema.empty())
     {
-        name_schema += SCHEMA_EXTENSION;
+        throw std::runtime_error("findSchema ERROR: " + log.str());
     }
-    else if (filesystem::path(name_schema).extension() != SCHEMA_EXTENSION)
-    {
-        throw std::runtime_error("Wrong schema file extension " + name_schema + ", it should be '" + SCHEMA_EXTENSION +
-                                 "'");
-    }
-
-    // Find schema file
-    auto path_schema = findFileRecursive(name_schema, folders_schema);
 
     // Load schema yaml
     YAML::Node node_schema;

@@ -65,6 +65,10 @@ void flattenMap(YAML::Node&              node,
             if (followed_is_schema)
             {
                 path_follow = findFileRecursive(path_follow_str, schema_folders);
+                if (path_follow.empty())
+                {
+                    throw std::runtime_error("In flattenNode: file '" + path_follow + "' not found");
+                }
             }
             // follow yaml file
             else if (filesystem::path(path_follow_str).extension() == ".yaml")
@@ -227,6 +231,31 @@ std::string findFileRecursive(const std::string& name_with_extension, const std:
         folders_str.back() = '.';
     }
     throw std::runtime_error("File '" + name_with_extension + "' not found in provided folders: " + folders_str);
+}
+
+std::string findSchema(std::string name_schema, const std::vector<std::string>& folders, std::ostream& log)
+{
+    // Check extension
+    if (filesystem::path(name_schema).extension().empty())
+    {
+        name_schema += SCHEMA_EXTENSION;
+    }
+    else if (filesystem::path(name_schema).extension() != SCHEMA_EXTENSION)
+    {
+        log << "Wrong schema file extension " << name_schema << ", it should be '" << SCHEMA_EXTENSION;
+        return "";
+    }
+
+    // Find schema file
+    try
+    {
+        return findFileRecursive(name_schema, folders);
+    }
+    catch (const std::exception& e)
+    {
+        log << name_schema << " was NOT found in the provided folders.";
+        return "";
+    }
 }
 
 void writeErrorToLog(std::stringstream& log,
