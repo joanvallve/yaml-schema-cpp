@@ -74,7 +74,7 @@ add_library(${PROJECT_NAME} SHARED ${LIB_SRCS})
 target_include_directories(
     ${PROJECT_NAME}
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    PUBLIC $<BUILD_INTERFACE:${YAML_SCHEMA_CONFIG_DIR}>
+    PUBLIC $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/conf>
     $<INSTALL_INTERFACE:include>)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC yaml-cpp)
@@ -108,7 +108,11 @@ ELSEIF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF()
 
 # ------ INSTALL ------
+#install headers
 install(DIRECTORY include/${PROJECT_NAME} DESTINATION include)
+#install config.h
+INSTALL(FILES ${YAML_SCHEMA_CONFIG_DIR}/config.h
+  DESTINATION ${INCLUDE_INSTALL_DIR}/${PROJECT_NAME}/internal)
 install(
     TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}-targets
