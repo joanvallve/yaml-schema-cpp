@@ -21,7 +21,7 @@ jobs:
         yaml_cpp_version: [yaml-cpp-0.7.0, master]
 
     steps:
-    
+
     - name: dependencies
       run: |
         apt-get update -y
@@ -38,26 +38,18 @@ jobs:
         
     - uses: actions/checkout@v4
     
-    - name: Configure
+    - name: build
       run: |
-        cmake \
-          -S "${{ github.workspace }}" \
-          -B build \
-          -D CMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
-          -D CMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-          -D BUILD_TESTS=ON
+        pwd
+        ls
+        mkdir -pv build
+        cd build
+        cmake -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DBUILD_TESTS=ON ..
+        make -j2
+        ctest -j2 --output-on-failure
 
-    - name: Build
+    - name: Tests
       run: |
-        cmake \
-          --build build \
-          --config ${{ matrix.build_type }} \
-          --parallel
-
-    - name: Run Tests
-      shell: bash
-      run: |
-        ctest \
-          --test-dir build \
-          --build-config ${{ matrix.build_type }} \
-          --output-on-failure
+        ctest --output-on-failure
