@@ -24,6 +24,7 @@ jobs:
     
     - name: dependencies
       run: |
+        apt-get update -y
         apt install libboost-filesystem-dev libeigen3-dev -y
         
     - name: install yaml-cpp
