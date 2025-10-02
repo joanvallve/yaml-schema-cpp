@@ -258,6 +258,17 @@ std::string findSchema(std::string name_schema, const std::vector<std::string>& 
     }
 }
 
+std::vector<std::string> getAllSchemas(const std::vector<std::string>& root_folders)
+{
+    std::vector<std::string> schemas_found;
+    for (auto root_folder : root_folders)
+        for (auto const& entry : filesystem::recursive_directory_iterator(root_folder))
+            if (filesystem::is_regular_file(entry) and entry.path().extension() == SCHEMA_EXTENSION)
+                schemas_found.push_back(entry.path().filename());
+
+    return schemas_found;
+}
+
 void writeErrorToLog(std::stringstream& log,
                      const std::string& _acc_field,
                      const YAML::Node   _node_schema,
