@@ -264,7 +264,7 @@ std::vector<std::string> getAllSchemas(const std::vector<std::string>& root_fold
     for (auto root_folder : root_folders)
         for (auto const& entry : filesystem::recursive_directory_iterator(root_folder))
             if (filesystem::is_regular_file(entry) and entry.path().extension() == SCHEMA_EXTENSION)
-                schemas_found.push_back(entry.path().filename());
+                schemas_found.push_back(entry.path().filename().string());
 
     return schemas_found;
 }
