@@ -17,7 +17,7 @@ YAML::Node loadSchema(std::string                     name_schema,
     auto              path_schema = findSchema(name_schema, folders_schema, log_find_schema);
     if (path_schema.empty())
     {
-        log << "ERROR in loadSchema(): findSchema() failed with error: " << log_find_schema.str()<< "\n";
+        log << "ERROR in loadSchema(): findSchema() failed with error: " << log_find_schema.str() << "\n";
         return YAML::Node(YAML::NodeType::Undefined);
     }
 

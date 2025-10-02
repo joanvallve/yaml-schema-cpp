@@ -81,7 +81,7 @@ YAML::Node generateYaml(std::string name_schema, const std::vector<std::string>&
 {
     // Find schema file + check extension
     std::stringstream log;
-    auto path_schema = findSchema(name_schema, folders_schema, log);
+    auto              path_schema = findSchema(name_schema, folders_schema, log);
     if (path_schema.empty())
     {
         throw std::runtime_error("findSchema ERROR: " + log.str());
