@@ -25,7 +25,7 @@ jobs:
     - name: dependencies
       run: |
         apt-get update -y
-        apt install cmake build-essential git libboost-filesystem-dev libeigen3-dev -y
+        apt install build-essential git libboost-all-dev libeigen3-dev -y
         
     - name: install yaml-cpp
       run: |
