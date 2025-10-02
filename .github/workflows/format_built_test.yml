@@ -44,7 +44,7 @@ jobs:
         ls
         mkdir -pv build
         cd build
-        cmake -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
+        cmake -DCXX_STANDARD=${{ matrix.cxx_standard }} \
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
           -DBUILD_TESTS=ON ..
         make -j2
