@@ -33,7 +33,7 @@ jobs:
         git clone -b ${{matrix.yaml_cpp_version}} --depth 1 https://github.com/jbeder/yaml-cpp.git
         mkdir -pv yaml-cpp/build
         cd yaml-cpp/build
-        cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCXX_STANDARD=${{ matrix.cxx_standard }} -DYAML_BUILD_SHARED_LIBS=ON -DYAML_CPP_BUILD_TESTS=OFF ..
+        cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DYAML_BUILD_SHARED_LIBS=ON -DYAML_CPP_BUILD_TESTS=OFF ..
         make -j2
         make install
         
@@ -45,7 +45,7 @@ jobs:
         ls
         mkdir -pv build
         cd build
-        cmake -DCXX_STANDARD=${{ matrix.cxx_standard }} \
+        cmake -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
           -DBUILD_TESTS=ON ..
         make -j2
