@@ -24,6 +24,7 @@ jobs:
 
     - name: dependencies
       run: |
+        export DEBIAN_FRONTEND=noninteractive
         apt-get update -y
         apt install cmake build-essential git libboost-filesystem-dev libeigen3-dev -y
         
@@ -32,7 +33,7 @@ jobs:
         git clone -b ${{matrix.yaml_cpp_version}} --depth 1 https://github.com/jbeder/yaml-cpp.git
         mkdir -pv yaml-cpp/build
         cd yaml-cpp/build
-        cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DYAML_BUILD_SHARED_LIBS=ON -DYAML_CPP_BUILD_TESTS=OFF ..
+        cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCXX_STANDARD=${{ matrix.cxx_standard }} -DYAML_BUILD_SHARED_LIBS=ON -DYAML_CPP_BUILD_TESTS=OFF ..
         make -j2
         make install
         
