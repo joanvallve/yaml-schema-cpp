@@ -55,7 +55,7 @@ void YamlServer::loadYaml(const std::string& path_input)
 
 void YamlServer::setYaml(const YAML::Node _node_input)
 {
-    node_input_ = _node_input;
+    node_input_ = Clone(_node_input);
 }
 
 bool YamlServer::applySchema(const std::string& name_schema)
