@@ -92,9 +92,9 @@ std::string YamlServer::getLog() const
     return log_.str();
 }
 
-const YAML::Node& YamlServer::getNode() const
+YAML::Node YamlServer::getNode() const
 {
-    return node_input_;
+    return Clone(node_input_);
 }
 
 }  // namespace yaml_schema_cpp

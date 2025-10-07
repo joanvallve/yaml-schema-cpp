@@ -25,7 +25,7 @@ class YamlServer
 
     std::string getLog() const;
 
-    const YAML::Node& getNode() const;
+    YAML::Node getNode() const;
 
   private:
     std::vector<std::string> folders_schema_;
