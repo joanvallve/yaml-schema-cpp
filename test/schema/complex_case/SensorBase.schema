@@ -4,3 +4,9 @@ name:
   _mandatory: true
   _type: string
   _doc: The sensor's name. It has to be unique.
+
+enabled:
+  _mandatory: false
+  _type: bool
+  _default: true
+  _doc: If the sensor is enabled. Default = true

@@ -618,7 +618,7 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                 if (node_input_parent.IsDefined())
                 {
                     auto field               = filesystem::path(acc_field).filename().string();
-                    node_input_parent[field] = node_schema[VALUE];
+                    node_input_parent[field] = Clone(node_schema[VALUE]);
                 }
             }
             // Check if it is mandatory
@@ -659,7 +659,7 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                 else if (node_schema[DEFAULT] and node_input_parent.IsDefined())
                 {
                     auto field               = filesystem::path(acc_field).filename().string();
-                    node_input_parent[field] = node_schema[DEFAULT];
+                    node_input_parent[field] = Clone(node_schema[DEFAULT]);
                 }
             }
         }

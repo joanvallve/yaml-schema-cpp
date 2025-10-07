@@ -1,0 +1,19 @@
+type: "SensorOdom3d"
+name: "odom"
+plugin: "core"
+k_disp_to_disp: 0.1
+k_disp_to_rot: 0.1
+k_rot_to_rot: 0.1 
+min_disp_var: 0.1 
+min_rot_var: 0.1
+states:
+  P:
+    value: [1,2,3]
+    prior:
+      mode: fix
+    dynamic: false
+  O:
+    value: [0,0,0,1]
+    prior:
+      mode: "fix"
+    dynamic: false
