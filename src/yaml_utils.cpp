@@ -4,7 +4,6 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
-#include <Eigen/Dense>
 
 #include "yaml-schema-cpp/type_check.hpp"
 #include "yaml-schema-cpp/filesystem_wrapper.hpp"

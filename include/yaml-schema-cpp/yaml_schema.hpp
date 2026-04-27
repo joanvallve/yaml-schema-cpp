@@ -4,8 +4,6 @@
 #include <fstream>
 #include <memory>
 
-#include <Eigen/Dense>
-
 #include "yaml-cpp/yaml.h"
 #include "yaml-schema-cpp/yaml_conversion.hpp"
 #include "yaml-schema-cpp/type_check.hpp"

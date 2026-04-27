@@ -1,6 +1,10 @@
 #pragma once
 
+#include "yaml-schema-cpp/internal/config.h"
+
+#if _EIGEN_FOUND == 1
 #include <Eigen/Dense>
+#endif
 
 #include "yaml-schema-cpp/yaml_conversion.hpp"
 #include "yaml-cpp/yaml.h"
@@ -17,6 +21,7 @@ namespace yaml_schema_cpp
 
 #define CHECK_TYPE_CASE(TypeName) CHECK_STRING_TYPE_CASE(TypeName, TypeName);
 
+#if _EIGEN_FOUND == 1
 #define CHECK_TYPE_EIGEN_CASE(size)                                                                                   \
     if (type == "Vector" #size "d" or type == "Eigen::Vector" #size "d")                                              \
     {                                                                                                                 \
@@ -45,6 +50,7 @@ namespace yaml_schema_cpp
     CHECK_TYPE_EIGEN_CASE(10)                                                                                         \
     CHECK_STRING_TYPE_CASE(VectorXd, Eigen::VectorXd)                                                                 \
     CHECK_STRING_TYPE_CASE(MatrixXd, Eigen::MatrixXd)
+#endif
 
 #define CHECK_TYPE_BASIC_CASES                                                                                        \
     CHECK_TYPE_CASE(bool)                                                                                             \
@@ -70,16 +76,22 @@ static bool checkNodeAsString(const YAML::Node& node, const std::string& type)
     CHECK_TYPE_STRING_CASES
     return false;
 }
+
+#if _EIGEN_FOUND == 1
 static bool checkNodeAsEigen(const YAML::Node& node, const std::string& type)
 {
     CHECK_TYPE_EIGEN_CASES
     return false;
 }
+#endif
+
 static bool checkNodeAs(const YAML::Node& node, const std::string& type)
 {
     CHECK_TYPE_BASIC_CASES
     CHECK_TYPE_STRING_CASES
+#if _EIGEN_FOUND == 1
     CHECK_TYPE_EIGEN_CASES
+#endif
     return false;
 }
 
@@ -88,7 +100,9 @@ bool tryNodeAs(const YAML::Node& node, const std::string& type);
 bool isTrivialType(const std::string& type);
 bool isBasicType(const std::string& type);
 bool isStringType(const std::string& type);
+#if _EIGEN_FOUND == 1
 bool isEigenType(const std::string& type);
+#endif
 
 bool isNonTrivialType(const std::string& type, const std::vector<std::string>& folders);
 
@@ -107,6 +121,7 @@ bool isNonTrivialType(const std::string& type, const std::vector<std::string>& f
 
 #define COMPARE_TYPE(TypeName) COMPARE_STRING_TYPE(TypeName, TypeName);
 
+#if _EIGEN_FOUND == 1
 #define COMPARE_EIGEN(size)                                                                                           \
     if (type == "Vector" #size "d" or type == "Eigen::Vector" #size "d")                                              \
     {                                                                                                                 \
@@ -134,6 +149,7 @@ bool isNonTrivialType(const std::string& type, const std::vector<std::string>& f
             return false;                                                                                             \
         }                                                                                                             \
     }
+#endif
 
 static bool compare(const YAML::Node& node1, const YAML::Node& node2, const std::string& type)
 {
@@ -163,6 +179,7 @@ static bool compare(const YAML::Node& node1, const YAML::Node& node2, const std:
     COMPARE_TYPE(float)
     COMPARE_TYPE(double)
     COMPARE_TYPE(std::string)
+#if _EIGEN_FOUND == 1
     COMPARE_TYPE(Eigen::VectorXd)
     COMPARE_TYPE(Eigen::MatrixXd)
 
@@ -176,14 +193,17 @@ static bool compare(const YAML::Node& node1, const YAML::Node& node2, const std:
     COMPARE_EIGEN(8)
     COMPARE_EIGEN(9)
     COMPARE_EIGEN(10)
-
+#endif
     COMPARE_STRING_TYPE(string, std::string)
+#if _EIGEN_FOUND == 1
     COMPARE_STRING_TYPE(VectorXd, Eigen::VectorXd)
     COMPARE_STRING_TYPE(VectorXd, Eigen::VectorXd)
+#endif
 
     throw std::runtime_error("compare() not implemented for type " + type);
 }
 
+#if _EIGEN_FOUND == 1
 #define SETZERO_EIGEN(size)                                                                                           \
     if (type == "Vector" #size "d" or type == "Eigen::Vector" #size "d")                                              \
     {                                                                                                                 \
@@ -193,6 +213,7 @@ static bool compare(const YAML::Node& node1, const YAML::Node& node2, const std:
     {                                                                                                                 \
         node = Eigen::Matrix<double, size, size>::Zero();                                                             \
     }
+#endif
 
 static void setZero(YAML::Node& node, const std::string& type)
 {
@@ -201,6 +222,7 @@ static void setZero(YAML::Node& node, const std::string& type)
     if (type == "float" or type == "double") node = "0.0";
     if (type == "char") node = "A";
     if (type == "string" or type == "std::string") node = "whatever";
+#if _EIGEN_FOUND == 1
     if (type == "VectorXd" or type == "Eigen::VectorXd") node = Eigen::VectorXd::Zero(3);
     if (type == "MatrixXd" or type == "Eigen::MatrixXd") node = Eigen::MatrixXd::Zero(3, 2);
 
@@ -214,6 +236,7 @@ static void setZero(YAML::Node& node, const std::string& type)
     SETZERO_EIGEN(8)
     SETZERO_EIGEN(9)
     SETZERO_EIGEN(10)
+#endif
 }
 
 static std::string getZeroString(const std::string& type)
@@ -223,6 +246,7 @@ static std::string getZeroString(const std::string& type)
     if (type == "float" or type == "double") return "0.0";
     if (type == "char") return "A";
     if (type == "string" or type == "std::string") return "whatever";
+#if _EIGEN_FOUND == 1
     if (type == "VectorXd" or type == "Eigen::VectorXd") return "[0.0, 0.0, 0.0]";
     if (type == "MatrixXd" or type == "Eigen::MatrixXd") return "[[3, 2], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]";
 
@@ -246,6 +270,7 @@ static std::string getZeroString(const std::string& type)
             return string_ret;
         }
     }
+#endif
 
     return "type uknown!";
 }

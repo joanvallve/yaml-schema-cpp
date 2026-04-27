@@ -5,76 +5,79 @@ project(yaml-schema-cpp VERSION 0.0.0)
 #Set compiler according C++11 support
 include(CheckCXXCompilerFlag)
 message(STATUS "Checking compiler ${CMAKE_CXX_COMPILER} C++ standard support...")
-CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-CHECK_CXX_COMPILER_FLAG("-std=c++14" COMPILER_SUPPORTS_CXX14)
-CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
-CHECK_CXX_COMPILER_FLAG("-std=c++20" COMPILER_SUPPORTS_CXX20)
-IF(CMAKE_CXX_STANDARD)
-    IF(CMAKE_CXX_STANDARD LESS 11)
+check_cxx_compiler_flag("-std=c++11" COMPILER_SUPPORTS_CXX11)
+check_cxx_compiler_flag("-std=c++14" COMPILER_SUPPORTS_CXX14)
+check_cxx_compiler_flag("-std=c++17" COMPILER_SUPPORTS_CXX17)
+check_cxx_compiler_flag("-std=c++20" COMPILER_SUPPORTS_CXX20)
+if(CMAKE_CXX_STANDARD)
+    if(CMAKE_CXX_STANDARD LESS 11)
         message(FATAL_ERROR "Required standard C++11 or higher.")
-    ENDIF(CMAKE_CXX_STANDARD LESS 11)
-ELSE(CMAKE_CXX_STANDARD)
-    IF(COMPILER_SUPPORTS_CXX20)
+    endif(CMAKE_CXX_STANDARD LESS 11)
+else(CMAKE_CXX_STANDARD)
+    if(COMPILER_SUPPORTS_CXX20)
         set(CMAKE_CXX_STANDARD 20)
         message(STATUS "C++ standard used: ${CMAKE_CXX_STANDARD}")
-    ELSEIF(COMPILER_SUPPORTS_CXX17)
+    elseif(COMPILER_SUPPORTS_CXX17)
         set(CMAKE_CXX_STANDARD 17)
         message(STATUS "C++ standard used: ${CMAKE_CXX_STANDARD}")
-    ELSEIF(COMPILER_SUPPORTS_CXX14)
+    elseif(COMPILER_SUPPORTS_CXX14)
         set(CMAKE_CXX_STANDARD 14)
         message(STATUS "C++ standard used: ${CMAKE_CXX_STANDARD}")
-    ELSEIF(COMPILER_SUPPORTS_CXX11)
+    elseif(COMPILER_SUPPORTS_CXX11)
         set(CMAKE_CXX_STANDARD 11)
         message(STATUS "C++ standard used: ${CMAKE_CXX_STANDARD}")
-    ELSE()
+    else()
         message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-    ENDIF()
-ENDIF(CMAKE_CXX_STANDARD)
+    endif()
+endif(CMAKE_CXX_STANDARD)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Paths
-SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
-SET(LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib)
-SET(LIB_INSTALL_DIR lib)
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+set(LIBRARY_OUTPUT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+set(LIB_INSTALL_DIR lib)
 
 # ------ PROJECT OPTIONS ------
-IF(NOT BUILD_TESTS)
-    OPTION(BUILD_TESTS "Build Unit tests" ON)
-ENDIF(NOT BUILD_TESTS)
-IF(CMAKE_CXX_STANDARD LESS 17)
+if(NOT BUILD_TESTS)
+    option(BUILD_TESTS "Build Unit tests" ON)
+endif(NOT BUILD_TESTS)
+if(CMAKE_CXX_STANDARD LESS 17)
     message(STATUS "C++ less than 17, Boost::filesystem is required")
-    SET(BOOST_FILESYSTEM_LIB 1)
-ELSE()
-    SET(BOOST_FILESYSTEM_LIB 0)
-ENDIF()
+    set(BOOST_FILESYSTEM_LIB 1)
+else()
+    set(BOOST_FILESYSTEM_LIB 0)
+endif()
 message(STATUS "BOOST_FILESYSTEM_LIB: ${BOOST_FILESYSTEM_LIB}")
 
 # ============ config.h ============
 # Define the directory where will be the configured config.h
-SET(YAML_SCHEMA_CONFIG_DIR ${PROJECT_BINARY_DIR}/conf/${PROJECT_NAME}/internal)
+set(YAML_SCHEMA_CONFIG_DIR ${PROJECT_BINARY_DIR}/conf/${PROJECT_NAME}/internal)
 
 # Create the specified output directory if it does not exist.
-IF(NOT EXISTS "${YAML_SCHEMA_CONFIG_DIR}")
+if(NOT EXISTS "${YAML_SCHEMA_CONFIG_DIR}")
     message(STATUS "Creating config output directory: ${YAML_SCHEMA_CONFIG_DIR}")
     file(MAKE_DIRECTORY "${YAML_SCHEMA_CONFIG_DIR}")
-ENDIF()
+endif()
 
-IF(EXISTS "${YAML_SCHEMA_CONFIG_DIR}" AND NOT IS_DIRECTORY "${YAML_SCHEMA_CONFIG_DIR}")
+if(EXISTS "${YAML_SCHEMA_CONFIG_DIR}" AND NOT IS_DIRECTORY "${YAML_SCHEMA_CONFIG_DIR}")
     message(FATAL_ERROR "Bug: Specified CONFIG_DIR: "
         "${YAML_SCHEMA_CONFIG_DIR} exists, but is not a directory.")
-ENDIF()
+endif()
+
+# ------ DEPENDENCIES ------
+find_package(yaml-cpp 0.7 REQUIRED)
+find_package(Eigen3 QUIET)
+if (Eigen3_FOUND)
+    message("Eigen3 found, compiling yaml-schema-cpp for Eigen classes")
+endif()
+if(BOOST_FILESYSTEM_LIB)
+    message(STATUS "Finding Boost::filesystem")
+    find_package(Boost REQUIRED COMPONENTS filesystem system)
+endif()
 
 # Configure config.h
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/internal/config.h.in "${YAML_SCHEMA_CONFIG_DIR}/config.h")
 include_directories("${PROJECT_BINARY_DIR}/conf")
-
-# ------ DEPENDENCIES ------
-find_package(yaml-cpp 0.7 REQUIRED)
-find_package(Eigen3 REQUIRED)
-IF(BOOST_FILESYSTEM_LIB)
-    message(STATUS "Finding Boost::filesystem")
-    find_package(Boost REQUIRED COMPONENTS filesystem system)
-ENDIF()
 
 # ------ LIBRARY ------
 list(APPEND LIB_SRCS src/expression.cpp)
@@ -92,34 +95,36 @@ target_include_directories(
     $<INSTALL_INTERFACE:include>)
 
 target_link_libraries(${PROJECT_NAME} PUBLIC yaml-cpp)
-target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
-IF(BOOST_FILESYSTEM_LIB)
+if (Eigen3_FOUND)
+    target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
+endif()
+if(BOOST_FILESYSTEM_LIB)
     message(STATUS "Linking with Boost::filesystem")
     target_link_libraries(${PROJECT_NAME} PUBLIC Boost::filesystem)
-ELSEIF(CMAKE_COMPILER_IS_GNUCXX)
+elseif(CMAKE_COMPILER_IS_GNUCXX)
     message(STATUS "Linking with stdc++fs")
     target_link_libraries(${PROJECT_NAME} PUBLIC stdc++fs)
-ENDIF()
+endif()
 
 # ------ TESTS ------
-IF(BUILD_TESTS)
-    MESSAGE(STATUS "Will build tests.")
+if(BUILD_TESTS)
+    message(STATUS "Will build tests.")
     enable_testing()
     add_subdirectory(test)
-ENDIF(BUILD_TESTS)
+endif(BUILD_TESTS)
 
 # ------ YAML GENERATOR ------
-MESSAGE(STATUS "Building YAML generator.")
+message(STATUS "Building YAML generator.")
 add_executable(yaml_template_generator src/yaml_template_generator.cpp)
 
 target_link_libraries(yaml_template_generator PUBLIC ${PROJECT_NAME})
-IF(BOOST_FILESYSTEM_LIB)
+if(BOOST_FILESYSTEM_LIB)
     message(STATUS "Linking with Boost::filesystem")
     target_link_libraries(yaml_template_generator PUBLIC Boost::filesystem Boost::system)
-ELSEIF(CMAKE_COMPILER_IS_GNUCXX)
+elseif(CMAKE_COMPILER_IS_GNUCXX)
     message(STATUS "Linking with stdc++fs")
     target_link_libraries(yaml_template_generator PUBLIC stdc++fs)
-ENDIF()
+endif()
 
 # ------ INSTALL ------
 #install headers
@@ -127,7 +132,7 @@ install(
     DIRECTORY include/${PROJECT_NAME} 
     DESTINATION include)
 #install config.h
-INSTALL(
+install(
     FILES ${YAML_SCHEMA_CONFIG_DIR}/config.h
     DESTINATION include/${PROJECT_NAME}/internal)
 install(
@@ -147,21 +152,21 @@ install(
 include(CMakePackageConfigHelpers)
 
 # generate the config file that is includes the exports
-IF(BOOST_FILESYSTEM_LIB)
+if(BOOST_FILESYSTEM_LIB)
     configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
         "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
         INSTALL_DESTINATION "lib/cmake/${PROJECT_NAME}"
         NO_SET_AND_CHECK_MACRO
         NO_CHECK_REQUIRED_COMPONENTS_MACRO
     )
-ELSE()
+else()
     configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/NoBoostConfig.cmake.in
         "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
         INSTALL_DESTINATION "lib/cmake/${PROJECT_NAME}"
         NO_SET_AND_CHECK_MACRO
         NO_CHECK_REQUIRED_COMPONENTS_MACRO
     )
-ENDIF()
+endif()
 
 
 write_basic_package_version_file(

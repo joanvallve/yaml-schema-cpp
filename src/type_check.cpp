@@ -57,6 +57,7 @@ bool isStringType(const std::string& type)
     return false;
 }
 
+#if _EIGEN_FOUND == 1
 bool isEigenType(const std::string& type)
 {
     try
@@ -69,6 +70,7 @@ bool isEigenType(const std::string& type)
     }
     return false;
 }
+#endif
 
 bool isNonTrivialType(const std::string& type, const std::vector<std::string>& folders)
 {

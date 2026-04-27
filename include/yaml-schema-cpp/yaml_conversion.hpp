@@ -1,5 +1,9 @@
 #pragma once
 
+#include "yaml-schema-cpp/internal/config.h"
+
+#if _EIGEN_FOUND == 1
+
 // Yaml
 #include <yaml-cpp/yaml.h>
 
@@ -284,3 +288,5 @@ struct convert<Eigen::CwiseUnaryOp<A1, A2> >
 };
 
 }  // namespace YAML
+
+#endif
