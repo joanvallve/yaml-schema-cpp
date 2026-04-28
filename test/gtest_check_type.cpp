@@ -336,11 +336,11 @@ TEST(compare, compare_ok)
     param7: [0, 2, 3] #same as value defined
     param8: [[3],[1,2.0,4],[2, 5.9]]
     */
-    node_input = YAML::LoadFile(ROOT_DIR + "/test/yaml/base_input.yaml");
+    YAML::Node node_input = YAML::LoadFile(ROOT_DIR + "/test/yaml/base_input.yaml");
 
     EXPECT_TRUE(compare(node_input["map1"]["param1"], node_input["map1"]["param1"], "int"));
     EXPECT_TRUE(compare(node_input["map1"]["param1"], node_input["map1"]["param1"], "double"));
-    EXPECT_TRUE(compare(node_input["map1"]["param1"], node_input["map1"]["param1"], "unsined int"));
+    EXPECT_TRUE(compare(node_input["map1"]["param1"], node_input["map1"]["param1"], "unsigned int"));
     EXPECT_TRUE(compare(node_input["map1"]["param1"], node_input["map1"]["param1"], "float"));
     EXPECT_TRUE(compare(node_input["map1"]["param1"], node_input["map1"]["param1"], "string"));
 
