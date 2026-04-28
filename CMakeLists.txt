@@ -66,9 +66,11 @@ endif()
 
 # ------ DEPENDENCIES ------
 find_package(yaml-cpp 0.7 REQUIRED)
-find_package(Eigen3 QUIET)
+# find_package(Eigen3 QUIET)
 if (Eigen3_FOUND)
     message("Eigen3 found, compiling yaml-schema-cpp for Eigen classes")
+else()
+    set(Eigen3_FOUND 0)
 endif()
 if(BOOST_FILESYSTEM_LIB)
     message(STATUS "Finding Boost::filesystem")

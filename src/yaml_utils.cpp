@@ -359,4 +359,72 @@ std::string sequenceToString(const YAML::Node& node)
     return ret;
 }
 
+bool isArrayType(const std::string& type_str, size_t& size)
+{
+    size_t pos_open  = type_str.find('[');
+    size_t pos_close = type_str.find(']');
+
+    if ((pos_open == std::string::npos) != (pos_close == std::string::npos))
+        throw std::runtime_error("isArrayType: type_str (" + type_str + ") contains '[' but not ']' or vice-versa.");
+
+    // not sequence string ('[' not found)
+    if (pos_open == std::string::npos) return false;
+
+    // array
+    // 0: size not specified
+    if (pos_open + 1 == pos_close) size = 0;
+    // Return specified size
+    else
+        size = std::stoi(type_str.substr(pos_open + 1, pos_close - pos_open - 1));
+
+    return true;
+}
+
+std::string getLowerElementType(const std::string type_str)
+{
+    size_t pos_open  = type_str.find('[');
+    size_t pos_close = type_str.find(']');
+
+    if ((pos_open == std::string::npos) != (pos_close == std::string::npos))
+        throw std::runtime_error("getLowerElementType: type_str (" + type_str +
+                                 ") contains '[' but not ']' or vice-versa.");
+
+    if (pos_open == std::string::npos) return type_str;
+
+    // remove from first [ to first ]
+    return type_str.substr(0, pos_open) + type_str.substr(pos_close + 1, type_str.size() - pos_close - 1);
+}
+
+std::string getLowestElementType(const std::string type_str)
+{
+    size_t pos_open  = type_str.find('[');
+    size_t pos_close = type_str.find(']');
+
+    if ((pos_open == std::string::npos) != (pos_close == std::string::npos))
+        throw std::runtime_error("getLowestElementType: type_str (" + type_str +
+                                 ") contains '[' but not ']' or vice-versa.");
+
+    if (pos_open == std::string::npos) return type_str;
+
+    // remove from first '[' to the end
+    return type_str.substr(0, pos_open);
+}
+
+std::string getCheckType(const YAML::Node& node)
+{
+    if (not node[TYPE]) throw std::runtime_error("getCheckType: node does not have " + TYPE + " key.");
+
+    // if does not start by "derived", return TYPE
+    if (node[TYPE].as<std::string>().size() < std::string("derived").size() or
+        node[TYPE].as<std::string>().substr(0, std::string("derived").size()) != "derived")
+        return node[TYPE].as<std::string>();
+
+    // If TYPE starts by "derived" substitute by BASE
+    if (not node[BASE]) throw std::runtime_error("getCheckType: node does not have " + BASE + " key.");
+
+    return node[BASE].as<std::string>() +
+           node[TYPE].as<std::string>().substr(std::string("derived").size(),
+                                               node[TYPE].as<std::string>().size() - std::string("derived").size());
+}
+
 }  // namespace yaml_schema_cpp

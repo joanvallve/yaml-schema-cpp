@@ -4,6 +4,6 @@ enabled:
   _doc: boolean parameter
 
 param_expr1:
-  _mandatory: $2-*enabled
+  _mandatory: $optional_param
   _type: int
-  _doc: wrong expression
+  _doc: wrong expression, 'optional_param' is not mandatory and doesn't have default, cannot be used in an expression

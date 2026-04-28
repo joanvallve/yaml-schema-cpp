@@ -54,4 +54,36 @@ std::list<YAML::Node> findNodesWithKey(const YAML::Node root_node, const std::st
 
 std::string sequenceToString(const YAML::Node& node);
 
+/**
+ * @brief evaluates string to check if it is an array type (contains [ ])
+ *        Searches for the first [ and ].
+ * @param type_str INPUT string containing type
+ * @param size OUTPUT (if sequence type): the size of the array
+ *                    (example: for double[3][5] returns 3)
+ * @returns either type_str is a sequence type ('[' and ']' found)
+ */
+bool isArrayType(const std::string& type_str, size_t& size);
+
+/**
+ * @brief get one lower level element type (example: for double[3][5] returns double[5])
+ * @param type_str INPUT string containing type
+ * @returns string removing first [...] of type_str
+ */
+std::string getLowerElementType(const std::string type_str);
+
+/**
+ * @brief get the lowest elements type (example: for double[3][5] returns double)
+ * @param type_str INPUT string containing type
+ * @returns string removing all [...] of type_str
+ */
+std::string getLowestElementType(const std::string type_str);
+
+/**
+ * @brief Get the type to be used to check from a schema node. 
+ * @returns If TYPE does not start by "derived", returns TYPE.
+ *          If TYPE start by "derived", substitutes "derived" by BASE
+ */
+std::string getCheckType(const YAML::Node& node);
+
+
 }  // namespace yaml_schema_cpp

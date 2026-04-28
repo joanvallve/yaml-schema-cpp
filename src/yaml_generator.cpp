@@ -212,11 +212,14 @@ void schemaToYaml(const YAML::Node&               node_schema,
         // sequence
         else
         {
-            // remove the brackets [] from the end of type
-            YAML::Node node_schema_i = Clone(node_schema);
-            node_schema_i[TYPE]      = getTypeOfSequence(node_schema);
+            // remove the brackets [...] from the end of type
+            YAML::Node  node_schema_i = Clone(node_schema);
+            size_t seq_size;
+            isArrayType(node_schema[TYPE].as<std::string>(), seq_size);
+            if (seq_size == 0) seq_size = N_SEQUENCE_OUTPUT;
+            node_schema_i[TYPE] = getLowerElementType(node_schema[TYPE].as<std::string>());
 
-            for (auto i = 0; i < N_SEQUENCE_OUTPUT; i++)
+            for (auto i = 0; i < seq_size; i++)
             {
                 YAML::Node node_output_i;
                 schemaToYaml(node_schema_i, node_output_i, folders_schema, override);

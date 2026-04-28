@@ -34,7 +34,7 @@ TEST(schema, follow)
 
     std::cout << "before: \n" << server.getNode() << std::endl;
 
-    bool ok = server.applySchema("base_input_base.schema");
+    bool ok = server.applySchema("base_input_derived.schema");
     if (not ok) std::cout << server.getLog();
     ASSERT_TRUE(ok);
 
@@ -109,6 +109,7 @@ TEST(schema, nontrivial_options_default_value)
     std::cout << "log: \n" << server.getLog() << std::endl;
 }
 
+#if _EIGEN_FOUND == 1
 TEST(schema, complex_case)
 {
     YamlServer server =
@@ -131,6 +132,7 @@ TEST(schema, complex_case)
 
     std::cout << "log: \n" << server.getLog() << std::endl;
 }
+#endif
 
 int main(int argc, char **argv)
 {

@@ -32,6 +32,18 @@ void       checkSchema(const YAML::Node&               node_schema,
                        const std::string&              field,
                        const YAML::Node&               node_schema_parent,
                        const std::vector<std::string>& folders_schema);
+void       checkSchemaValue(const YAML::Node&               node_schema,
+                            const std::string&              node_field,
+                            const YAML::Node&               node_schema_parent,
+                            const std::vector<std::string>& folders_schema);
+void       checkSchemaDefault(const YAML::Node&               node_schema,
+                              const std::string&              node_field,
+                              const YAML::Node&               node_schema_parent,
+                              const std::vector<std::string>& folders_schema);
+void       checkSchemaOptions(const YAML::Node&               node_schema,
+                              const std::string&              node_field,
+                              const YAML::Node&               node_schema_parent,
+                              const std::vector<std::string>& folders_schema);
 
 bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool verbose, bool override = true);
 
@@ -61,7 +73,5 @@ void addNodeSchema(YAML::Node&        node,
                    const YAML::Node&  value,
                    bool               override,
                    std::string        parent_path = "");
-
-std::string getTypeOfSequence(const YAML::Node& node_schema);
 
 }  // namespace yaml_schema_cpp

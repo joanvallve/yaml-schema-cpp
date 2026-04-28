@@ -1,6 +1,8 @@
 #pragma once
 
 #include <gtest/gtest.h>
+#include "yaml-schema-cpp/internal/config.h"
+#if _EIGEN_FOUND == 1
 #include <Eigen/Dense>
 
 // Macros for testing equalities and inequalities.
@@ -135,3 +137,4 @@ namespace testing
         C_actual);
 
 }  // namespace testing
+#endif

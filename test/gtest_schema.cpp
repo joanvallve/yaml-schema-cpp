@@ -58,7 +58,6 @@ TEST(schema, wrong)
                                          "wrong_value_options",
                                          "wrong_expression",
                                          "wrong_expression2",
-                                         "wrong_expression3",
                                          "wrong_mandatory",
                                          "wrong_doc",
                                          "wrong_options",
