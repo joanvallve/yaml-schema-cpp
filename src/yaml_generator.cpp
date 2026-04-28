@@ -147,7 +147,7 @@ void schemaToYaml(const YAML::Node&               node_schema,
         // Not sequence
         if (not isSequenceSchema(node_schema))
         {
-            // check trivial type
+            // trivial type
             if (isTrivialType(node_schema[TYPE].as<std::string>()))
             {
                 std::string value_str;
@@ -156,23 +156,27 @@ void schemaToYaml(const YAML::Node&               node_schema,
                 std::string mandatory_str = isExpression(node_schema[MANDATORY])
                                                 ? "MANDATORY if " + node_schema[MANDATORY].as<std::string>() + " - "
                                                 : (node_schema[MANDATORY].as<bool>() ? "" : "OPTIONAL - ");
-                // Default
+                // If Default, fill value with default
                 if (node_schema[DEFAULT])
                 {
-                    if (not isEigenType(node_schema[TYPE].as<std::string>()))
-                        value_str = node_schema[DEFAULT].as<std::string>();
-                    else
+#if _EIGEN_FOUND == 1
+                    if (isEigenType(node_schema[TYPE].as<std::string>()))
                         value_str = sequenceToString(node_schema[DEFAULT]);
+                    else
+#endif
+                        value_str = node_schema[DEFAULT].as<std::string>();
                 }
-                // Options
+                // If not default, but Options, fill value with first option
                 else if (node_schema[OPTIONS])
                 {
-                    if (not isEigenType(node_schema[TYPE].as<std::string>()))
+#if _EIGEN_FOUND == 1
+                    if (isEigenType(node_schema[TYPE].as<std::string>()))
                         value_str = node_schema[OPTIONS][0].as<std::string>();
                     else
+#endif
                         value_str = sequenceToString(node_schema[OPTIONS][0]);
                 }
-                // Zero value
+                // If not default and not options, fill with zero value
                 else
                     value_str = getZeroString(node_schema[TYPE].as<std::string>());
 
@@ -189,7 +193,8 @@ void schemaToYaml(const YAML::Node&               node_schema,
             {
                 node_output["type"] =
                     "'DerivedType'  # DOC String corresponding to the name of the object class (and its schema "
-                    "file).";
+                    "file). Should be a class derived from base class: " +
+                    node_schema[BASE].as<std::string>();
                 node_output["follow"] = "some/path/to/derived/type/parameters.yaml";
             }
             // custom non trivial-type
