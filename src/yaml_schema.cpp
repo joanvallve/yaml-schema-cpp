@@ -624,7 +624,6 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
             // Check if it is mandatory
             else
             {
-                assert(tryNodeAs(node_schema[MANDATORY], "bool") or isExpression(node_schema[MANDATORY]));
                 bool mandatory;
                 if (isExpression(node_schema[MANDATORY]))
                 {
@@ -651,7 +650,7 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                     writeErrorToLog(log,
                                     acc_field,
                                     node_schema,
-                                    "Missing mandatory field (" + MANDATORY + ": " +
+                                    "Missing mandatory field (" + MANDATORY + "): " +
                                         node_schema[MANDATORY].as<std::string>() + ").");
                     is_valid = false;
                 }
