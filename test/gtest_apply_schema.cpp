@@ -137,7 +137,7 @@ TEST(schema, complex_case)
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);
-    //::testing::GTEST_FLAG(filter) = "TestTest.DummyTestExample"; // Test only this one
-    //::testing::GTEST_FLAG(filter) = "TestTest.*"; // Test only the tests in this group
+    // ::testing::GTEST_FLAG(filter) = "schema.plain_yaml"; // Test only this one 
+    //::testing::GTEST_FLAG(filter) = "schema.*"; // Test only the tests in this group
     return RUN_ALL_TESTS();
 }

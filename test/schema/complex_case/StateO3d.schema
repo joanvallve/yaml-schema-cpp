@@ -17,6 +17,6 @@ prior:
     _doc: Can be 'factor' to add an absolute factor (with covariance defined in 'factor_std'), 'fix' to set the values constant or 'initial_guess' to just set the values.
 
   factor_std:
-    _type: Vector3d
+    _type: Eigen::Vector3d
     _mandatory: $mode == 'factor'
     _doc: A vector containing the stdev values of the noise of the factor, i.e. the sqrt of the diagonal elements of the covariance matrix [rad].

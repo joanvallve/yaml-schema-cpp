@@ -5,6 +5,101 @@
 
 namespace yaml_schema_cpp
 {
+
+bool checkSizes(const YAML::Node& node, const std::string& type)
+{
+    size_t size;
+
+    // not array --> ok
+    if (not isArrayType(type, size)) return true;
+
+    // array type --> node should be sequence
+    if (node.IsSequence())
+    {
+        // array size not specified --> ok to be a sequence
+        if (size == 0) return true;
+
+        // array size specified --> sequence should have same size
+        if (node.size() == size) return true;
+    }
+    // otherwise
+    return false;
+}
+
+bool checkNodeAsBasic(const YAML::Node& node, const std::string& type)
+{
+    if (not checkSizes(node, type)) return false;
+
+    size_t size;
+    // array type
+    if (isArrayType(type, size))  
+    {
+        // call recursively checkNodeAsBasic for each element of sequence
+        for (auto i = 0; node.size(); i++) checkNodeAsBasic(node[i], getLowerElementType(type));
+    }
+    // scalar
+    else
+        CHECK_TYPE_BASIC_CASES
+    return false;
+}
+
+bool checkNodeAsString(const YAML::Node& node, const std::string& type)
+{
+    if (not checkSizes(node, type)) return false;
+
+    size_t size;
+    // array type
+    if (isArrayType(type, size))  
+    {
+        // call recursively checkNodeAsBasic for each element of sequence
+        for (auto i = 0; node.size(); i++) checkNodeAsString(node[i], getLowerElementType(type));
+    }
+    // scalar
+    else
+        CHECK_TYPE_STRING_CASES
+    return false;
+}
+
+#if _EIGEN_FOUND == 1
+bool checkNodeAsEigen(const YAML::Node& node, const std::string& type)
+{
+    if (not checkSizes(node, type)) return false;
+    
+    size_t size;
+    // array type
+    if (isArrayType(type, size))  
+    {
+        // call recursively checkNodeAsBasic for each element of sequence
+        for (auto i = 0; node.size(); i++) checkNodeAsString(node[i], getLowerElementType(type));
+    }
+    else
+        CHECK_TYPE_EIGEN_CASES
+    return false;
+}
+#endif
+
+bool checkNodeAs(const YAML::Node& node, const std::string& type)
+{
+    if (not checkSizes(node, type)) return false;
+
+    size_t size;
+    // array type
+    if (isArrayType(type, size))  
+    {
+        // call recursively checkNodeAsBasic for each element of sequence
+        for (auto i = 0; node.size(); i++) checkNodeAsString(node[i], getLowerElementType(type));
+    }
+    else
+    {
+        CHECK_TYPE_BASIC_CASES
+        CHECK_TYPE_STRING_CASES
+#if _EIGEN_FOUND == 1
+        CHECK_TYPE_EIGEN_CASES
+#endif
+    }
+    return false;
+}
+
 bool tryNodeAs(const YAML::Node& node, const std::string& type)
 {
     try
@@ -77,5 +172,6 @@ bool isNonTrivialType(const std::string& type, const std::vector<std::string>& f
     std::stringstream log;
     return not findSchema(type, folders, log).empty();
 }
+
 
 }  // namespace yaml_schema_cpp

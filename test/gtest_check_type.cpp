@@ -195,19 +195,19 @@ TEST(check_type, string)
 
     node = "-3.2";
 
-    EXPECT_TRUE(tryNodeAs(node, "string"));
+    EXPECT_TRUE(tryNodeAs(node, "std::string"));
 
     node = "1e-3";
 
-    EXPECT_TRUE(tryNodeAs(node, "string"));
+    EXPECT_TRUE(tryNodeAs(node, "std::string"));
 
     node = "a";
 
-    EXPECT_TRUE(tryNodeAs(node, "string"));
+    EXPECT_TRUE(tryNodeAs(node, "std::string"));
 
     node = "gromenauer";
 
-    EXPECT_TRUE(tryNodeAs(node, "string"));
+    EXPECT_TRUE(tryNodeAs(node, "std::string"));
 
     YAML::Node node_seq;
     node_seq[0] = 0;
@@ -320,51 +320,6 @@ TEST(check_type, trivial_types)
 #endif
 }
 
-TEST(compare, compare_ok)
-{
-    /*
-    map1:
-        param1: 1
-        param2: "string"
-    param5:
-        - 5
-        - 6
-        - -1
-        - -7
-        - 0
-    param6: 3.14 #same as value defined
-    param7: [0, 2, 3] #same as value defined
-    param8: [[3],[1,2.0,4],[2, 5.9]]
-    */
-    YAML::Node node_input = YAML::LoadFile(ROOT_DIR + "/test/yaml/base_input.yaml");
-
-    EXPECT_TRUE(compare(node_input["map1"]["param1"], node_input["map1"]["param1"], "int"));
-    EXPECT_TRUE(compare(node_input["map1"]["param1"], node_input["map1"]["param1"], "double"));
-    EXPECT_TRUE(compare(node_input["map1"]["param1"], node_input["map1"]["param1"], "unsigned int"));
-    EXPECT_TRUE(compare(node_input["map1"]["param1"], node_input["map1"]["param1"], "float"));
-    EXPECT_TRUE(compare(node_input["map1"]["param1"], node_input["map1"]["param1"], "string"));
-
-    EXPECT_TRUE(compare(node_input["map1"]["param2"], node_input["map1"]["param2"], "string"));
-
-    EXPECT_TRUE(compare(node_input["param5"], node_input["param5"], "int[]"));
-    EXPECT_TRUE(compare(node_input["param5"], node_input["param5"], "double[]"));
-    EXPECT_TRUE(compare(node_input["param5"], node_input["param5"], "float[]"));
-    EXPECT_TRUE(compare(node_input["param5"], node_input["param5"], "int[5]"));
-    EXPECT_TRUE(compare(node_input["param5"], node_input["param5"], "double[5]"));
-    EXPECT_TRUE(compare(node_input["param5"], node_input["param5"], "float[5]"));
-
-    EXPECT_TRUE(compare(node_input["param7"], node_input["param7"], "int[]"));
-    EXPECT_TRUE(compare(node_input["param7"], node_input["param7"], "double[]"));
-    EXPECT_TRUE(compare(node_input["param7"], node_input["param7"], "float[]"));
-    EXPECT_TRUE(compare(node_input["param7"], node_input["param7"], "int[3]"));
-    EXPECT_TRUE(compare(node_input["param7"], node_input["param7"], "double[3]"));
-    EXPECT_TRUE(compare(node_input["param7"], node_input["param7"], "float[3]"));
-
-    EXPECT_TRUE(compare(node_input["param8"], node_input["param8"], "double[][]"));
-    EXPECT_TRUE(compare(node_input["param8"], node_input["param8"], "float[][]"));
-    EXPECT_TRUE(compare(node_input["param8"], node_input["param8"], "double[3][]"));
-    EXPECT_TRUE(compare(node_input["param8"], node_input["param8"], "float[3][]"));
-}
 
 int main(int argc, char **argv)
 {

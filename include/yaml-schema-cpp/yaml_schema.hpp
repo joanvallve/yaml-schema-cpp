@@ -62,7 +62,10 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                           const std::string&              acc_field,
                           bool                            override);
 
-bool checkOptions(const YAML::Node& input_node, const YAML::Node& options_node, const std::string& type);
+bool isInOptions(const YAML::Node&               input_node,
+                 const YAML::Node&               options_node,
+                 const std::string&              type,
+                 const std::vector<std::string>& folders_schema = {});
 
 bool hasAnyReservedKey(const YAML::Node& node_schema);
 bool isSpecification(const YAML::Node& node_schema);

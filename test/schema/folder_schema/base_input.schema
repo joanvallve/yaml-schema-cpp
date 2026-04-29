@@ -18,7 +18,7 @@ map1:
     _doc: "some doc"
 param4:
   _mandatory: false
-  _type: string
+  _type: std::string
   _default: hello
   _doc: "some doc"
 param5:
