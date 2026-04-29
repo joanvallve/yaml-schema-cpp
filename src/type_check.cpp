@@ -30,9 +30,8 @@ bool checkNodeAsBasic(const YAML::Node& node, const std::string& type)
 {
     if (not checkSizes(node, type)) return false;
 
-    size_t size;
     // array type
-    if (isArrayType(type, size))  
+    if (isArrayType(type))  
     {
         // call recursively checkNodeAsBasic for each element of sequence
         for (auto i = 0; node.size(); i++) checkNodeAsBasic(node[i], getLowerElementType(type));
@@ -47,9 +46,8 @@ bool checkNodeAsString(const YAML::Node& node, const std::string& type)
 {
     if (not checkSizes(node, type)) return false;
 
-    size_t size;
     // array type
-    if (isArrayType(type, size))  
+    if (isArrayType(type))  
     {
         // call recursively checkNodeAsBasic for each element of sequence
         for (auto i = 0; node.size(); i++) checkNodeAsString(node[i], getLowerElementType(type));
@@ -65,9 +63,8 @@ bool checkNodeAsEigen(const YAML::Node& node, const std::string& type)
 {
     if (not checkSizes(node, type)) return false;
     
-    size_t size;
     // array type
-    if (isArrayType(type, size))  
+    if (isArrayType(type))  
     {
         // call recursively checkNodeAsBasic for each element of sequence
         for (auto i = 0; node.size(); i++) checkNodeAsString(node[i], getLowerElementType(type));
@@ -82,9 +79,8 @@ bool checkNodeAs(const YAML::Node& node, const std::string& type)
 {
     if (not checkSizes(node, type)) return false;
 
-    size_t size;
     // array type
-    if (isArrayType(type, size))  
+    if (isArrayType(type))  
     {
         // call recursively checkNodeAsBasic for each element of sequence
         for (auto i = 0; node.size(); i++) checkNodeAsString(node[i], getLowerElementType(type));

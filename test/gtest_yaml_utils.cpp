@@ -144,9 +144,7 @@ TEST(compare, compare_trivial_wrong)
     node_comp["param8"][1][0]   = 1;
     node_comp["param8"][1][1]   = 2;
     node_comp["param8"][1][2]   = 4;
-    node_comp["param8"][2][0]   = 2;
-    node_comp["param8"][2][1]   = 5.9;
-    node_comp["param8"][2][1]   = 4;  // element extra
+    node_comp["param8"][2]   = 2; // double instead of double[]
 
     // param 1
     EXPECT_FALSE(compare(node_input["map1"]["param1"], node_comp["map1"]["param1"], "int", {}));
@@ -186,7 +184,7 @@ TEST(compare, compare_non_trivial_wrong)
     // base_input
     YAML::Node node_input  = YAML::LoadFile(ROOT_DIR + "/test/yaml/base_input.yaml");
     YAML::Node node_comp   = YAML::Clone(node_input);
-    node_comp["param7"][2] = 4;  // different
+    node_comp["param8"][2]   = 2; // double instead of double[]
 
     EXPECT_FALSE(compare(node_input, node_comp, "base_input", {ROOT_DIR}));
 

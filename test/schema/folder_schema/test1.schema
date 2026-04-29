@@ -5,7 +5,7 @@ namespace1:
     _doc: "some parameter"
   param2:
     _mandatory: false
-    _type: double[]
+    _type: double[4]
     _default: [0.1, 0, 1e4, 9]
     _doc: "some parameter"
 param3:
@@ -13,9 +13,9 @@ param3:
   _type: string[]
   _doc: "some parameter"
   _options:
-    - "yes"
-    - "no"
-    - "maybe"
+    - ["yes","no"]
+    - ["green","red"]
+    - ["excelent", "good", "bad"]
 param4:
   _mandatory: false
   _type: bool

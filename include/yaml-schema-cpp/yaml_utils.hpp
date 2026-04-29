@@ -59,6 +59,14 @@ std::string sequenceToString(const YAML::Node& node);
  * @brief evaluates string to check if it is an array type (contains [ ])
  *        Searches for the first [ and ].
  * @param type_str INPUT string containing type
+ * @returns either type_str is a sequence type ('[' and ']' found)
+ */
+bool isArrayType(const std::string& type_str);
+
+/**
+ * @brief evaluates string to check if it is an array type (contains [ ])
+ *        Searches for the first [ and ].
+ * @param type_str INPUT string containing type
  * @param size OUTPUT (if sequence type): the size of the array
  *                    (example: for double[3][5] returns 3)
  * @returns either type_str is a sequence type ('[' and ']' found)

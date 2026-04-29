@@ -21,6 +21,7 @@ std::string generateTemplate(std::string                     filepath,
                              const std::vector<std::string>& folders_schema,
                              bool                            override)
 {
+    std::cout << "generateTemplate " << name_schema << std::endl;
     // Check extension
     if (filesystem::path(filepath).extension().empty())
     {
@@ -79,6 +80,8 @@ std::string generateTemplate(std::string                     filepath,
 
 YAML::Node generateYaml(std::string name_schema, const std::vector<std::string>& folders_schema, bool override)
 {
+    std::cout << "generateYaml " << name_schema << std::endl;
+
     // Find schema file + check extension
     std::stringstream log;
     auto              path_schema = findSchema(name_schema, folders_schema, log);
@@ -134,6 +137,8 @@ void schemaToYaml(const YAML::Node&               node_schema,
                   const std::vector<std::string>& folders_schema,
                   bool                            override)
 {
+    std::cout << "schemaToYaml:\n" << node_schema << std::endl;
+
     // Specification (has _mandatory, _type and _doc)
     if (isSpecification(node_schema))
     {
@@ -144,88 +149,95 @@ void schemaToYaml(const YAML::Node&               node_schema,
             return;
         }
 
-        // Not sequence
-        if (not isSequenceSchema(node_schema))
+        // trivial type
+        auto lowest_type = getLowestElementType(node_schema[TYPE].as<std::string>());
+        if (isTrivialType(lowest_type))
         {
-            // trivial type
-            if (isTrivialType(node_schema[TYPE].as<std::string>()))
-            {
-                std::string value_str;
+            bool sequence_value = isSequenceSchema(node_schema);
+#if _EIGEN_FOUND == 1
+            sequence_value = sequence_value or isEigenType(lowest_type);
+#endif
+            std::string value_str;
 
-                // Mandatory string
-                std::string mandatory_str = isExpression(node_schema[MANDATORY])
-                                                ? "MANDATORY if " + node_schema[MANDATORY].as<std::string>() + " - "
-                                                : (node_schema[MANDATORY].as<bool>() ? "" : "OPTIONAL - ");
-                // If Default, fill value with default
-                if (node_schema[DEFAULT])
-                {
-#if _EIGEN_FOUND == 1
-                    if (isEigenType(node_schema[TYPE].as<std::string>()))
-                        value_str = sequenceToString(node_schema[DEFAULT]);
-                    else
-#endif
-                        value_str = node_schema[DEFAULT].as<std::string>();
-                }
-                // If not default, but Options, fill value with first option
-                else if (node_schema[OPTIONS])
-                {
-#if _EIGEN_FOUND == 1
-                    if (isEigenType(node_schema[TYPE].as<std::string>()))
-                        value_str = node_schema[OPTIONS][0].as<std::string>();
-                    else
-#endif
-                        value_str = sequenceToString(node_schema[OPTIONS][0]);
-                }
-                // If not default and not options, fill with zero value
+            // Mandatory string
+            std::string mandatory_str = isExpression(node_schema[MANDATORY])
+                                            ? "MANDATORY if " + node_schema[MANDATORY].as<std::string>() + " - "
+                                            : (node_schema[MANDATORY].as<bool>() ? "" : "OPTIONAL - ");
+            // If Default, fill value with default
+            if (node_schema[DEFAULT])
+            {
+                if (sequence_value)
+                    value_str = sequenceToString(node_schema[DEFAULT]);
                 else
-                    value_str = getZeroString(node_schema[TYPE].as<std::string>());
-
-                // put ' ' envolving the value if type string
-                if (isStringType(node_schema[TYPE].as<std::string>())) value_str = "'" + value_str + "'";
-
-                // FILL NODE
-                node_output = value_str + "  # " + mandatory_str + "DOC " + node_schema[DOC].as<std::string>() +
-                              " - TYPE " + node_schema[TYPE].as<std::string>() +
-                              (node_schema[OPTIONS] ? " - OPTIONS " + sequenceToString(node_schema[OPTIONS]) : "");
+                    value_str = node_schema[DEFAULT].as<std::string>();
             }
-            // Derived type
-            else if (node_schema[TYPE].as<std::string>() == "derived")
+            // If not default, but Options, fill value with first option
+            else if (node_schema[OPTIONS])
             {
-                node_output["type"] =
-                    "'DerivedType'  # DOC String corresponding to the name of the object class (and its schema "
-                    "file). Should be a class derived from base class: " +
-                    node_schema[BASE].as<std::string>();
-                node_output["follow"] = "some/path/to/derived/type/parameters.yaml";
+                if (sequence_value)
+                    value_str = sequenceToString(node_schema[OPTIONS][0]);
+                else
+                    value_str = node_schema[OPTIONS][0].as<std::string>();
             }
-            // custom non trivial-type
-            else if (isNonTrivialType(node_schema[TYPE].as<std::string>(), folders_schema))
-            {
-                // find trivial-type schema and apply
-                node_output = generateYaml(node_schema[TYPE].as<std::string>(), folders_schema, override);
-            }
-            // non trivial type also failed
+            // If not default and not options, fill with zero value
             else
-            {
-                throw std::runtime_error("Not trivial type not found: " + node_schema[TYPE].as<std::string>());
-            }
+                value_str = getZeroString(node_schema[TYPE].as<std::string>());
+
+            // put ' ' envolving the value if type string
+            if (isStringType(node_schema[TYPE].as<std::string>())) value_str = "'" + value_str + "'";
+
+            // FILL NODE
+            node_output = value_str + "  # " + mandatory_str + "DOC " + node_schema[DOC].as<std::string>() +
+                          " - TYPE " + node_schema[TYPE].as<std::string>() +
+                          (node_schema[OPTIONS] ? " - OPTIONS " + sequenceToString(node_schema[OPTIONS]) : "");
         }
-        // sequence
+        // custom non trivial-type or Derived type
         else
         {
-            // remove the brackets [...] from the end of type
-            YAML::Node  node_schema_i = Clone(node_schema);
+            // scalar
             size_t seq_size;
-            isArrayType(node_schema[TYPE].as<std::string>(), seq_size);
-            if (seq_size == 0) seq_size = N_SEQUENCE_OUTPUT;
-            node_schema_i[TYPE] = getLowerElementType(node_schema[TYPE].as<std::string>());
-
-            for (auto i = 0; i < seq_size; i++)
+            if (not isSequenceSchema(node_schema, seq_size))
             {
-                YAML::Node node_output_i;
-                schemaToYaml(node_schema_i, node_output_i, folders_schema, override);
+                if (lowest_type == "derived")
+                {
+                    node_output["type"] =
+                        "'DerivedType'  # DOC String corresponding to the name of the object class (and its schema "
+                        "file). Should be a class derived from base class: " +
+                        node_schema[BASE].as<std::string>();
+                    node_output["follow"] = "some/path/to/derived/type/parameters.yaml";
+                }
+                else if (isNonTrivialType(lowest_type, folders_schema))
+                {
+                    // find trivial-type schema and apply
+                    node_output = generateYaml(node_schema[TYPE].as<std::string>(), folders_schema, override);
+                }
+                // non trivial type also failed
+                else
+                {
+                    throw std::runtime_error("Not trivial type not found: " + node_schema[TYPE].as<std::string>());
+                }
+            }
+            // array
+            else
+            {
+                YAML::Node node_schema_i = Clone(node_schema);
+                if (seq_size == 0) seq_size = N_SEQUENCE_OUTPUT;
+                node_schema_i[TYPE] = getLowerElementType(node_schema[TYPE].as<std::string>());
 
-                // add node if it was created (if VALUE defined, it wasn't)
-                if (not node_output_i.IsNull()) node_output.push_back(node_output_i);
+                for (auto i = 0; i < seq_size; i++)
+                {
+                    // if VALUE --> copy corresponding
+                    if (node_schema[VALUE]) node_schema_i[VALUE] = node_schema[VALUE][i];
+
+                    // if OPTIONS --> copy corresponding
+                    if (node_schema[OPTIONS]) node_schema_i[OPTIONS][0] = node_schema[OPTIONS][0][i];
+
+                    YAML::Node node_output_i;
+                    schemaToYaml(node_schema_i, node_output_i, folders_schema, override);
+
+                    // add node if it was created (if VALUE defined, it wasn't)
+                    if (not node_output_i.IsNull()) node_output.push_back(node_output_i);
+                }
             }
         }
     }

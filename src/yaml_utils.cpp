@@ -359,6 +359,12 @@ std::string sequenceToString(const YAML::Node& node)
     return ret;
 }
 
+bool isArrayType(const std::string& type_str)
+{
+    size_t size;
+    return isArrayType(type_str, size);
+}
+
 bool isArrayType(const std::string& type_str, size_t& size)
 {
     size_t pos_open  = type_str.find('[');
@@ -439,17 +445,12 @@ bool compare(const YAML::Node&               node1,
 {
     if (not node1.IsDefined() or node1.IsNull() or not node2.IsDefined() or node2.IsNull()) return false;
 
-    std::cout << "Compare with type " << type << "\n------- node1:\n"
-              << node1 << "\n------- node2:\n"
-              << node2 << std::endl;
-
     // sequences if array type, and same size as array type (if specified)
     if (not checkSizes(node1, type)) return false;
     if (not checkSizes(node2, type)) return false;
 
-    size_t size;
     // array type --> call recursively compare
-    if (isArrayType(type, size))
+    if (isArrayType(type))
     {
         // same size
         if (node1.size() != node2.size()) return false;
@@ -474,10 +475,6 @@ bool compare(const YAML::Node&               node1,
 bool compareTrivial(const YAML::Node& node1, const YAML::Node& node2, const std::string& type)
 {
     if (not node1.IsDefined() or node1.IsNull() or not node2.IsDefined() or node2.IsNull()) return false;
-
-    std::cout << "Compare with type " << type << "\n------- node1:\n"
-              << node1 << "\n------- node2:\n"
-              << node2 << std::endl;
 
     COMPARE_TYPE(bool)
     COMPARE_TYPE(char)
@@ -556,10 +553,6 @@ bool compareNonTrivial(const YAML::Node&               node1,
                        const std::vector<std::string>& folders_schema)
 {
     if (not node1.IsDefined() or node1.IsNull() or not node2.IsDefined() or node2.IsNull()) return false;
-
-    std::cout << "compareNonTrivial with type " << type << "\n------- node1:\n"
-              << node1 << "\n------- node2:\n"
-              << node2 << std::endl;
 
     // Find schema file
     auto path_schema = findSchema(type, folders_schema);

@@ -70,6 +70,7 @@ bool isInOptions(const YAML::Node&               input_node,
 bool hasAnyReservedKey(const YAML::Node& node_schema);
 bool isSpecification(const YAML::Node& node_schema);
 bool isSequenceSchema(const YAML::Node& node_schema);
+bool isSequenceSchema(const YAML::Node& node_schema, size_t& size);
 
 void addNodeSchema(YAML::Node&        node,
                    const std::string& key,

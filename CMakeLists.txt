@@ -49,6 +49,19 @@ else()
 endif()
 message(STATUS "BOOST_FILESYSTEM_LIB: ${BOOST_FILESYSTEM_LIB}")
 
+# ------ DEPENDENCIES ------
+find_package(yaml-cpp 0.7 REQUIRED)
+find_package(Eigen3 QUIET)
+if (Eigen3_FOUND)
+    message(STATUS "Eigen3 found, compiling yaml-schema-cpp for Eigen classes")
+else()
+    set(Eigen3_FOUND 0)
+endif()
+if(BOOST_FILESYSTEM_LIB)
+    message(STATUS "Finding Boost::filesystem")
+    find_package(Boost REQUIRED COMPONENTS filesystem system)
+endif()
+
 # ============ config.h ============
 # Define the directory where will be the configured config.h
 set(YAML_SCHEMA_CONFIG_DIR ${PROJECT_BINARY_DIR}/conf/${PROJECT_NAME}/internal)
@@ -62,19 +75,6 @@ endif()
 if(EXISTS "${YAML_SCHEMA_CONFIG_DIR}" AND NOT IS_DIRECTORY "${YAML_SCHEMA_CONFIG_DIR}")
     message(FATAL_ERROR "Bug: Specified CONFIG_DIR: "
         "${YAML_SCHEMA_CONFIG_DIR} exists, but is not a directory.")
-endif()
-
-# ------ DEPENDENCIES ------
-find_package(yaml-cpp 0.7 REQUIRED)
-# find_package(Eigen3 QUIET)
-if (Eigen3_FOUND)
-    message("Eigen3 found, compiling yaml-schema-cpp for Eigen classes")
-else()
-    set(Eigen3_FOUND 0)
-endif()
-if(BOOST_FILESYSTEM_LIB)
-    message(STATUS "Finding Boost::filesystem")
-    find_package(Boost REQUIRED COMPONENTS filesystem system)
 endif()
 
 # Configure config.h
