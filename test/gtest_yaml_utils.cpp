@@ -195,6 +195,52 @@ TEST(compare, compare_non_trivial_wrong)
 
     EXPECT_TRUE(compare(node_input2, node_input2, "sequence_mandatory", {ROOT_DIR}));
 }
+
+TEST(compare, compare_nodes_auto_type)
+{
+    /* base_input:
+    map1:
+        param1: 1
+        param2: "string"
+    param5:
+        - 5
+        - 6
+        - -1
+        - -7
+        - 0
+    param6: 3.14 #same as value defined
+    param7: [0, 2, 3] #same as value defined
+    param8: [[3],[1,2.0,4],[2, 5.9]]
+    */
+   
+    YAML::Node node_input  = YAML::LoadFile(ROOT_DIR + "/test/yaml/base_input.yaml");
+    YAML::Node node_comp   = YAML::Clone(node_input);
+    
+    EXPECT_TRUE(compareNodesAutoType(node_input, node_comp));
+
+    // remove param2
+    node_comp["map1"].remove("param2");
+    EXPECT_FALSE(node_comp["map1"]["param2"]);
+    EXPECT_FALSE(compareNodesAutoType(node_input, node_comp));
+
+    // change param5[2]
+    node_comp   = YAML::Clone(node_input);
+    node_comp["param5"][2] = 9;
+    EXPECT_NE(node_comp["param5"][2].as<int>(), node_input["param5"][2].as<int>());
+    EXPECT_FALSE(compareNodesAutoType(node_input, node_comp));
+
+    // add elements to param7 
+    node_comp   = YAML::Clone(node_input);
+    node_comp["param7"][3] = 9;
+    EXPECT_NE(node_comp["param7"].size(), node_input["param7"].size());
+    EXPECT_FALSE(compareNodesAutoType(node_input, node_comp));
+
+    // change type of param6
+    node_comp   = YAML::Clone(node_input);
+    node_comp["param6"] = "pi";
+    EXPECT_FALSE(compareNodesAutoType(node_input, node_comp));
+}
+
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);

@@ -1,0 +1,7 @@
+follow: base_input.schema
+
+map1:
+  another_param: 
+    _mandatory: false
+    _type: int
+    _doc: "some doc"

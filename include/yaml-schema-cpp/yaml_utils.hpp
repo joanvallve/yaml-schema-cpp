@@ -17,21 +17,30 @@ void flattenNode(YAML::Node&              node,
                  std::vector<std::string> schema_folders,
                  bool                     is_schema,
                  bool                     override);
+
 void flattenMap(YAML::Node&              node,
                 std::string              current_folder,
                 std::vector<std::string> schema_folders,
                 bool                     is_schema,
                 bool                     override);
+
 void flattenSequence(YAML::Node&              node,
                      std::string              current_folder,
                      std::vector<std::string> schema_folders,
                      bool                     is_schema,
                      bool                     override);
 
+void insertNodes(YAML::Node&              node,
+                 const YAML::Node&        node_follow,
+                 std::string              current_folder,
+                 std::vector<std::string> schema_folders,
+                 bool                     override);
+
 void writeErrorToLog(std::stringstream& log,
                      const std::string& _acc_field,
                      const YAML::Node   _node_schema,
                      const std::string& _error_message);
+
 void writeNodeSchemaToLog(std::stringstream& log,
                           const std::string& _acc_field,
                           const YAML::Node   _node_schema,
@@ -147,6 +156,15 @@ std::string getCheckType(const YAML::Node& node);
         }                                                                                                             \
     }
 #endif
+
+/**
+ * @brief Compare two nodes interpreting all scalars automatically.
+ * First try as integers, second as doubles, finally as strings.
+ *
+ * @param node1, node2 nodes to be compared
+ * @return if both nodes are equal
+ */
+bool compareNodesAutoType(const YAML::Node& node1, const YAML::Node& node2);
 
 /**
  * @brief Compare two nodes interpreted as a given type

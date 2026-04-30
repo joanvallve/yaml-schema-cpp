@@ -1,0 +1,17 @@
+map1:
+  param1: 1
+  param2: "string"
+param5:
+  - 5
+  - 6
+  - -1
+  - -7
+  - 0
+param6: 3.14 #same as value defined
+param7: [0, 2, 3] #same as value defined
+param8: [[3],[1,2.0,4],[2, 5.9]]
+int_param: -1
+string_param: "string"
+another_param: [0, 0.3, 1e5]
+map2:
+  param1: 4.5

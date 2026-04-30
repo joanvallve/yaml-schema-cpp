@@ -1,4 +1,4 @@
-follow: "flatten_independent.yaml"
+follow: "flatten_relative_path.yaml"
 yet_another_param: true
 map3:
   param1: "gromenauer"
