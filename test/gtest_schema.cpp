@@ -48,20 +48,20 @@ TEST(schema, nontrivial_options_default_value)
 
 TEST(schema, wrong)
 {
-    std::list<std::string> wrong_schemas{"not_mandatory",
-                                         "not_type",
+    std::list<std::string> wrong_schemas{"not_base",
                                          "not_doc",
-                                         "not_base",
-                                         "wrong_default",
+                                         "not_mandatory",
+                                         "not_type",
                                          "wrong_default_options",
-                                         "wrong_value",
-                                         "wrong_value_options",
+                                         "wrong_default",
+                                         "wrong_doc",
                                          "wrong_expression",
                                          "wrong_expression2",
                                          "wrong_mandatory",
-                                         "wrong_doc",
                                          "wrong_options",
-                                         "wrong_options2"};
+                                         "wrong_options2",
+                                         "wrong_value_options",
+                                         "wrong_value"};
 
     for (auto w_schema : wrong_schemas)
     {
@@ -75,9 +75,9 @@ TEST(schema, wrong)
 
 TEST(schema, override)
 {
-    std::list<std::string> wrong_schemas{"same_param", "same_param_diff_type"};
+    std::list<std::string> schemas{"same_param", "same_param_diff_type"};
 
-    for (auto w_schema : wrong_schemas)
+    for (auto w_schema : schemas)
     {
         std::stringstream log;
         std::cout << "Checking " << w_schema << ".schema..." << std::endl;
@@ -87,17 +87,16 @@ TEST(schema, override)
     }
 }
 
-TEST(schema, dont_override)
+TEST(schema, override_not_allowed)
 {
-    std::list<std::string> wrong_schemas{"same_param", "same_param_diff_type"};
+    std::list<std::string> schemas{"same_param", "same_param_diff_type"};
 
-    for (auto w_schema : wrong_schemas)
+    for (auto w_schema : schemas)
     {
         std::stringstream log;
         std::cout << "Checking " << w_schema << ".schema..." << std::endl;
-        auto node_schema = loadSchema(w_schema + ".schema", {ROOT_DIR + "/test/schema"}, log);
-        EXPECT_TRUE(node_schema.IsDefined());
-        std::cout << log.str() << std::endl;
+        auto node_schema = loadSchema(w_schema + ".schema", {ROOT_DIR + "/test/schema"}, log, false);
+        EXPECT_FALSE(node_schema.IsDefined());
     }
 }
 

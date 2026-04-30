@@ -4,6 +4,6 @@ enabled:
   _doc: boolean parameter
 
 param_expr2:
-  _mandatory: $param2 > 3
+  _mandatory: $param2 > 3 # param2 is missing
   _type: int
-  _doc: wrong expresssion, missing param2
+  _doc: param with wrong expression in mandatory

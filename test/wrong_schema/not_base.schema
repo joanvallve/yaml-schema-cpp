@@ -12,8 +12,9 @@ param3:
   _mandatory: true
   _type: string[]
   _doc: "some parameter"
-param4:
+param4: 
   _type: derived
+  # missing _base
   _mandatory: false
   _default: true
   _doc: "some parameter"

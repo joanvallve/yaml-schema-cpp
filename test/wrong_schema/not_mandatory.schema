@@ -14,5 +14,6 @@ param3:
   _doc: "some parameter"
 param4:
   _type: bool
+  # missing _mandatory
   _default: true
   _doc: "some parameter"

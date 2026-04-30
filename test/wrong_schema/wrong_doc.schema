@@ -7,7 +7,7 @@ namespace1:
     _mandatory: false
     _type: Vector4d
     _default: [0.1, 0, 1e4, 9]
-    _doc:  [0.1, 0, 1e4, 9]
+    _doc:  [0.1, 0, 1e4, 9] # doc should not be a sequence
 param3:
   _mandatory: true
   _type: string[]

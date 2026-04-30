@@ -7,6 +7,7 @@ namespace1:
     _mandatory: false
     _type: Vector4d
     _default: [0.1, 0, 1e4, 9]
+    # missing _doc
 param3:
   _mandatory: true
   _type: string[]
