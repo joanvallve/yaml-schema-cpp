@@ -6,7 +6,7 @@ namespace1:
   param2:
     _mandatory: false
     _type: Vector4d
-    _value: [3, 5, 0]
+    _value: [3, 5, 0] # should be Vector4d
     _doc: "some parameter"
 param3:
   _mandatory: true

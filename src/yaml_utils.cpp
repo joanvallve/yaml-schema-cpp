@@ -4,7 +4,6 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
-#include <Eigen/Dense>
 
 #include "yaml-schema-cpp/type_check.hpp"
 #include "yaml-schema-cpp/filesystem_wrapper.hpp"
@@ -358,6 +357,275 @@ std::string sequenceToString(const YAML::Node& node)
     }
     ret += "]";
     return ret;
+}
+
+bool isArrayType(const std::string& type_str)
+{
+    size_t size;
+    return isArrayType(type_str, size);
+}
+
+bool isArrayType(const std::string& type_str, size_t& size)
+{
+    size_t pos_open  = type_str.find('[');
+    size_t pos_close = type_str.find(']');
+
+    if ((pos_open == std::string::npos) != (pos_close == std::string::npos))
+        throw std::runtime_error("isArrayType: type_str (" + type_str + ") contains '[' but not ']' or vice-versa.");
+
+    // not sequence string ('[' not found)
+    if (pos_open == std::string::npos) return false;
+
+    // array
+    // 0: size not specified
+    if (pos_open + 1 == pos_close) size = 0;
+    // Return specified size
+    else
+        size = std::stoi(type_str.substr(pos_open + 1, pos_close - pos_open - 1));
+
+    return true;
+}
+
+bool isDerivedType(const std::string& type_str)
+{
+    return getLowestElementType(type_str) == "derived";
+}
+
+std::string getLowerElementType(const std::string type_str)
+{
+    size_t pos_open  = type_str.find('[');
+    size_t pos_close = type_str.find(']');
+
+    if ((pos_open == std::string::npos) != (pos_close == std::string::npos))
+        throw std::runtime_error("getLowerElementType: type_str (" + type_str +
+                                 ") contains '[' but not ']' or vice-versa.");
+
+    if (pos_open == std::string::npos) return type_str;
+
+    // remove from first [ to first ]
+    return type_str.substr(0, pos_open) + type_str.substr(pos_close + 1, type_str.size() - pos_close - 1);
+}
+
+std::string getLowestElementType(const std::string type_str)
+{
+    size_t pos_open  = type_str.find('[');
+    size_t pos_close = type_str.find(']');
+
+    if ((pos_open == std::string::npos) != (pos_close == std::string::npos))
+        throw std::runtime_error("getLowestElementType: type_str (" + type_str +
+                                 ") contains '[' but not ']' or vice-versa.");
+
+    if (pos_open == std::string::npos) return type_str;
+
+    // remove from first '[' to the end
+    return type_str.substr(0, pos_open);
+}
+
+std::string getCheckType(const YAML::Node& node)
+{
+    if (not node[TYPE]) throw std::runtime_error("getCheckType: node does not have " + TYPE + " key.");
+
+    // if does not start by "derived", return TYPE
+    if (node[TYPE].as<std::string>().size() < std::string("derived").size() or
+        node[TYPE].as<std::string>().substr(0, std::string("derived").size()) != "derived")
+        return node[TYPE].as<std::string>();
+
+    // If TYPE starts by "derived" substitute by BASE
+    if (not node[BASE]) throw std::runtime_error("getCheckType: node does not have " + BASE + " key.");
+
+    return node[BASE].as<std::string>() +
+           node[TYPE].as<std::string>().substr(std::string("derived").size(),
+                                               node[TYPE].as<std::string>().size() - std::string("derived").size());
+}
+
+bool compare(const YAML::Node&               node1,
+             const YAML::Node&               node2,
+             const std::string&              type,
+             const std::vector<std::string>& folders_schema)
+{
+    if (not node1.IsDefined() or node1.IsNull() or not node2.IsDefined() or node2.IsNull()) return false;
+
+    // sequences if array type, and same size as array type (if specified)
+    if (not checkSizes(node1, type)) return false;
+    if (not checkSizes(node2, type)) return false;
+
+    // array type --> call recursively compare
+    if (isArrayType(type))
+    {
+        // same size
+        if (node1.size() != node2.size()) return false;
+
+        // compare all elements
+        for (auto i = 0; i < node1.size(); i++)
+        {
+            if (not compare(node1[i], node2[i], getLowerElementType(type), folders_schema)) return false;
+        }
+        return true;
+    }
+    // scalar
+    else
+    {
+        if (isTrivialType(type))
+            return compareTrivial(node1, node2, type);
+        else
+            return compareNonTrivial(node1, node2, type, folders_schema);
+    }
+}
+
+bool compareTrivial(const YAML::Node& node1, const YAML::Node& node2, const std::string& type)
+{
+    if (not node1.IsDefined() or node1.IsNull() or not node2.IsDefined() or node2.IsNull()) return false;
+
+    COMPARE_TYPE(bool)
+    COMPARE_TYPE(char)
+    COMPARE_TYPE(int)
+    COMPARE_TYPE(unsigned int)
+    COMPARE_TYPE(long int)
+    COMPARE_TYPE(long unsigned int)
+    COMPARE_TYPE(float)
+    COMPARE_TYPE(double)
+    COMPARE_TYPE(std::string)
+    {
+        using std::string;
+        COMPARE_TYPE(string)
+    }
+#if _EIGEN_FOUND == 1
+    COMPARE_TYPE(Eigen::VectorXd)
+    COMPARE_TYPE(Eigen::MatrixXd)
+
+    COMPARE_EIGEN(1)
+    COMPARE_EIGEN(2)
+    COMPARE_EIGEN(3)
+    COMPARE_EIGEN(4)
+    COMPARE_EIGEN(5)
+    COMPARE_EIGEN(6)
+    COMPARE_EIGEN(7)
+    COMPARE_EIGEN(8)
+    COMPARE_EIGEN(9)
+    COMPARE_EIGEN(10)
+    {
+        using namespace Eigen;
+        COMPARE_TYPE(VectorXd)
+        COMPARE_TYPE(VectorXd)
+    }
+#endif
+
+    throw std::runtime_error("compareTrivial() not implemented for type " + type);
+}
+
+bool compareNonTrivialSchema(const YAML::Node&               node1,
+                             const YAML::Node&               node2,
+                             const YAML::Node&               node_schema,
+                             const std::vector<std::string>& folders_schema)
+{
+
+    if (isSpecification(node_schema))
+    {
+        // If one defined and not the other --> not equal
+        if (node1.IsDefined() != node2.IsDefined()) return false;
+
+        // Compare if MANDATORY or if both node1 and node2 are defined
+        if (node_schema[MANDATORY].as<bool>() or (node1.IsDefined() and node2.IsDefined()))
+            return compare(node1, node2, node_schema[TYPE].as<std::string>(), folders_schema);
+    }
+    else
+    {
+        for (auto node_schema_child : node_schema)
+        {
+
+            YAML::Node node1_child = node1[node_schema_child.first.as<std::string>()]
+                                         ? node1[node_schema_child.first.as<std::string>()]
+                                         : YAML::Node(YAML::NodeType::Undefined);
+            YAML::Node node2_child = node2[node_schema_child.first.as<std::string>()]
+                                         ? node2[node_schema_child.first.as<std::string>()]
+                                         : YAML::Node(YAML::NodeType::Undefined);
+
+            if (not compareNonTrivialSchema(node1_child, node2_child, node_schema_child.second, folders_schema))
+                return false;
+        }
+    }
+    return true;
+}
+
+bool compareNonTrivial(const YAML::Node&               node1,
+                       const YAML::Node&               node2,
+                       const std::string&              type,
+                       const std::vector<std::string>& folders_schema)
+{
+    if (not node1.IsDefined() or node1.IsNull() or not node2.IsDefined() or node2.IsNull()) return false;
+
+    // Find schema file
+    auto path_schema = findSchema(type, folders_schema);
+    if (path_schema.empty()) return false;
+
+    // Load schema yaml and flatten (include all nodes indicated with "follow")
+    YAML::Node node_schema;
+    try
+    {
+        node_schema = YAML::LoadFile(path_schema);
+        flattenNode(node_schema, filesystem::path(path_schema).parent_path().string(), folders_schema, true, true);
+    }
+    catch (const std::exception& e)
+    {
+        return false;
+    }
+
+    // compare following schema node
+    return compareNonTrivialSchema(node1, node2, node_schema, folders_schema);
+}
+
+std::string getZeroString(const std::string& type)
+{
+    size_t size;
+    // array type --> call recursively setZero
+    if (isArrayType(type, size))
+    {
+        if (size == 0) size = 3;  // arbitrary size if not specified
+        auto        lower_type  = getLowerElementType(type);
+        std::string zero_string = "[";
+        for (auto i = 0; i < size; i++)
+        {
+            zero_string += getZeroString(lower_type);
+            if (i < size - 1) zero_string += ", ";
+        }
+        zero_string += "]";
+        return zero_string;
+    }
+    // not array
+    else
+    {
+        if (type == "bool") return "false";
+        if (type == "int" or type == "unsigned int" or type == "long int" or type == "long unsigned int") return "0";
+        if (type == "float" or type == "double") return "0.0";
+        if (type == "char") return "A";
+        if (type == "string" or type == "std::string") return "whatever";
+#if _EIGEN_FOUND == 1
+        if (type == "VectorXd" or type == "Eigen::VectorXd") return "[0.0, 0.0, 0.0]";
+        if (type == "MatrixXd" or type == "Eigen::MatrixXd") return "[[3, 2], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]";
+
+        for (auto i = 1; i <= 10; i++)
+        {
+            if (type == "Vector" + std::to_string(i) + "d" or type == "Eigen::Vector" + std::to_string(i) + "d")
+            {
+                std::string string_ret = "[0.0";
+                for (auto j = 2; j <= i; j++) string_ret += ", 0.0";
+                string_ret += "]";
+
+                return string_ret;
+            }
+
+            if (type == "Matrix" + std::to_string(i) + "d" or type == "Eigen::Matrix" + std::to_string(i) + "d")
+            {
+                std::string string_ret = "[0.0";
+                for (auto j = 2; j <= i * i; j++) string_ret += ", 0.0";
+                string_ret += "]";
+
+                return string_ret;
+            }
+        }
+#endif
+    }
+    return "type uknown!";
 }
 
 }  // namespace yaml_schema_cpp

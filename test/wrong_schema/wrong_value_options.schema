@@ -15,6 +15,6 @@ param3:
 param4:
   _mandatory: false
   _type: int
-  _value: 0
+  _value: 0 # not in options
   _options: [1, 2, 3, 4, 5]
   _doc: "some parameter"

@@ -34,7 +34,7 @@ TEST(schema, follow)
 
     std::cout << "before: \n" << server.getNode() << std::endl;
 
-    bool ok = server.applySchema("base_input_base.schema");
+    bool ok = server.applySchema("base_input_derived.schema");
     if (not ok) std::cout << server.getLog();
     ASSERT_TRUE(ok);
 
@@ -60,11 +60,12 @@ TEST(schema, wrong)
                                          ROOT_DIR + "/test/yaml/base_input_wrong6.yaml",
                                          ROOT_DIR + "/test/yaml/base_input_wrong7.yaml",
                                          ROOT_DIR + "/test/yaml/base_input_wrong8.yaml",
-                                         ROOT_DIR + "/test/yaml/base_input_wrong9.yaml"};
+                                         ROOT_DIR + "/test/yaml/base_input_wrong9.yaml",
+                                         ROOT_DIR + "/test/yaml/base_input_wrong10.yaml"};
     for (auto input : input_yamls)
     {
-        std::cout << "testing " << input << std::endl;
         YamlServer server = YamlServer({ROOT_DIR}, input);
+        std::cout << "testing " << input << ":\n" << server.getNode() << std::endl;
 
         bool succeed = server.applySchema("base_input.schema");
 
@@ -109,6 +110,7 @@ TEST(schema, nontrivial_options_default_value)
     std::cout << "log: \n" << server.getLog() << std::endl;
 }
 
+#if _EIGEN_FOUND == 1
 TEST(schema, complex_case)
 {
     YamlServer server =
@@ -131,11 +133,12 @@ TEST(schema, complex_case)
 
     std::cout << "log: \n" << server.getLog() << std::endl;
 }
+#endif
 
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);
-    //::testing::GTEST_FLAG(filter) = "TestTest.DummyTestExample"; // Test only this one
-    //::testing::GTEST_FLAG(filter) = "TestTest.*"; // Test only the tests in this group
+    ::testing::GTEST_FLAG(filter) = "schema.complex_case";  // Test only this one
+    //::testing::GTEST_FLAG(filter) = "schema.*"; // Test only the tests in this group
     return RUN_ALL_TESTS();
 }

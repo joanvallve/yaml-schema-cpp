@@ -4,8 +4,6 @@
 #include <fstream>
 #include <memory>
 
-#include <Eigen/Dense>
-
 #include "yaml-cpp/yaml.h"
 #include "yaml-schema-cpp/yaml_conversion.hpp"
 #include "yaml-schema-cpp/type_check.hpp"
@@ -34,6 +32,18 @@ void       checkSchema(const YAML::Node&               node_schema,
                        const std::string&              field,
                        const YAML::Node&               node_schema_parent,
                        const std::vector<std::string>& folders_schema);
+void       checkSchemaValue(const YAML::Node&               node_schema,
+                            const std::string&              node_field,
+                            const YAML::Node&               node_schema_parent,
+                            const std::vector<std::string>& folders_schema);
+void       checkSchemaDefault(const YAML::Node&               node_schema,
+                              const std::string&              node_field,
+                              const YAML::Node&               node_schema_parent,
+                              const std::vector<std::string>& folders_schema);
+void       checkSchemaOptions(const YAML::Node&               node_schema,
+                              const std::string&              node_field,
+                              const YAML::Node&               node_schema_parent,
+                              const std::vector<std::string>& folders_schema);
 
 bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool verbose, bool override = true);
 
@@ -51,19 +61,29 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                           std::stringstream&              log,
                           const std::string&              acc_field,
                           bool                            override);
+                          
+bool applySchemaDerived(YAML::Node&                     node_input,
+                        YAML::Node&                     node_input_parent,
+                        const YAML::Node&               node_schema,
+                        const std::vector<std::string>& folders,
+                        std::stringstream&              log,
+                        const std::string&              acc_field,
+                        bool                            override);
 
-bool checkOptions(const YAML::Node& input_node, const YAML::Node& options_node, const std::string& type);
+bool isInOptions(const YAML::Node&               input_node,
+                 const YAML::Node&               options_node,
+                 const std::string&              type,
+                 const std::vector<std::string>& folders_schema = {});
 
 bool hasAnyReservedKey(const YAML::Node& node_schema);
 bool isSpecification(const YAML::Node& node_schema);
 bool isSequenceSchema(const YAML::Node& node_schema);
+bool isSequenceSchema(const YAML::Node& node_schema, size_t& size);
 
 void addNodeSchema(YAML::Node&        node,
                    const std::string& key,
                    const YAML::Node&  value,
                    bool               override,
                    std::string        parent_path = "");
-
-std::string getTypeOfSequence(const YAML::Node& node_schema);
 
 }  // namespace yaml_schema_cpp

@@ -1,0 +1,15 @@
+some_param: [2, 3, 4]
+
+sensors: # should be a sequence
+  type: type_derived_derived
+  param_base: 4.5
+  param_derived: [4, -3]
+
+processors:
+  - type: type_derived_derived
+    param_base: 4.5
+    param_derived: [4, -3]
+  - type: type_derived_base
+    param_base: -6.5
+  - type: type_derived_base
+    param_base: 1e9

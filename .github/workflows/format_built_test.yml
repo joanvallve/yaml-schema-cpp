@@ -1,6 +1,11 @@
 name: CI
 
-on: [push, pull_request, workflow_dispatch]
+on: 
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 1 * *'
   
 permissions: read-all
 
@@ -17,16 +22,25 @@ jobs:
       matrix:
         container: [ubuntu:20.04, ubuntu:22.04, ubuntu:24.04]
         build_type: [Debug, Release]
+        eigen: [true, false]
         cxx_standard: [11, 14, 17, 20]
         yaml_cpp_version: [yaml-cpp-0.7.0, master]
 
     steps:
 
-    - name: dependencies
+    - name: dependencies_eigen
+      if: ${{matrix.eigen}}
       run: |
         export DEBIAN_FRONTEND=noninteractive
         apt-get update -y
         apt install cmake build-essential git libboost-filesystem-dev libeigen3-dev -y
+        
+    - name: dependencies_not_eigen
+      if: ${{!matrix.eigen}}
+      run: |
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get update -y
+        apt install cmake build-essential git libboost-filesystem-dev -y
         
     - name: install yaml-cpp
       run: |

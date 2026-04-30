@@ -4,22 +4,29 @@
 
 std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
 
-TEST(DuplicatedKeys, test1)
+TEST(DuplicatedKeys, override)
 {
-    yaml_schema_cpp::YamlServer yaml_server({ROOT_DIR + "/test/yaml"}, ROOT_DIR + "/test/yaml/duplicated_input.yaml");
+    yaml_schema_cpp::YamlServer yaml_server(
+        {ROOT_DIR + "/test/yaml"}, ROOT_DIR + "/test/yaml/duplicated_input.yaml", true);
 
-    auto input_node = yaml_server.getNode();
+    YAML::Node input_node = yaml_server.getNode();
 
     EXPECT_EQ(input_node["map1"].size(), 3);
+
+    // check params in map1 were added
     EXPECT_TRUE(input_node["map1"]["param1"]);
     EXPECT_TRUE(input_node["map1"]["param2"]);
     EXPECT_TRUE(input_node["map1"]["param3"]);
 
-    // EXPECT_NEAR(input_node["map1"]["param3"].as<double>(), 4.5, 1e-12);
-    // EXPECT_EQ(input_node["map1"]["param1"].as<int>(), 1);
-    // EXPECT_EQ(input_node["map1"]["param2"].as<std::string>(), "string");
-    // auto node_aux = input_node["map1"]["param3"];
-    // EXPECT_NEAR(input_node["map1"]["param3"].as<double>(), 4.5, 1e-12);
+    // check param3 value after overriding
+    EXPECT_EQ(input_node["map1"]["param2"].as<std::string>(), "string");
+}
+
+TEST(DuplicatedKeys, override_not_allowed)
+{
+    EXPECT_THROW(
+        yaml_schema_cpp::YamlServer({ROOT_DIR + "/test/yaml"}, ROOT_DIR + "/test/yaml/duplicated_input.yaml", false),
+        std::runtime_error);
 }
 
 int main(int argc, char **argv)

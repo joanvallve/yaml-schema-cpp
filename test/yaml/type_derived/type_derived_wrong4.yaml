@@ -1,5 +1,5 @@
 final_1: "gromenauer"
 final_derived:
-  type: type_derived_derived
+  #type: type_derived_derived # missing type
   param_base: 2.4
   param_derived: [1, 2, 3, 4]

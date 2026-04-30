@@ -195,19 +195,19 @@ TEST(check_type, string)
 
     node = "-3.2";
 
-    EXPECT_TRUE(tryNodeAs(node, "string"));
+    EXPECT_TRUE(tryNodeAs(node, "std::string"));
 
     node = "1e-3";
 
-    EXPECT_TRUE(tryNodeAs(node, "string"));
+    EXPECT_TRUE(tryNodeAs(node, "std::string"));
 
     node = "a";
 
-    EXPECT_TRUE(tryNodeAs(node, "string"));
+    EXPECT_TRUE(tryNodeAs(node, "std::string"));
 
     node = "gromenauer";
 
-    EXPECT_TRUE(tryNodeAs(node, "string"));
+    EXPECT_TRUE(tryNodeAs(node, "std::string"));
 
     YAML::Node node_seq;
     node_seq[0] = 0;
@@ -218,6 +218,7 @@ TEST(check_type, string)
     EXPECT_FALSE(tryNodeAs(node_seq, "string"));
 }
 
+#if _EIGEN_FOUND == 1
 TEST(check_type, Eigen)
 {
     YAML::Node node;
@@ -294,6 +295,7 @@ TEST(check_type, Eigen_matrix)
     EXPECT_TRUE(tryNodeAs(node, "MatrixXd"));
     EXPECT_TRUE(tryNodeAs(node, "Eigen::MatrixXd"));
 }
+#endif
 
 TEST(check_type, trivial_types)
 {
@@ -309,12 +311,15 @@ TEST(check_type, trivial_types)
     EXPECT_TRUE(isTrivialType("double"));
     EXPECT_TRUE(isTrivialType("string"));
     EXPECT_TRUE(isTrivialType("std::string"));
+#if _EIGEN_FOUND == 1
     EXPECT_TRUE(isTrivialType("VectorXd"));
     EXPECT_TRUE(isTrivialType("Eigen::VectorXd"));
     EXPECT_TRUE(isTrivialType("Matrix2d"));
     EXPECT_TRUE(isTrivialType("MatrixXd"));
     EXPECT_TRUE(isTrivialType("Eigen::MatrixXd"));
+#endif
 }
+
 
 int main(int argc, char **argv)
 {

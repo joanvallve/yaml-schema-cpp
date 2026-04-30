@@ -6,3 +6,4 @@ param5:
   - 2.4 #wrong should be int
   - 0
   - -3
+  - -1

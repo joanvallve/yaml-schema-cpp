@@ -13,6 +13,7 @@ param3:
   _type: string[]
   _doc: "some parameter"
 param4:
+  # missing _type
   _mandatory: false
   _default: true
   _doc: "some parameter"

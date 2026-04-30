@@ -3,8 +3,6 @@
 #include "yaml-schema-cpp/yaml_schema.hpp"
 #include "yaml-schema-cpp/internal/config.h"
 
-std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
-
 using namespace yaml_schema_cpp;
 
 TEST(addNodeSchema, add_scalars)

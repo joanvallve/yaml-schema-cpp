@@ -3,7 +3,12 @@ enabled:
   _type: bool
   _doc: boolean parameter
 
+optional_param:
+  _mandatory: false
+  _type: bool
+  _doc: boolean optional parameter
+
 param_expr1:
-  _mandatory: $2-*enabled
+  _mandatory: $optional_param # 'optional_param' is not mandatory and doesn't have default, cannot be used in an expression
   _type: int
-  _doc: wrong expression
+  _doc: param with wrong expression in mandatory

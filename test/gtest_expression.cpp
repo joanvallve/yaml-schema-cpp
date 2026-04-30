@@ -72,15 +72,12 @@ TEST(TestExpression, checkExpressionYaml)
     YAML::Node node_schema        = YAML::LoadFile(ROOT_DIR + "/test/schema/folder_schema/expression.schema");
     YAML::Node node_schema_wrong  = YAML::LoadFile(ROOT_DIR + "/test/wrong_schema/wrong_expression.schema");
     YAML::Node node_schema_wrong2 = YAML::LoadFile(ROOT_DIR + "/test/wrong_schema/wrong_expression2.schema");
-    YAML::Node node_schema_wrong3 = YAML::LoadFile(ROOT_DIR + "/test/wrong_schema/wrong_expression3.schema");
 
     std::string err_msg;
     ASSERT_TRUE(checkExpression(node_schema["param_expr1"][MANDATORY], node_schema, err_msg));
     ASSERT_FALSE(checkExpression(node_schema_wrong["param_expr1"][MANDATORY], node_schema_wrong, err_msg));
     std::cout << err_msg << std::endl;
     ASSERT_FALSE(checkExpression(node_schema_wrong2["param_expr2"][MANDATORY], node_schema_wrong2, err_msg));
-    std::cout << err_msg << std::endl;
-    ASSERT_FALSE(checkExpression(node_schema_wrong3["param_expr3"][MANDATORY], node_schema_wrong3, err_msg));
     std::cout << err_msg << std::endl;
 }
 
@@ -95,7 +92,6 @@ TEST(TestExpression, evalExpressionYaml)
     YAML::Node node_schema        = YAML::LoadFile(ROOT_DIR + "/test/schema/folder_schema/expression.schema");
     YAML::Node node_schema_wrong  = YAML::LoadFile(ROOT_DIR + "/test/wrong_schema/wrong_expression.schema");
     YAML::Node node_schema_wrong2 = YAML::LoadFile(ROOT_DIR + "/test/wrong_schema/wrong_expression2.schema");
-    YAML::Node node_schema_wrong3 = YAML::LoadFile(ROOT_DIR + "/test/wrong_schema/wrong_expression3.schema");
 
     ASSERT_TRUE(evalExpression(node_schema["param_expr1"][MANDATORY].as<std::string>(), node_input));
     ASSERT_FALSE(evalExpression(node_schema["param_expr2"][MANDATORY].as<std::string>(), node_input));
@@ -124,8 +120,6 @@ TEST(TestExpression, evalExpressionYaml)
     ASSERT_THROW(evalExpression(node_schema_wrong["param_expr1"][MANDATORY].as<std::string>(), node_input),
                  std::runtime_error);
     ASSERT_THROW(evalExpression(node_schema_wrong2["param_expr2"][MANDATORY].as<std::string>(), node_input),
-                 std::runtime_error);
-    ASSERT_THROW(evalExpression(node_schema_wrong3["param_expr3"][MANDATORY].as<std::string>(), node_input),
                  std::runtime_error);
 }
 

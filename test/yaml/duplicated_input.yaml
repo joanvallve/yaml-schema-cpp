@@ -1,4 +1,5 @@
 another_param: [0, 0.3, 1e5]
 map1:
+  param2: "I was first"
   param3: 4.5
 follow: "base_input.yaml"
