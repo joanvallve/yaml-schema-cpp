@@ -1,0 +1,8 @@
+follow: base_input.schema
+
+map1:
+  param3:
+    _mandatory: false
+    _type: string
+    _default: "fistro"
+    _doc: "some doc"

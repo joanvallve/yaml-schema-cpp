@@ -99,9 +99,13 @@ void insertNodes(YAML::Node&              node,
         std::string path_follow_str = node_follow.as<std::string>();
         std::string path_follow;
 
-        // is schema? empty extension or SCHEMA_EXTENSION
-        bool following_is_schema = filesystem::path(path_follow_str).extension().empty() or
-                                   filesystem::path(path_follow_str).extension() == SCHEMA_EXTENSION;
+        // if no extension --> schema
+        if (filesystem::path(path_follow_str).extension().empty())
+            path_follow_str += SCHEMA_EXTENSION;
+
+        // is schema?
+        bool following_is_schema = filesystem::path(path_follow_str).extension() == SCHEMA_EXTENSION;
+
         // following file is schema --> findFileRecursive
         if (following_is_schema)
         {
@@ -458,6 +462,56 @@ std::string getCheckType(const YAML::Node& node)
     return node[BASE].as<std::string>() +
            node[TYPE].as<std::string>().substr(std::string("derived").size(),
                                                node[TYPE].as<std::string>().size() - std::string("derived").size());
+}
+
+bool compareNodesAutoType(const YAML::Node& node1, const YAML::Node& node2)
+{
+    // Different types
+    if (node1.IsDefined() != node2.IsDefined() or node1.IsNull() != node2.IsNull()) return false;
+    if (node1.IsScalar() != node2.IsScalar()) return false;
+    if (node1.IsSequence() != node2.IsSequence()) return false;
+    if (node1.IsMap() != node2.IsMap()) return false;
+
+    // Scalar --> compare
+    if (node1.IsScalar())
+    {
+        // try as int (1e3 == 1000 but strings are not the same)
+        if (tryNodeAs(node1, "int") and tryNodeAs(node2, "int")) return node1.as<int>() == node2.as<int>();
+        // try as double (1 == 1.000 but strings are not the same)
+        if (tryNodeAs(node1, "double") and tryNodeAs(node2, "double")) return node1.as<double>() == node2.as<double>();
+        // try as string
+        return node1.as<std::string>() == node2.as<std::string>();
+    }
+    // Sequence --> compare sizes & call compareNodesAutoType recursively
+    if (node1.IsSequence())
+    {
+        if (node1.size() != node2.size()) return false;
+
+        for (auto i = 0; i < node1.size(); i++)
+            if (not compareNodesAutoType(node1[i], node2[i])) return false;
+
+        // all equal
+        return true;
+    }
+    // Map --> compare keys & call compareNodesAutoType recursively
+    if (node1.IsMap())
+    {
+        if (node1.size() != node2.size()) return false;
+
+        for (auto node1_child : node1)
+        {
+            // key not found
+            if (not node2[node1_child.first.as<std::string>()]) return false;
+            // element not equal
+            if (not compareNodesAutoType(node1_child.second, node2[node1_child.first.as<std::string>()])) return false;
+        }
+        // all equal
+        return true;
+    }
+
+    // not map, sequence or scalar?
+    throw std::runtime_error("compareNodesAutoType: unknown node type!");
+    return false;
 }
 
 bool compare(const YAML::Node&               node1,

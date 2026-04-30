@@ -1,0 +1,6 @@
+follow: flatten_relative_path.schema
+yet_another_param: 
+  _mandatory: false
+  _type: string
+  _default: "harl"
+  _doc: "some doc"
