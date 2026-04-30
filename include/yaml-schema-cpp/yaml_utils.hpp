@@ -17,21 +17,30 @@ void flattenNode(YAML::Node&              node,
                  std::vector<std::string> schema_folders,
                  bool                     is_schema,
                  bool                     override);
+
 void flattenMap(YAML::Node&              node,
                 std::string              current_folder,
                 std::vector<std::string> schema_folders,
                 bool                     is_schema,
                 bool                     override);
+
 void flattenSequence(YAML::Node&              node,
                      std::string              current_folder,
                      std::vector<std::string> schema_folders,
                      bool                     is_schema,
                      bool                     override);
 
+void insertNodes(YAML::Node&              node,
+                 const YAML::Node&        node_follow,
+                 std::string              current_folder,
+                 std::vector<std::string> schema_folders,
+                 bool                     override);
+
 void writeErrorToLog(std::stringstream& log,
                      const std::string& _acc_field,
                      const YAML::Node   _node_schema,
                      const std::string& _error_message);
+                     
 void writeNodeSchemaToLog(std::stringstream& log,
                           const std::string& _acc_field,
                           const YAML::Node   _node_schema,

@@ -53,78 +53,12 @@ void flattenMap(YAML::Node&              node,
     YAML::Node node_aux;  // Done using copy to preserve order of follow
     for (auto n : node)
     {
+        // If follow node --> insert following yamls
         if (n.first.as<std::string>() == "follow")
         {
-            std::string path_follow_str = n.second.as<std::string>();
-            std::string path_follow;
-
-            // follow schema: empty or .schema
-            bool followed_is_schema = filesystem::path(path_follow_str).extension().empty() or
-                                      filesystem::path(path_follow_str).extension() == SCHEMA_EXTENSION;
-            if (followed_is_schema)
-            {
-                path_follow = findFileRecursive(path_follow_str, schema_folders);
-                if (path_follow.empty())
-                {
-                    throw std::runtime_error("In flattenNode: file '" + path_follow + "' not found");
-                }
-            }
-            // follow yaml file
-            else if (filesystem::path(path_follow_str).extension() == ".yaml")
-            {
-                // const filesystem::path follow_value(path_follow_str);
-                path_follow = current_folder + "/" + path_follow_str;
-            }
-            else
-            {
-                throw std::runtime_error("In flattenNode: follow '" + path_follow_str +
-                                         "' bad extension, should be '.yaml', '.schema' or empty (assumed '.schema')");
-            }
-
-            if (not filesystem::exists(path_follow))
-            {
-                throw std::runtime_error("In flattenNode: the file '" + path_follow + "' does not exists");
-            }
-
-            // load "follow" file
-            YAML::Node node_child = YAML::LoadFile(path_follow);
-
-            // Recursively flatten the "follow" file
-            if (followed_is_schema)
-            {
-                flattenNode(node_child, current_folder, schema_folders, followed_is_schema, override);
-            }
-            else
-            {
-                flattenNode(node_child,
-                            filesystem::path(path_follow).parent_path().string(),
-                            {},
-                            followed_is_schema,
-                            override);
-            }
-
-            for (auto nc : node_child)
-            {
-                // Case schema
-                if (followed_is_schema)
-                {
-                    addNodeSchema(node_aux,
-                                  nc.first.as<std::string>(),
-                                  nc.second,
-                                  override,
-                                  filesystem::path(path_follow).parent_path().string());
-                }
-                // Case input yaml
-                else
-                {
-                    addNodeYaml(node_aux,
-                                nc.first.as<std::string>(),
-                                nc.second,
-                                override,
-                                filesystem::path(path_follow).parent_path().string());
-                }
-            }
+            insertNodes(node_aux, n.second, current_folder, schema_folders, override);
         }
+        // If not follow node --> flatten & add
         else
         {
             flattenNode(n.second, current_folder, schema_folders, is_schema, override);
@@ -143,6 +77,94 @@ void flattenMap(YAML::Node&              node,
     }
 
     node = node_aux;
+}
+
+void insertNodes(YAML::Node&              node,
+                 const YAML::Node&        node_follow,
+                 std::string              current_folder,
+                 std::vector<std::string> schema_folders,
+                 bool                     override)
+{
+    // sequence of follows --> recursively call insertNodes
+    if (node_follow.IsSequence())
+    {
+        for (auto node_follow_i : node_follow)
+        {
+            insertNodes(node, node_follow_i, current_folder, schema_folders, override);
+        }
+    }
+    // insert nodes from loaded YAML file
+    else
+    {
+        std::string path_follow_str = node_follow.as<std::string>();
+        std::string path_follow;
+
+        // is schema? empty extension or SCHEMA_EXTENSION
+        bool following_is_schema = filesystem::path(path_follow_str).extension().empty() or
+                                   filesystem::path(path_follow_str).extension() == SCHEMA_EXTENSION;
+        // following file is schema --> findFileRecursive
+        if (following_is_schema)
+        {
+            path_follow = findFileRecursive(path_follow_str, schema_folders);
+            if (path_follow.empty())
+            {
+                throw std::runtime_error("In flattenNode: file '" + path_follow_str + "' not found");
+            }
+        }
+        // following file is regular yaml --> relative path
+        else if (filesystem::path(path_follow_str).extension() == ".yaml")
+        {
+            path_follow = current_folder + "/" + path_follow_str;
+        }
+        // wrong extension
+        else
+        {
+            throw std::runtime_error("In flattenNode: follow '" + path_follow_str +
+                                     "' bad extension, should be '.yaml', '.schema' or empty (assumed '.schema')");
+        }
+        // file does not exist
+        if (not filesystem::exists(path_follow))
+        {
+            throw std::runtime_error("In flattenNode: the file '" + path_follow + "' does not exists");
+        }
+
+        // load "following" file
+        YAML::Node node_child = YAML::LoadFile(path_follow);
+
+        // Recursively flatten the "following" file
+        if (following_is_schema)
+        {
+            flattenNode(node_child, current_folder, schema_folders, following_is_schema, override);
+        }
+        else
+        {
+            flattenNode(
+                node_child, filesystem::path(path_follow).parent_path().string(), {}, following_is_schema, override);
+        }
+
+        // add all new children to original node
+        for (auto nc : node_child)
+        {
+            // Case schema
+            if (following_is_schema)
+            {
+                addNodeSchema(node,
+                              nc.first.as<std::string>(),
+                              nc.second,
+                              override,
+                              filesystem::path(path_follow).parent_path().string());
+            }
+            // Case input yaml
+            else
+            {
+                addNodeYaml(node,
+                            nc.first.as<std::string>(),
+                            nc.second,
+                            override,
+                            filesystem::path(path_follow).parent_path().string());
+            }
+        }
+    }
 }
 
 void addNodeYaml(YAML::Node&        node,

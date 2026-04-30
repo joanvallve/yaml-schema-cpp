@@ -1,5 +1,6 @@
-follow: ProcessorBase.schema
-follow: MotionProvider.schema
+follow: 
+  - ProcessorBase.schema
+  - MotionProvider.schema
 keyframe_vote:
   max_time_span:
     _mandatory: $voting_active
