@@ -426,40 +426,9 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
             // Derived type ( "derived" or "derived[]" or "derived[][]".. )
             if (isDerivedType(node_schema[TYPE].as<std::string>()))
             {
-                // array
-                if (isArrayType(node_schema[TYPE].as<std::string>()))
-                {
-                    // TODO
-                }
-                else
-                {
-                    // check existence of key type
-                    if (not node_input["type"])
-                    {
-                        writeErrorToLog(log,
-                                        acc_field,
-                                        node_schema,
-                                        "Does not contain key 'type' which is mandatory for 'derived'.");
-                        is_valid = false;
-                    }
-                    else
-                    {
-                        // Validate with derived schema file
-                        is_valid = applySchema(node_input,
-                                               node_input["type"].as<std::string>(),
-                                               folders,
-                                               log,
-                                               acc_field,
-                                               override) and
-                                   is_valid;
-
-                        // Validate with base schema file (after derived since it may complete the input node)
-                        is_valid =
-                            applySchema(
-                                node_input, node_schema[BASE].as<std::string>(), folders, log, acc_field, override) and
-                            is_valid;
-                    }
-                }
+                is_valid = applySchemaDerived(
+                               node_input, node_input_parent, node_schema, folders, log, acc_field, override) and
+                           is_valid;
             }
             // Type specified (either trivial or custom)
             else
@@ -530,8 +499,12 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                     is_valid = false;
                 }
                 // add node with default value (if parent is defined)
-                else if (node_schema[DEFAULT] and node_input_parent.IsDefined())
+                else if (node_schema[DEFAULT])
                 {
+                    if (not node_input_parent.IsDefined())
+                    {
+                        throw std::runtime_error("node_input_parent not defined");
+                    }
                     auto field               = filesystem::path(acc_field).filename().string();
                     node_input_parent[field] = Clone(node_schema[DEFAULT]);
                 }
@@ -567,6 +540,74 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
     }
 
     return is_valid;
+}
+
+bool applySchemaDerived(YAML::Node&                     node_input,
+                        YAML::Node&                     node_input_parent,
+                        const YAML::Node&               node_schema,
+                        const std::vector<std::string>& folders,
+                        std::stringstream&              log,
+                        const std::string&              acc_field,
+                        bool                            override)
+{
+    bool is_valid = true;
+
+    // array
+    size_t size;
+    if (isArrayType(node_schema[TYPE].as<std::string>(), size))
+    {
+        // If node not sequence complain
+        if (not node_input.IsSequence())
+        {
+            writeErrorToLog(log, acc_field, node_schema, "Should be a sequence");
+            return false;
+        }
+        // If size defined in type (!=0), complain if different
+        if (size != 0 and node_input.size() != size)
+        {
+            writeErrorToLog(log,
+                            acc_field,
+                            YAML::Node(YAML::NodeType::Undefined),
+                            " wrong size, should be " + std::to_string(size));
+            is_valid = false;
+        }
+        // applySchemaDerived recursively for all nodes in sequence
+        YAML::Node node_schema_i = YAML::Clone(node_schema);
+        node_schema_i[TYPE] = getLowerElementType(node_schema[TYPE].as<std::string>());
+        for (auto i = 0; i < node_input.size(); i++)
+        {
+            YAML::Node node_input_i = node_input[i];
+            is_valid                = applySchemaDerived(node_input_i,
+                                                         node_input_parent,
+                                                         node_schema_i,
+                                                         folders,
+                                                         log,
+                                                         acc_field + "[" + std::to_string(i) + "]",
+                                                         override) and
+                                      is_valid;
+        }
+        return is_valid;
+    }
+    else
+    {
+        // check existence of key type
+        if (not node_input["type"])
+        {
+            writeErrorToLog(
+                log, acc_field, node_schema, "Does not contain key 'type' which is mandatory for 'derived'.");
+            return false;
+        }
+
+        // Validate with derived schema file
+        is_valid = applySchema(node_input, node_input["type"].as<std::string>(), folders, log, acc_field, override) and
+                   is_valid;
+
+        // Validate with base schema file (after derived since it may complete the input node)
+        is_valid = applySchema(node_input, node_schema[BASE].as<std::string>(), folders, log, acc_field, override) and
+                   is_valid;
+
+        return is_valid;
+    }
 }
 
 bool isInOptions(const YAML::Node&               input_node,

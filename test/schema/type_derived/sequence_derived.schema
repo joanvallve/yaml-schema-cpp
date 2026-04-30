@@ -9,3 +9,9 @@ sensors:
   _type: derived[]
   _base: type_derived_base
   _doc: "some doc"
+
+processors:
+  _mandatory: true
+  _type: derived[3]
+  _base: type_derived_base
+  _doc: "some doc"

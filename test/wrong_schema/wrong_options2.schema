@@ -10,10 +10,10 @@ namespace1:
     _doc: "some parameter"
 param3:
   _mandatory: true
-  _type: string[]
+  _type: string[3]
   _doc: "some parameter"
   _options: 
-    - [0, 2] # Should be a string
+    - [0, 2] # Should have size 3
 param4:
   _mandatory: false
   _type: bool

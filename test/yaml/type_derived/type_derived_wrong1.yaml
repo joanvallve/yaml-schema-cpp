@@ -2,4 +2,4 @@ final_1: "gromenauer"
 final_derived:
   type: type_derived_derived
   param_base: 2.4
-  param_derived: [1, 2, 3, 4]
+  param_derived: [1, 2, 3, 4.5] # wrong type (should be int[])

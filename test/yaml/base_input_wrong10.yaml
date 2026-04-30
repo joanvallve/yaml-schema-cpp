@@ -1,0 +1,9 @@
+map1:
+  param1: 1
+  param2: "string"
+param5: #wrong size
+  - 5
+  - 6
+  - -1
+  - -7
+param8: [[3],[1,2.0,4],[2, 5.9]]

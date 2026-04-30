@@ -23,7 +23,7 @@ param4:
   _doc: "some doc"
 param5:
   _mandatory: false
-  _type: int[]
+  _type: int[5]
   _doc: "some doc"
 param6:
   _mandatory: false
