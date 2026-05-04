@@ -360,12 +360,12 @@ bool applySchema(YAML::Node&                     node_input,
         {
             YAML::Node node_input_i = node_input[i];
             is_valid                = applySchema(node_input_i,
-                                                  getLowerElementType(type),
-                                                  folders,
-                                                  log,
-                                                  acc_field + "[" + std::to_string(i) + "]",
-                                                  override) and
-                                      is_valid;
+                                   getLowerElementType(type),
+                                   folders,
+                                   log,
+                                   acc_field + "[" + std::to_string(i) + "]",
+                                   override) and
+                       is_valid;
         }
         return is_valid;
     }
@@ -578,13 +578,13 @@ bool applySchemaDerived(YAML::Node&                     node_input,
         {
             YAML::Node node_input_i = node_input[i];
             is_valid                = applySchemaDerived(node_input_i,
-                                                         node_input_parent,
-                                                         node_schema_i,
-                                                         folders,
-                                                         log,
-                                                         acc_field + "[" + std::to_string(i) + "]",
-                                                         override) and
-                                      is_valid;
+                                          node_input_parent,
+                                          node_schema_i,
+                                          folders,
+                                          log,
+                                          acc_field + "[" + std::to_string(i) + "]",
+                                          override) and
+                       is_valid;
         }
         return is_valid;
     }
