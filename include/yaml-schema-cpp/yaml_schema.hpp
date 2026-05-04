@@ -61,7 +61,7 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                           std::stringstream&              log,
                           const std::string&              acc_field,
                           bool                            override);
-                          
+
 bool applySchemaDerived(YAML::Node&                     node_input,
                         YAML::Node&                     node_input_parent,
                         const YAML::Node&               node_schema,

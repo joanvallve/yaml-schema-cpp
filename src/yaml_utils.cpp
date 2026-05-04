@@ -100,8 +100,7 @@ void insertNodes(YAML::Node&              node,
         std::string path_follow;
 
         // if no extension --> schema
-        if (filesystem::path(path_follow_str).extension().empty())
-            path_follow_str += SCHEMA_EXTENSION;
+        if (filesystem::path(path_follow_str).extension().empty()) path_follow_str += SCHEMA_EXTENSION;
 
         // is schema?
         bool following_is_schema = filesystem::path(path_follow_str).extension() == SCHEMA_EXTENSION;

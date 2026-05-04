@@ -573,7 +573,7 @@ bool applySchemaDerived(YAML::Node&                     node_input,
         }
         // applySchemaDerived recursively for all nodes in sequence
         YAML::Node node_schema_i = YAML::Clone(node_schema);
-        node_schema_i[TYPE] = getLowerElementType(node_schema[TYPE].as<std::string>());
+        node_schema_i[TYPE]      = getLowerElementType(node_schema[TYPE].as<std::string>());
         for (auto i = 0; i < node_input.size(); i++)
         {
             YAML::Node node_input_i = node_input[i];
