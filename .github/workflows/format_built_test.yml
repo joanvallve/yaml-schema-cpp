@@ -51,7 +51,7 @@ jobs:
         make -j2
         make install
         
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@main
     
     - name: build
       run: |
