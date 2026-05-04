@@ -320,7 +320,6 @@ TEST(check_type, trivial_types)
 #endif
 }
 
-
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);

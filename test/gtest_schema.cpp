@@ -102,14 +102,15 @@ TEST(schema, override_not_allowed)
 
 TEST(schema, validate_all_schemas)
 {
-    EXPECT_TRUE(validateAllSchemas({ROOT_DIR + "/test/schema/folder_schema",
-                                    ROOT_DIR + "/test/schema/other_folder_schema",
+    EXPECT_TRUE(validateAllSchemas(
+        {
+            ROOT_DIR + "/test/schema/folder_schema", ROOT_DIR + "/test/schema/other_folder_schema",
 #if _EIGEN_FOUND == 1
-                                    ROOT_DIR + "/test/schema/complex_case",
+                ROOT_DIR + "/test/schema/complex_case",
 #endif
-                                    ROOT_DIR + "/test/schema/own_type",
-                                    ROOT_DIR + "/test/schema/type_derived"},
-                                   true));
+                ROOT_DIR + "/test/schema/own_type", ROOT_DIR + "/test/schema/type_derived"
+        },
+        true));
     EXPECT_FALSE(validateAllSchemas({ROOT_DIR + "/test/wrong_schema"}, true));
 }
 

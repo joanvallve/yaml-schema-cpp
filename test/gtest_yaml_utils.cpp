@@ -144,7 +144,7 @@ TEST(compare, compare_trivial_wrong)
     node_comp["param8"][1][0]   = 1;
     node_comp["param8"][1][1]   = 2;
     node_comp["param8"][1][2]   = 4;
-    node_comp["param8"][2]   = 2; // double instead of double[]
+    node_comp["param8"][2]      = 2;  // double instead of double[]
 
     // param 1
     EXPECT_FALSE(compare(node_input["map1"]["param1"], node_comp["map1"]["param1"], "int", {}));
@@ -184,13 +184,13 @@ TEST(compare, compare_non_trivial_wrong)
     // base_input
     YAML::Node node_input  = YAML::LoadFile(ROOT_DIR + "/test/yaml/base_input.yaml");
     YAML::Node node_comp   = YAML::Clone(node_input);
-    node_comp["param8"][2]   = 2; // double instead of double[]
+    node_comp["param8"][2] = 2;  // double instead of double[]
 
     EXPECT_FALSE(compare(node_input, node_comp, "base_input", {ROOT_DIR}));
 
     // sequence_mandatory
-    YAML::Node node_input2 = YAML::LoadFile(ROOT_DIR + "/test/yaml/own_type/sequence_mandatory.yaml");
-    YAML::Node node_comp2  = YAML::Clone(node_input2);
+    YAML::Node node_input2                = YAML::LoadFile(ROOT_DIR + "/test/yaml/own_type/sequence_mandatory.yaml");
+    YAML::Node node_comp2                 = YAML::Clone(node_input2);
     node_comp["own_type"][1]["param5"][2] = 4;  // different
 
     EXPECT_TRUE(compare(node_input2, node_input2, "sequence_mandatory", {ROOT_DIR}));
@@ -212,10 +212,10 @@ TEST(compare, compare_nodes_auto_type)
     param7: [0, 2, 3] #same as value defined
     param8: [[3],[1,2.0,4],[2, 5.9]]
     */
-   
-    YAML::Node node_input  = YAML::LoadFile(ROOT_DIR + "/test/yaml/base_input.yaml");
-    YAML::Node node_comp   = YAML::Clone(node_input);
-    
+
+    YAML::Node node_input = YAML::LoadFile(ROOT_DIR + "/test/yaml/base_input.yaml");
+    YAML::Node node_comp  = YAML::Clone(node_input);
+
     EXPECT_TRUE(compareNodesAutoType(node_input, node_comp));
 
     // remove param2
@@ -224,19 +224,19 @@ TEST(compare, compare_nodes_auto_type)
     EXPECT_FALSE(compareNodesAutoType(node_input, node_comp));
 
     // change param5[2]
-    node_comp   = YAML::Clone(node_input);
+    node_comp              = YAML::Clone(node_input);
     node_comp["param5"][2] = 9;
     EXPECT_NE(node_comp["param5"][2].as<int>(), node_input["param5"][2].as<int>());
     EXPECT_FALSE(compareNodesAutoType(node_input, node_comp));
 
-    // add elements to param7 
-    node_comp   = YAML::Clone(node_input);
+    // add elements to param7
+    node_comp              = YAML::Clone(node_input);
     node_comp["param7"][3] = 9;
     EXPECT_NE(node_comp["param7"].size(), node_input["param7"].size());
     EXPECT_FALSE(compareNodesAutoType(node_input, node_comp));
 
     // change type of param6
-    node_comp   = YAML::Clone(node_input);
+    node_comp           = YAML::Clone(node_input);
     node_comp["param6"] = "pi";
     EXPECT_FALSE(compareNodesAutoType(node_input, node_comp));
 }

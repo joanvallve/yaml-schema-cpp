@@ -16,7 +16,8 @@ TEST(flatten_yaml, plain)
     YAML::Node gt_node = YAML::LoadFile(ROOT_DIR + "/test/yaml/base_input.yaml");
 
     // check flatten node == groundtruth yaml loaded
-    ASSERT_TRUE(compareNodesAutoType(yaml_server.getNode(), gt_node)); // compareNodesAutoType validated at gtest_yaml_utils
+    ASSERT_TRUE(
+        compareNodesAutoType(yaml_server.getNode(), gt_node));  // compareNodesAutoType validated at gtest_yaml_utils
 }
 
 TEST(flatten_yaml, relative_path)
@@ -26,18 +27,19 @@ TEST(flatten_yaml, relative_path)
     YAML::Node gt_node = YAML::LoadFile(ROOT_DIR + "/test/yaml/flatten/flatten_relative_path_gt.yaml");
 
     // check flatten node == groundtruth yaml loaded
-    ASSERT_TRUE(compareNodesAutoType(yaml_server.getNode(), gt_node)); // compareNodesAutoType validated at gtest_yaml_utils
+    ASSERT_TRUE(
+        compareNodesAutoType(yaml_server.getNode(), gt_node));  // compareNodesAutoType validated at gtest_yaml_utils
 }
 
 TEST(flatten_yaml, recursive)
 {
-    YamlServer yaml_server({ROOT_DIR + "/test/yaml"},
-                                            ROOT_DIR + "/test/yaml/flatten/flatten_recursive.yaml");
+    YamlServer yaml_server({ROOT_DIR + "/test/yaml"}, ROOT_DIR + "/test/yaml/flatten/flatten_recursive.yaml");
 
     YAML::Node gt_node = YAML::LoadFile(ROOT_DIR + "/test/yaml/flatten/flatten_recursive_gt.yaml");
 
     // check flatten node == groundtruth yaml loaded
-    ASSERT_TRUE(compareNodesAutoType(yaml_server.getNode(), gt_node)); // compareNodesAutoType validated at gtest_yaml_utils
+    ASSERT_TRUE(
+        compareNodesAutoType(yaml_server.getNode(), gt_node));  // compareNodesAutoType validated at gtest_yaml_utils
 }
 
 TEST(flatten_yaml, merge)
@@ -47,7 +49,8 @@ TEST(flatten_yaml, merge)
     YAML::Node gt_node = YAML::LoadFile(ROOT_DIR + "/test/yaml/flatten/flatten_merge_gt.yaml");
 
     // check flatten node == groundtruth yaml loaded
-    ASSERT_TRUE(compareNodesAutoType(yaml_server.getNode(), gt_node)); // compareNodesAutoType validated at gtest_yaml_utils
+    ASSERT_TRUE(
+        compareNodesAutoType(yaml_server.getNode(), gt_node));  // compareNodesAutoType validated at gtest_yaml_utils
 }
 
 TEST(flatten_yaml, override)
@@ -62,7 +65,8 @@ TEST(flatten_yaml, override)
     YAML::Node gt_node = YAML::LoadFile(ROOT_DIR + "/test/yaml/flatten/flatten_override_gt.yaml");
 
     // check flatten node == groundtruth yaml loaded
-    ASSERT_TRUE(compareNodesAutoType(yaml_server.getNode(), gt_node)); // compareNodesAutoType validated at gtest_yaml_utils
+    ASSERT_TRUE(
+        compareNodesAutoType(yaml_server.getNode(), gt_node));  // compareNodesAutoType validated at gtest_yaml_utils
 }
 
 TEST(flatten_yaml, sequence_follow)
@@ -72,79 +76,74 @@ TEST(flatten_yaml, sequence_follow)
     YAML::Node gt_node = YAML::LoadFile(ROOT_DIR + "/test/yaml/flatten/flatten_sequence_follow_gt.yaml");
 
     // check flatten node == groundtruth yaml loaded
-    ASSERT_TRUE(compareNodesAutoType(yaml_server.getNode(), gt_node)); // compareNodesAutoType validated at gtest_yaml_utils
+    ASSERT_TRUE(
+        compareNodesAutoType(yaml_server.getNode(), gt_node));  // compareNodesAutoType validated at gtest_yaml_utils
 }
 
 TEST(flatten_schema, plain)
 {
     std::stringstream log;
-    auto              schema_flatten = loadSchema(
-        "base_input.schema", {ROOT_DIR + "/test/schema"}, log);
+    auto              schema_flatten = loadSchema("base_input.schema", {ROOT_DIR + "/test/schema"}, log);
 
     YAML::Node gt_node = YAML::LoadFile(ROOT_DIR + "/test/schema/folder_schema/base_input.schema");
 
     // check flatten node == groundtruth yaml loaded
-    ASSERT_TRUE(compareNodesAutoType(schema_flatten, gt_node)); // compareNodesAutoType validated at gtest_yaml_utils
+    ASSERT_TRUE(compareNodesAutoType(schema_flatten, gt_node));  // compareNodesAutoType validated at gtest_yaml_utils
 }
 
 TEST(flatten_schema, relative_path)
 {
     std::stringstream log;
-    auto              schema_flatten = loadSchema(
-        "flatten_relative_path.schema", {ROOT_DIR + "/test/schema"}, log);
+    auto              schema_flatten = loadSchema("flatten_relative_path.schema", {ROOT_DIR + "/test/schema"}, log);
 
     YAML::Node gt_node = YAML::LoadFile(ROOT_DIR + "/test/schema/flatten/flatten_relative_path_gt.schema");
 
     // check flatten node == groundtruth yaml loaded
-    ASSERT_TRUE(compareNodesAutoType(schema_flatten, gt_node)); // compareNodesAutoType validated at gtest_yaml_utils
+    ASSERT_TRUE(compareNodesAutoType(schema_flatten, gt_node));  // compareNodesAutoType validated at gtest_yaml_utils
 }
 
 TEST(flatten_schema, recursive)
 {
     std::stringstream log;
-    auto              schema_flatten = loadSchema(
-        "flatten_recursive.schema", {ROOT_DIR + "/test/schema"}, log);
+    auto              schema_flatten = loadSchema("flatten_recursive.schema", {ROOT_DIR + "/test/schema"}, log);
 
     YAML::Node gt_node = YAML::LoadFile(ROOT_DIR + "/test/schema/flatten/flatten_recursive_gt.schema");
 
     // check flatten node == groundtruth yaml loaded
-    ASSERT_TRUE(compareNodesAutoType(schema_flatten, gt_node)); // compareNodesAutoType validated at gtest_yaml_utils
+    ASSERT_TRUE(compareNodesAutoType(schema_flatten, gt_node));  // compareNodesAutoType validated at gtest_yaml_utils
 }
 
 TEST(flatten_schema, merge)
 {
     std::stringstream log;
-    auto              schema_flatten = loadSchema(
-        "flatten_merge.schema", {ROOT_DIR + "/test/schema"}, log);
+    auto              schema_flatten = loadSchema("flatten_merge.schema", {ROOT_DIR + "/test/schema"}, log);
 
     YAML::Node gt_node = YAML::LoadFile(ROOT_DIR + "/test/schema/flatten/flatten_merge_gt.schema");
 
     // check flatten node == groundtruth yaml loaded
-    ASSERT_TRUE(compareNodesAutoType(schema_flatten, gt_node)); // compareNodesAutoType validated at gtest_yaml_utils
+    ASSERT_TRUE(compareNodesAutoType(schema_flatten, gt_node));  // compareNodesAutoType validated at gtest_yaml_utils
 }
 
 TEST(flatten_schema, override)
 {
     std::stringstream log;
-    auto              schema_flatten = loadSchema(
-        "flatten_override.schema", {ROOT_DIR + "/test/schema"}, log);
+    auto              schema_flatten = loadSchema("flatten_override.schema", {ROOT_DIR + "/test/schema"}, log);
 
     YAML::Node gt_node = YAML::LoadFile(ROOT_DIR + "/test/schema/flatten/flatten_override_gt.schema");
 
     // check flatten node == groundtruth yaml loaded
-    ASSERT_TRUE(compareNodesAutoType(schema_flatten, gt_node)); // compareNodesAutoType validated at gtest_yaml_utils
+    ASSERT_TRUE(compareNodesAutoType(schema_flatten, gt_node));  // compareNodesAutoType validated at gtest_yaml_utils
 }
 
 TEST(flatten_schema, sequence_follow)
 {
     std::stringstream log;
-    auto              schema_flatten = loadSchema(
-        "flatten_sequence_follow.schema", {ROOT_DIR + "/test/schema"}, log);
+    auto              schema_flatten = loadSchema("flatten_sequence_follow.schema", {ROOT_DIR + "/test/schema"}, log);
 
     YAML::Node gt_node = YAML::LoadFile(ROOT_DIR + "/test/schema/flatten/flatten_sequence_follow_gt.schema");
 
     // check flatten node == groundtruth yaml loaded
-    ASSERT_TRUE(compareNodesAutoType(schema_flatten, gt_node)); // compareNodesAutoType validated at gtest_yaml_utils
+    ASSERT_TRUE(compareNodesAutoType(schema_flatten, gt_node));  // compareNodesAutoType validated at gtest_yaml_utils
 }
 
 int main(int argc, char **argv)
