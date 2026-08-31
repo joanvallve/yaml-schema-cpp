@@ -11,7 +11,12 @@ TEST(TestTypeDerived, type_derived_final)
     YamlServer server = YamlServer({ROOT_DIR}, ROOT_DIR + "/test/yaml/type_derived/type_derived.yaml");
 
     // Check schema is OK
-    ASSERT_TRUE(server.applySchema("type_derived_final.schema"));
+    bool ok = server.applySchema("type_derived_final.schema");
+    if (!ok)
+    {
+        std::cout << "schema check failed!! log: \n" << server.getLog() << std::endl;
+    }
+    ASSERT_TRUE(ok);
 
     YAML::Node node = server.getNode();
 
