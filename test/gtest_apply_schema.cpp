@@ -2,7 +2,7 @@
 #include "yaml-schema-cpp/internal/config.h"
 #include "yaml-schema-cpp/yaml_server.hpp"
 
-std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
+std::string ROOT_DIR   = _YAML_SCHEMA_CPP_ROOT_DIR;
 std::string SCHEMA_DIR = ROOT_DIR + "/test/schema";
 
 using namespace yaml_schema_cpp;
@@ -114,8 +114,7 @@ TEST(schema, nontrivial_options_default_value)
 #if _EIGEN_FOUND == 1
 TEST(schema, complex_case)
 {
-    YamlServer server =
-        YamlServer({SCHEMA_DIR + "/folder_schema"}, ROOT_DIR + "/test/yaml/complex_case.yaml");
+    YamlServer server = YamlServer({SCHEMA_DIR + "/folder_schema"}, ROOT_DIR + "/test/yaml/complex_case.yaml");
 
     std::cout << "before: \n" << server.getNode() << std::endl;
 
