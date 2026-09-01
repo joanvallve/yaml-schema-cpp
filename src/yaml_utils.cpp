@@ -234,21 +234,32 @@ void addNodeYaml(YAML::Node&        node,
 
 std::string findFileRecursive(const std::string& name_with_extension, const std::vector<std::string>& folders)
 {
+    std::string folders_str = "";
+    std::string debug_str   = "";
     for (auto folder : folders)
     {
+        folders_str += folder + (filesystem::exists(folder) ? "" : "-NOT FOUND") +
+                       (filesystem::is_directory(folder) ? "" : " -NOT A DIRECTORY") + ", ";
         if (filesystem::exists(folder) and filesystem::is_directory(folder))
         {
-            for (auto const& entry : filesystem::recursive_directory_iterator(folder))
+            try
             {
-                if (filesystem::is_regular_file(entry) and entry.path().filename().string() == name_with_extension)
+                for (auto const& entry : filesystem::recursive_directory_iterator(folder))
                 {
-                    return entry.path().string();
+                    debug_str += entry.path().string() + ", ";
+                    if (filesystem::is_regular_file(entry) and entry.path().filename().string() == name_with_extension)
+                    {
+                        return entry.path().string();
+                    }
                 }
+            }
+            catch (const std::exception& e)
+            {
+                throw std::runtime_error("error: '" + std::string(e.what()) +
+                                         "' iterated entries: " + debug_str);
             }
         }
     }
-    std::string folders_str = "";
-    for (auto folder : folders) folders_str += folder + ", ";
     if (not folders_str.empty())
     {
         folders_str.pop_back();
