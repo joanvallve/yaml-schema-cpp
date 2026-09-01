@@ -3,15 +3,14 @@
 #include "yaml-schema-cpp/yaml_schema.hpp"
 
 std::string ROOT_DIR   = _YAML_SCHEMA_CPP_ROOT_DIR;
-std::string SCHEMA_DIR = ROOT_DIR + "/test/schema";
 
 using namespace yaml_schema_cpp;
 
 TEST(schema, plain_yaml)
 {
     std::stringstream log;
-    auto              node_schema =
-        loadSchema("test1.schema", {SCHEMA_DIR + "/folder_schema", SCHEMA_DIR + "/other_folder_schema"}, log);
+    auto              node_schema = loadSchema(
+        "test1.schema", {ROOT_DIR + "/test/schema/folder_schema", ROOT_DIR + "/test/schema/other_folder_schema"}, log);
     EXPECT_TRUE(node_schema.IsDefined());
     std::cout << log.str() << std::endl;
 }
@@ -19,8 +18,8 @@ TEST(schema, plain_yaml)
 TEST(schema, follow)
 {
     std::stringstream log;
-    auto              node_schema =
-        loadSchema("test2.schema", {SCHEMA_DIR + "/folder_schema", SCHEMA_DIR + "/other_folder_schema"}, log);
+    auto              node_schema = loadSchema(
+        "test2.schema", {ROOT_DIR + "/test/schema/folder_schema", ROOT_DIR + "/test/schema/other_folder_schema"}, log);
     EXPECT_TRUE(node_schema.IsDefined());
     std::cout << log.str() << std::endl;
 }
@@ -28,8 +27,8 @@ TEST(schema, follow)
 TEST(schema, empty)
 {
     std::stringstream log;
-    auto              node_schema =
-        loadSchema("empty.schema", {SCHEMA_DIR + "/folder_schema", SCHEMA_DIR + "/other_folder_schema"}, log);
+    auto              node_schema = loadSchema(
+        "empty.schema", {ROOT_DIR + "/test/schema/folder_schema", ROOT_DIR + "/test/schema/other_folder_schema"}, log);
 
     EXPECT_TRUE(node_schema.IsDefined());
     std::cout << log.str() << std::endl;
@@ -38,9 +37,10 @@ TEST(schema, empty)
 TEST(schema, nontrivial_options_default_value)
 {
     std::stringstream log;
-    auto              node_schema = loadSchema("nontrivial_options_default_value.schema",
-                                               {SCHEMA_DIR + "/folder_schema", SCHEMA_DIR + "/other_folder_schema"},
-                                               log);
+    auto              node_schema =
+        loadSchema("nontrivial_options_default_value.schema",
+                   {ROOT_DIR + "/test/schema/folder_schema", ROOT_DIR + "/test/schema/other_folder_schema"},
+                   log);
     EXPECT_TRUE(node_schema.IsDefined());
     std::cout << "node_schema: \n" << node_schema << std::endl;
     std::cout << log.str() << std::endl;
@@ -102,13 +102,13 @@ TEST(schema, override_not_allowed)
 
 TEST(schema, validate_all_schemas)
 {
-    EXPECT_TRUE(validateAllSchemas({SCHEMA_DIR + "/folder_schema",
-                                    SCHEMA_DIR + "/other_folder_schema",
+    EXPECT_TRUE(validateAllSchemas({ROOT_DIR + "/test/schema/folder_schema",
+                                    ROOT_DIR + "/test/schema/other_folder_schema",
 #if _EIGEN_FOUND == 1
-                                    SCHEMA_DIR + "/complex_case",
+                                    ROOT_DIR + "/test/schema/complex_case",
 #endif
-                                    SCHEMA_DIR + "/own_type",
-                                    SCHEMA_DIR + "/type_derived"},
+                                    ROOT_DIR + "/test/schema/own_type",
+                                    ROOT_DIR + "/test/schema/type_derived"},
                                    true));
     EXPECT_FALSE(validateAllSchemas({ROOT_DIR + "/test/wrong_schema"}, true));
 }
