@@ -247,7 +247,7 @@ std::string findFileRecursive(const std::string& name_with_extension, const std:
             }
         }
     }
-    std::string folders_str;
+    std::string folders_str = "";
     for (auto folder : folders) folders_str += folder + ", ";
     if (not folders_str.empty())
     {
@@ -266,7 +266,7 @@ std::string findSchema(std::string name_schema, const std::vector<std::string>& 
     }
     else if (filesystem::path(name_schema).extension() != SCHEMA_EXTENSION)
     {
-        log << "Wrong schema file extension " << name_schema << ", it should be '" << SCHEMA_EXTENSION;
+        log << "Wrong schema file extension " << name_schema << ", it should be '" << SCHEMA_EXTENSION << "'\n";
         return "";
     }
 
@@ -277,7 +277,7 @@ std::string findSchema(std::string name_schema, const std::vector<std::string>& 
     }
     catch (const std::exception& e)
     {
-        log << name_schema << " was NOT found in the provided folders.";
+        log << e.what() << std::endl;
         return "";
     }
 }
