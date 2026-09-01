@@ -3,12 +3,13 @@
 #include "yaml-schema-cpp/yaml_server.hpp"
 
 std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
+std::string SCHEMA_DIR = ROOT_DIR + "/test/schema";
 
 using namespace yaml_schema_cpp;
 
 TEST(TestOwnType, SingleMandatory)
 {
-    YamlServer server = YamlServer({ROOT_DIR}, ROOT_DIR + "/test/yaml/own_type/single_mandatory.yaml");
+    YamlServer server = YamlServer({SCHEMA_DIR}, ROOT_DIR + "/test/yaml/own_type/single_mandatory.yaml");
 
     // Check schema is OK
     ASSERT_TRUE(server.applySchema("single_mandatory.schema"));
@@ -26,7 +27,7 @@ TEST(TestOwnType, SingleMandatory)
 
 TEST(TestOwnType, SequenceMandatory)
 {
-    YamlServer server = YamlServer({ROOT_DIR}, ROOT_DIR + "/test/yaml/own_type/sequence_mandatory.yaml");
+    YamlServer server = YamlServer({SCHEMA_DIR}, ROOT_DIR + "/test/yaml/own_type/sequence_mandatory.yaml");
 
     // Check schema is OK
     ASSERT_TRUE(server.applySchema("sequence_mandatory.schema"));

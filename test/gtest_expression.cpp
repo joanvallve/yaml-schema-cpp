@@ -7,6 +7,7 @@
 #include "yaml-schema-cpp/expression.hpp"
 
 std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
+std::string SCHEMA_DIR = ROOT_DIR + "/test/schema";
 
 using namespace yaml_schema_cpp;
 
@@ -130,7 +131,7 @@ TEST(TestExpression, applySchema)
     for (auto input : input_yamls)
     {
         std::cout << "testing " << input << std::endl;
-        YamlServer server = YamlServer({ROOT_DIR}, input);
+        YamlServer server = YamlServer({SCHEMA_DIR}, input);
 
         // std::cout << "before: \n" << server.getNode() << std::endl;
 
@@ -152,7 +153,7 @@ TEST(TestExpression, applySchemaWrong)
     for (auto input : input_yamls)
     {
         std::cout << "testing " << input << std::endl;
-        YamlServer server = YamlServer({ROOT_DIR}, input);
+        YamlServer server = YamlServer({SCHEMA_DIR}, input);
 
         bool succeed = server.applySchema("expression.schema");
 

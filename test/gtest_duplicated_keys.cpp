@@ -3,11 +3,12 @@
 #include "yaml-schema-cpp/yaml_server.hpp"
 
 std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
+std::string SCHEMA_DIR = ROOT_DIR + "/test/schema";
 
 TEST(DuplicatedKeys, override)
 {
     yaml_schema_cpp::YamlServer yaml_server(
-        {ROOT_DIR + "/test/yaml"}, ROOT_DIR + "/test/yaml/duplicated_input.yaml", true);
+        {SCHEMA_DIR}, ROOT_DIR + "/test/yaml/duplicated_input.yaml", true);
 
     YAML::Node input_node = yaml_server.getNode();
 
@@ -25,7 +26,7 @@ TEST(DuplicatedKeys, override)
 TEST(DuplicatedKeys, override_not_allowed)
 {
     EXPECT_THROW(
-        yaml_schema_cpp::YamlServer({ROOT_DIR + "/test/yaml"}, ROOT_DIR + "/test/yaml/duplicated_input.yaml", false),
+        yaml_schema_cpp::YamlServer({SCHEMA_DIR}, ROOT_DIR + "/test/yaml/duplicated_input.yaml", false),
         std::runtime_error);
 }
 

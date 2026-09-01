@@ -255,8 +255,7 @@ std::string findFileRecursive(const std::string& name_with_extension, const std:
             }
             catch (const std::exception& e)
             {
-                throw std::runtime_error("error: '" + std::string(e.what()) +
-                                         "' iterated entries: " + debug_str);
+                throw std::runtime_error("error: '" + std::string(e.what()) + "' iterated entries: " + debug_str);
             }
         }
     }

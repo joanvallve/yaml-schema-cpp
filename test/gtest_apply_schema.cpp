@@ -3,12 +3,13 @@
 #include "yaml-schema-cpp/yaml_server.hpp"
 
 std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
+std::string SCHEMA_DIR = ROOT_DIR + "/test/schema";
 
 using namespace yaml_schema_cpp;
 
 TEST(schema, plain_yaml)
 {
-    YamlServer server = YamlServer({ROOT_DIR}, ROOT_DIR + "/test/yaml/base_input.yaml");
+    YamlServer server = YamlServer({SCHEMA_DIR}, ROOT_DIR + "/test/yaml/base_input.yaml");
 
     std::cout << "before: \n" << server.getNode() << std::endl;
 
@@ -30,7 +31,7 @@ TEST(schema, plain_yaml)
 
 TEST(schema, follow)
 {
-    YamlServer server = YamlServer({ROOT_DIR}, ROOT_DIR + "/test/yaml/base_input.yaml");
+    YamlServer server = YamlServer({SCHEMA_DIR}, ROOT_DIR + "/test/yaml/base_input.yaml");
 
     std::cout << "before: \n" << server.getNode() << std::endl;
 
@@ -64,7 +65,7 @@ TEST(schema, wrong)
                                          ROOT_DIR + "/test/yaml/base_input_wrong10.yaml"};
     for (auto input : input_yamls)
     {
-        YamlServer server = YamlServer({ROOT_DIR}, input);
+        YamlServer server = YamlServer({SCHEMA_DIR}, input);
         std::cout << "testing " << input << ":\n" << server.getNode() << std::endl;
 
         bool succeed = server.applySchema("base_input.schema");
@@ -85,7 +86,7 @@ TEST(schema, optional_map)
     for (auto input : input_yamls)
     {
         std::cout << "testing " << input << std::endl;
-        YamlServer server = YamlServer({ROOT_DIR}, input);
+        YamlServer server = YamlServer({SCHEMA_DIR}, input);
 
         std::cout << "before: \n" << server.getNode() << std::endl;
 
@@ -99,7 +100,7 @@ TEST(schema, optional_map)
 
 TEST(schema, nontrivial_options_default_value)
 {
-    YamlServer server = YamlServer({ROOT_DIR}, ROOT_DIR + "/test/yaml/nontrivial_options_default_value.yaml");
+    YamlServer server = YamlServer({SCHEMA_DIR}, ROOT_DIR + "/test/yaml/nontrivial_options_default_value.yaml");
 
     std::cout << "before: \n" << server.getNode() << std::endl;
 
@@ -114,11 +115,11 @@ TEST(schema, nontrivial_options_default_value)
 TEST(schema, complex_case)
 {
     YamlServer server =
-        YamlServer({ROOT_DIR + "/test/schema/folder_schema"}, ROOT_DIR + "/test/yaml/complex_case.yaml");
+        YamlServer({SCHEMA_DIR + "/folder_schema"}, ROOT_DIR + "/test/yaml/complex_case.yaml");
 
     std::cout << "before: \n" << server.getNode() << std::endl;
 
-    server.addFolderSchema(ROOT_DIR + "/test/schema/complex_case");
+    server.addFolderSchema(SCHEMA_DIR + "/complex_case");
 
     EXPECT_TRUE(server.applySchema("Problem.schema"));
 

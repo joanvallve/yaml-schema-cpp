@@ -3,12 +3,13 @@
 #include "yaml-schema-cpp/yaml_server.hpp"
 
 std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
+std::string SCHEMA_DIR = ROOT_DIR + "/test/schema";
 
 using namespace yaml_schema_cpp;
 
 TEST(TestTypeDerived, type_derived_final)
 {
-    YamlServer server = YamlServer({ROOT_DIR}, ROOT_DIR + "/test/yaml/type_derived/type_derived.yaml");
+    YamlServer server = YamlServer({SCHEMA_DIR}, ROOT_DIR + "/test/yaml/type_derived/type_derived.yaml");
 
     // Check schema is OK
     bool ok = server.applySchema("type_derived_final.schema");
@@ -37,7 +38,7 @@ TEST(TestTypeDerived, type_derived_final_wrong)
                                          ROOT_DIR + "/test/yaml/type_derived/type_derived_wrong4.yaml"};
     for (auto input : input_yamls)
     {
-        YamlServer server = YamlServer({ROOT_DIR}, input);
+        YamlServer server = YamlServer({SCHEMA_DIR}, input);
         std::cout << "testing " << input << ":\n" << server.getNode() << std::endl;
 
         bool succeed = server.applySchema("type_derived_final.schema");
@@ -53,7 +54,7 @@ TEST(TestTypeDerived, type_derived_final_wrong)
 
 TEST(TestTypeDerived, sequence_derived)
 {
-    YamlServer server = YamlServer({ROOT_DIR}, ROOT_DIR + "/test/yaml/type_derived/sequence_derived.yaml");
+    YamlServer server = YamlServer({SCHEMA_DIR}, ROOT_DIR + "/test/yaml/type_derived/sequence_derived.yaml");
 
     // Check schema is OK
     ASSERT_TRUE(server.applySchema("sequence_derived.schema"));
@@ -70,7 +71,7 @@ TEST(TestTypeDerived, sequence_derived_wrong)
                                          ROOT_DIR + "/test/yaml/type_derived/sequence_derived_wrong4.yaml"};
     for (auto input : input_yamls)
     {
-        YamlServer server = YamlServer({ROOT_DIR}, input);
+        YamlServer server = YamlServer({SCHEMA_DIR}, input);
         std::cout << "testing " << input << ":\n" << server.getNode() << std::endl;
 
         bool succeed = server.applySchema("sequence_derived.schema");
