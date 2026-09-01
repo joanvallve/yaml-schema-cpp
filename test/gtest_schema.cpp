@@ -2,7 +2,7 @@
 #include "yaml-schema-cpp/internal/config.h"
 #include "yaml-schema-cpp/yaml_schema.hpp"
 
-std::string ROOT_DIR   = _YAML_SCHEMA_CPP_ROOT_DIR;
+std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
 
 using namespace yaml_schema_cpp;
 
