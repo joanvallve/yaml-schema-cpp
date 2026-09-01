@@ -23,7 +23,7 @@ jobs:
     - name: Run clang-format style check for C/C++/Protobuf programs.
       uses: jidicula/clang-format-action@main
       with:
-        clang-format-version: '12'
+        clang-format-version: '20'
         check-path: ${{ matrix.path['check'] }}
         exclude-regex: ${{ matrix.path['exclude'] }}
         fallback-style: 'Mozilla' # optional
