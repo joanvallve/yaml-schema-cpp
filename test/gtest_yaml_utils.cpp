@@ -3,6 +3,7 @@
 #include "yaml-schema-cpp/yaml_utils.hpp"
 
 std::string ROOT_DIR = _YAML_SCHEMA_CPP_ROOT_DIR;
+std::string SCHEMA_DIR = ROOT_DIR + "/test/schema";
 
 using namespace yaml_schema_cpp;
 
@@ -104,11 +105,11 @@ TEST(compare, compare_non_trivial)
 {
     // base_input
     YAML::Node node_input = YAML::LoadFile(ROOT_DIR + "/test/yaml/base_input.yaml");
-    EXPECT_TRUE(compare(node_input, node_input, "base_input", {ROOT_DIR}));
+    EXPECT_TRUE(compare(node_input, node_input, "base_input", {SCHEMA_DIR}));
 
     // sequence_mandatory
     YAML::Node node_input2 = YAML::LoadFile(ROOT_DIR + "/test/yaml/own_type/sequence_mandatory.yaml");
-    EXPECT_TRUE(compare(node_input2, node_input2, "sequence_mandatory", {ROOT_DIR}));
+    EXPECT_TRUE(compare(node_input2, node_input2, "sequence_mandatory", {SCHEMA_DIR}));
 }
 
 TEST(compare, compare_trivial_wrong)
@@ -186,14 +187,14 @@ TEST(compare, compare_non_trivial_wrong)
     YAML::Node node_comp   = YAML::Clone(node_input);
     node_comp["param8"][2] = 2;  // double instead of double[]
 
-    EXPECT_FALSE(compare(node_input, node_comp, "base_input", {ROOT_DIR}));
+    EXPECT_FALSE(compare(node_input, node_comp, "base_input", {SCHEMA_DIR}));
 
     // sequence_mandatory
     YAML::Node node_input2                = YAML::LoadFile(ROOT_DIR + "/test/yaml/own_type/sequence_mandatory.yaml");
     YAML::Node node_comp2                 = YAML::Clone(node_input2);
     node_comp["own_type"][1]["param5"][2] = 4;  // different
 
-    EXPECT_TRUE(compare(node_input2, node_input2, "sequence_mandatory", {ROOT_DIR}));
+    EXPECT_TRUE(compare(node_input2, node_input2, "sequence_mandatory", {SCHEMA_DIR}));
 }
 
 TEST(compare, compare_nodes_auto_type)
