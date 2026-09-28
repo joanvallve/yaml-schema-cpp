@@ -24,6 +24,9 @@ jobs:
         build_type: [Debug, Release]
         eigen: [true, false]
         cxx_standard: [11, 14, 17, 20, 23]
+        exclude: # CXX23 is not supported in CMAKE 3.16 (in ubuntu:20.04)
+          - container: ubuntu:20.04
+            cxx_standard: 23
 
     steps:
 
