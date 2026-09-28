@@ -59,7 +59,7 @@ else()
 endif()
 if(BOOST_FILESYSTEM_LIB)
     message(STATUS "Finding Boost::filesystem")
-    find_package(Boost REQUIRED COMPONENTS filesystem system)
+    find_package(Boost REQUIRED CONFIG COMPONENTS filesystem system)
 endif()
 
 # ============ config.h ============
