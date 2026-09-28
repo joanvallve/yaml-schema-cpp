@@ -23,8 +23,7 @@ jobs:
         container: [ubuntu:20.04, ubuntu:22.04, ubuntu:24.04, ubuntu:26.04]
         build_type: [Debug, Release]
         eigen: [true, false]
-        cxx_standard: [11, 14, 17, 20]
-        yaml_cpp_version: [yaml-cpp-0.7.0, master]
+        cxx_standard: [11, 14, 17, 20, 23]
 
     steps:
 
@@ -32,24 +31,32 @@ jobs:
       if: ${{matrix.eigen}}
       run: |
         export DEBIAN_FRONTEND=noninteractive
-        apt-get update -y
+        apt-get update
         apt install cmake build-essential git libboost-filesystem-dev libeigen3-dev -y
         
     - name: dependencies_not_eigen
       if: ${{!matrix.eigen}}
       run: |
         export DEBIAN_FRONTEND=noninteractive
-        apt-get update -y
+        apt-get update
         apt install cmake build-essential git libboost-filesystem-dev -y
         
-    - name: install yaml-cpp
+    - name: install yaml-cpp apt
+      if: matrix.container != 'ubuntu:20.04'
       run: |
-        git clone -b ${{matrix.yaml_cpp_version}} --depth 1 https://github.com/jbeder/yaml-cpp.git
+        apt-get update
+        apt-get install libyaml-cpp-dev -y
+
+    - name: install yaml-cpp source
+      if: matrix.container == 'ubuntu:20.04'
+      run: |
+        git clone https://github.com/jbeder/yaml-cpp.git
         mkdir -pv yaml-cpp/build
         cd yaml-cpp/build
-        cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DYAML_BUILD_SHARED_LIBS=ON -DYAML_CPP_BUILD_TESTS=OFF ..
+        cmake -DCMAKE_BUILD_TYPE=${{matrix.build_type}} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DYAML_BUILD_SHARED_LIBS=ON -DYAML_CPP_BUILD_TESTS=OFF ..
         make -j2
         make install
+        ldconfig
         
     - uses: actions/checkout@main
     

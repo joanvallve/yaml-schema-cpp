@@ -22,7 +22,7 @@ This library uses [exprtk](http://www.partow.net/programming/exprtk/index.html) 
 
 # Installation
 
-**Requirements:** C++>11 and cmake 3.16 or newer. 
+**Requirements:** C++ >11 and cmake 3.16 or newer. 
 
 The library is periodically tested with C++11, 14, 17 and 20 in Ubuntu 20.04, 22.04 and 24.04.
 
@@ -34,7 +34,7 @@ The library is periodically tested with C++11, 14, 17 and 20 in Ubuntu 20.04, 22
 sudo apt-get install libboost-filesystem-dev
 ```
 
-**2. Eigen 3**
+**2. Eigen 3 (OPTIONAL)**
 
 ```bash
 sudo apt install libeigen3-dev
@@ -42,7 +42,7 @@ sudo apt install libeigen3-dev
 
 **3. yaml-cpp (minimum required 0.7)**
 
-In ubuntu from 22.04, it can be installed via apt: 
+In ubuntu from 22.04, it can be installed via apt:
 
 ```bash
 sudo apt install libyaml-cpp-dev
@@ -50,7 +50,7 @@ sudo apt install libyaml-cpp-dev
 In previous ubuntu distributions, it has to be installed from source:
 
 ```bash
-git clone -b yaml-cpp-0.7.0 --depth 1 https://github.com/jbeder/yaml-cpp.git
+git clone https://github.com/jbeder/yaml-cpp.git
 cd yaml-cpp
 mkdir -pv build
 cd build
