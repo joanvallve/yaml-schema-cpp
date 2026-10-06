@@ -58,8 +58,10 @@ find_package(yaml-cpp 0.7 REQUIRED)
 find_package(Eigen3 QUIET)
 if (Eigen3_FOUND)
     message(STATUS "Eigen3 found, compiling yaml-schema-cpp for Eigen classes")
+    set(YAML_SCHEMA_CPP_WITH_EIGEN 1)
 else()
     set(Eigen3_FOUND 0)
+    set(YAML_SCHEMA_CPP_WITH_EIGEN 0)
 endif()
 if(BOOST_FILESYSTEM_LIB)
     message(STATUS "Finding Boost::filesystem")
@@ -131,6 +133,8 @@ elseif(CMAKE_COMPILER_IS_GNUCXX)
     message(STATUS "Linking with stdc++fs")
     target_link_libraries(yaml_template_generator PUBLIC stdc++fs)
 endif()
+# find the installed library relative to the installed executable (works for any CMAKE_INSTALL_PREFIX)
+set_target_properties(yaml_template_generator PROPERTIES INSTALL_RPATH "$ORIGIN/../lib")
 
 # ------ INSTALL ------
 #install headers
@@ -158,21 +162,13 @@ install(
 include(CMakePackageConfigHelpers)
 
 # generate the config file that is includes the exports
-if(BOOST_FILESYSTEM_LIB)
-    configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
-        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-        INSTALL_DESTINATION "lib/cmake/${PROJECT_NAME}"
-        NO_SET_AND_CHECK_MACRO
-        NO_CHECK_REQUIRED_COMPONENTS_MACRO
-    )
-else()
-    configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/NoBoostConfig.cmake.in
-        "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
-        INSTALL_DESTINATION "lib/cmake/${PROJECT_NAME}"
-        NO_SET_AND_CHECK_MACRO
-        NO_CHECK_REQUIRED_COMPONENTS_MACRO
-    )
-endif()
+# (dependencies Eigen3 and Boost::filesystem are found according to YAML_SCHEMA_CPP_WITH_EIGEN and BOOST_FILESYSTEM_LIB)
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+    INSTALL_DESTINATION "lib/cmake/${PROJECT_NAME}"
+    NO_SET_AND_CHECK_MACRO
+    NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
 
 
 write_basic_package_version_file(

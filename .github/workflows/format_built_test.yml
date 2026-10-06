@@ -78,3 +78,15 @@ jobs:
     - name: Tests
       run: |
         ctest --output-on-failure
+
+    - name: Install and test installed package
+      run: |
+        cmake --install build --prefix $PWD/install
+        # the installed executable finds the installed library (RPATH)
+        ./install/bin/yaml_template_generator simple_type $PWD/test/schema/folder_schema $PWD/install_test_template.yaml
+        # a project using the installed package (find_package)
+        cmake -S test/install_test -B build_install_test \
+          -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
+          -DCMAKE_PREFIX_PATH=$PWD/install
+        cmake --build build_install_test
+        ./build_install_test/install_test

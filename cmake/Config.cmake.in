@@ -1,7 +1,13 @@
 @PACKAGE_INIT@
 
-include( "${CMAKE_CURRENT_LIST_DIR}/yaml-schema-cpp-targets.cmake")
+include(CMakeFindDependencyMacro)
 
-find_dependency(yaml-cpp REQUIRED)
-find_dependency(Eigen3 REQUIRED)
-find_dependency(Boost REQUIRED COMPONENTS filesystem system)
+find_dependency(yaml-cpp)
+if(@YAML_SCHEMA_CPP_WITH_EIGEN@)
+    find_dependency(Eigen3)
+endif()
+if(@BOOST_FILESYSTEM_LIB@)
+    find_dependency(Boost CONFIG COMPONENTS filesystem)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/yaml-schema-cpp-targets.cmake")
