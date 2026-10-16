@@ -320,6 +320,64 @@ TEST(check_type, trivial_types)
 #endif
 }
 
+TEST(check_type, array_types)
+{
+    YAML::Node node_ints = YAML::Load("[1, 2, 3]");
+
+    EXPECT_TRUE(tryNodeAs(node_ints, "int[]"));
+    EXPECT_TRUE(tryNodeAs(node_ints, "int[3]"));
+    EXPECT_FALSE(tryNodeAs(node_ints, "int[2]"));
+    EXPECT_TRUE(tryNodeAs(node_ints, "double[]"));
+    EXPECT_TRUE(tryNodeAs(node_ints, "string[]"));
+    EXPECT_FALSE(tryNodeAs(node_ints, "unknown_class[]"));
+    EXPECT_TRUE(checkNodeAsBasic(node_ints, "int[]"));
+    EXPECT_FALSE(checkNodeAsBasic(node_ints, "string[]"));
+    EXPECT_TRUE(checkNodeAsString(node_ints, "string[]"));
+    EXPECT_FALSE(checkNodeAsString(node_ints, "int[]"));
+
+    YAML::Node node_mixed = YAML::Load("[1, a, 3]");
+    EXPECT_FALSE(tryNodeAs(node_mixed, "int[]"));
+    EXPECT_TRUE(tryNodeAs(node_mixed, "string[]"));
+
+    YAML::Node node_nested = YAML::Load("[[1.0, 2.0], [3.0, 4.0, 5.0]]");
+    EXPECT_TRUE(tryNodeAs(node_nested, "double[2][]"));
+    EXPECT_FALSE(tryNodeAs(node_nested, "double[3][]"));
+    EXPECT_FALSE(tryNodeAs(node_nested, "double[][2]"));
+    EXPECT_FALSE(tryNodeAs(node_nested, "double[]"));
+
+    EXPECT_TRUE(tryNodeAs(YAML::Load("[]"), "int[]"));
+    EXPECT_FALSE(tryNodeAs(YAML::Load("[]"), "int[2]"));
+    EXPECT_FALSE(tryNodeAs(YAML::Load("3"), "int[]"));
+
+#if _EIGEN_FOUND == 1
+    EXPECT_TRUE(tryNodeAs(YAML::Load("[[1, 2], [3, 4]]"), "Vector2d[]"));
+    EXPECT_FALSE(tryNodeAs(YAML::Load("[[1, 2], [3]]"), "Vector2d[]"));
+#endif
+}
+
+TEST(check_type, malformed_types)
+{
+    EXPECT_FALSE(isTrivialType("int["));
+    EXPECT_FALSE(isTrivialType("int]"));
+    EXPECT_FALSE(isTrivialType("int[x]"));
+    EXPECT_FALSE(isTrivialType("int][3"));
+    EXPECT_FALSE(isTrivialType("int[3][x]"));
+    EXPECT_FALSE(isBasicType("int["));
+    EXPECT_FALSE(isStringType("string["));
+}
+
+#if _EIGEN_FOUND == 1
+TEST(check_type, eigen_no_output)
+{
+    // A failed conversion should not print anything
+    testing::internal::CaptureStdout();
+    EXPECT_FALSE(tryNodeAs(YAML::Load("[1, 2]"), "Vector3d"));
+    EXPECT_FALSE(tryNodeAs(YAML::Load("[]"), "Vector3d"));
+    EXPECT_FALSE(tryNodeAs(YAML::Load("[[2, 2], [1, 2, 3]]"), "MatrixXd"));
+    EXPECT_EQ(testing::internal::GetCapturedStdout(), "");
+}
+#endif
+
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);

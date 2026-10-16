@@ -1,0 +1,4 @@
+arr:
+  _mandatory: true
+  _type: int[]
+  _doc: array of ints

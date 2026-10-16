@@ -1,3 +1,12 @@
+/**
+ * @file type_check.hpp
+ * @brief Checking if YAML nodes can be interpreted as a given type (specified as a string).
+ *
+ * Types are specified as strings: basic types ("bool", "char", "int", "unsigned int", "long int",
+ * "long unsigned int", "float", "double"), string types ("string", "std::string"), Eigen types ("VectorXd",
+ * "MatrixXd", "Vector<N>d", "Matrix<N>d" for N in 1..10, with or without "Eigen::", only if Eigen was found) and array
+ * types ("<type>[]" or "<type>[<size>]", e.g. "double[3][]").
+ */
 #pragma once
 
 #include "yaml-schema-cpp/internal/config.h"
@@ -11,64 +20,6 @@
 
 namespace yaml_schema_cpp
 {
-#define CHECK_TYPE_CASE(TypeName)                                                                                     \
-    if (type == #TypeName)                                                                                            \
-    {                                                                                                                 \
-        node.as<TypeName>();                                                                                          \
-        return true;                                                                                                  \
-    }
-
-#if _EIGEN_FOUND == 1
-#define CHECK_TYPE_EIGEN_CASE(size)                                                                                   \
-    if (type == "Vector" #size "d" or type == "Eigen::Vector" #size "d")                                              \
-    {                                                                                                                 \
-        node.as<Eigen::Matrix<double, size, 1> >();                                                                   \
-        return true;                                                                                                  \
-    }                                                                                                                 \
-    if (type == "Matrix" #size "d" or type == "Eigen::Matrix" #size "d")                                              \
-    {                                                                                                                 \
-        node.as<Eigen::Matrix<double, size, size> >();                                                                \
-        return true;                                                                                                  \
-    }
-
-#define CHECK_TYPE_EIGEN_CASES                                                                                        \
-    CHECK_TYPE_EIGEN_CASE(1)                                                                                          \
-    CHECK_TYPE_EIGEN_CASE(2)                                                                                          \
-    CHECK_TYPE_EIGEN_CASE(3)                                                                                          \
-    CHECK_TYPE_EIGEN_CASE(4)                                                                                          \
-    CHECK_TYPE_EIGEN_CASE(5)                                                                                          \
-    CHECK_TYPE_EIGEN_CASE(6)                                                                                          \
-    CHECK_TYPE_EIGEN_CASE(7)                                                                                          \
-    CHECK_TYPE_EIGEN_CASE(8)                                                                                          \
-    CHECK_TYPE_EIGEN_CASE(9)                                                                                          \
-    CHECK_TYPE_EIGEN_CASE(10)                                                                                         \
-    CHECK_TYPE_CASE(Eigen::VectorXd)                                                                                  \
-    CHECK_TYPE_CASE(Eigen::VectorXd)                                                                                  \
-    CHECK_TYPE_CASE(Eigen::MatrixXd)                                                                                  \
-    {                                                                                                                 \
-        using namespace Eigen;                                                                                        \
-        CHECK_TYPE_CASE(VectorXd)                                                                                     \
-        CHECK_TYPE_CASE(MatrixXd)                                                                                     \
-    }
-#endif
-
-#define CHECK_TYPE_BASIC_CASES                                                                                        \
-    CHECK_TYPE_CASE(bool)                                                                                             \
-    CHECK_TYPE_CASE(char)                                                                                             \
-    CHECK_TYPE_CASE(int)                                                                                              \
-    CHECK_TYPE_CASE(unsigned int)                                                                                     \
-    CHECK_TYPE_CASE(long int)                                                                                         \
-    CHECK_TYPE_CASE(long unsigned int)                                                                                \
-    CHECK_TYPE_CASE(float)                                                                                            \
-    CHECK_TYPE_CASE(double)
-
-#define CHECK_TYPE_STRING_CASES                                                                                       \
-    CHECK_TYPE_CASE(std::string)                                                                                      \
-    {                                                                                                                 \
-        using std::string;                                                                                            \
-        CHECK_TYPE_CASE(string)                                                                                       \
-    }
-
 /**
  * @brief check the sizes of node and type
  * If the type is an array type, it checks the node is a sequence.
@@ -81,43 +32,95 @@ namespace yaml_schema_cpp
 bool checkSizes(const YAML::Node& node, const std::string& type);
 
 /**
- * @brief check if a node can be interpreted as a given type
- * NOTE: This function may raise exceptions
+ * @brief check if a node can be interpreted as a given basic type (or array of basic types)
+ * NOTE: This function may raise exceptions (if the type is basic but the conversion fails)
  *
  * @param node YAML node to be converted
  * @param type string defining the type
- * @return false if type not checked, true if check ok.
+ * @return false if type is not basic (or sizes do not match), true if check ok.
  */
 bool checkNodeAsBasic(const YAML::Node& node, const std::string& type);
+
+/**
+ * @brief check if a node can be interpreted as a given string type (or array of string types)
+ * NOTE: This function may raise exceptions (if the type is string but the conversion fails)
+ *
+ * @param node YAML node to be converted
+ * @param type string defining the type
+ * @return false if type is not string (or sizes do not match), true if check ok.
+ */
 bool checkNodeAsString(const YAML::Node& node, const std::string& type);
+
 #if _EIGEN_FOUND == 1
+/**
+ * @brief check if a node can be interpreted as a given Eigen type (or array of Eigen types)
+ * NOTE: This function may raise exceptions (if the type is Eigen but the conversion fails)
+ *
+ * @param node YAML node to be converted
+ * @param type string defining the type
+ * @return false if type is not Eigen (or sizes do not match), true if check ok.
+ */
 bool checkNodeAsEigen(const YAML::Node& node, const std::string& type);
 #endif
+
+/**
+ * @brief check if a node can be interpreted as a given trivial type (or array of trivial types)
+ * NOTE: This function may raise exceptions (if the type is trivial but the conversion fails)
+ *
+ * @param node YAML node to be converted
+ * @param type string defining the type
+ * @return false if type is not trivial (or sizes do not match), true if check ok.
+ */
 bool checkNodeAs(const YAML::Node& node, const std::string& type);
 
 /**
  * @brief try if a node can be interpreted as a given type
  * NOTE: This function does not raise exceptions
+ * NOTE: A null node can be interpreted as a string ("null"), see applySchema() for input validation.
  *
  * @param node YAML node to be converted
- * @param type string defining the type
+ * @param type string defining the type (trivial type or array of trivial types)
  * @return if the node can be interpreted as the type
  */
 bool tryNodeAs(const YAML::Node& node, const std::string& type);
 
-/** Functions to evaluate if a string definig type is in these groups:
- *  - Basic: int, float, string, Eigen types (if eigen installed))
- *  - String
- *  - Eigen: Vector or Matrix dynamic of fixed size (until 10)
- *  - Trivial: Basic, string or Eigen
- *  - NonTrivial: rest of types that require schemas to be specified
+/**
+ * @brief check if a type is trivial: basic, string or Eigen (not requiring a schema)
+ * @param type string defining the type
+ * @return true if trivial (false for array types and malformed type strings)
  */
 bool isTrivialType(const std::string& type);
+
+/**
+ * @brief check if a type is basic: bool, char, int, unsigned int, long int, long unsigned int, float or double
+ * @param type string defining the type
+ * @return true if basic (false for array types and malformed type strings)
+ */
 bool isBasicType(const std::string& type);
+
+/**
+ * @brief check if a type is string: string or std::string
+ * @param type string defining the type
+ * @return true if string (false for array types and malformed type strings)
+ */
 bool isStringType(const std::string& type);
+
 #if _EIGEN_FOUND == 1
+/**
+ * @brief check if a type is Eigen: VectorXd, MatrixXd, Vector<N>d or Matrix<N>d (N from 1 to 10), with or without
+ *        "Eigen::"
+ * @param type string defining the type
+ * @return true if Eigen (false for array types and malformed type strings)
+ */
 bool isEigenType(const std::string& type);
 #endif
+
+/**
+ * @brief check if a type is non-trivial: a schema file with that name exists in folders (see findSchema())
+ * @param type string defining the type (name of the schema)
+ * @param folders folders where the schema files are searched (recursively)
+ * @return true if the schema file is found
+ */
 bool isNonTrivialType(const std::string& type, const std::vector<std::string>& folders);
 
 }  // namespace yaml_schema_cpp

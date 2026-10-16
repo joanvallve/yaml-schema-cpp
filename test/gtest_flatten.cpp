@@ -147,7 +147,34 @@ TEST(flatten_schema, sequence_follow)
     ASSERT_TRUE(compareNodesAutoType(schema_flatten, gt_node));  // compareNodesAutoType validated at gtest_yaml_utils
 }
 
-int main(int argc, char **argv)
+TEST(flatten_yaml, follow_cycle)
+{
+    // a.yaml follows b.yaml, that follows a.yaml
+    try
+    {
+        YamlServer yaml_server({SCHEMA_DIR}, ROOT_DIR + "/test/yaml/follow_cycle/a.yaml");
+        FAIL() << "A 'follow' cycle should throw";
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::cout << e.what() << std::endl;
+        EXPECT_NE(std::string(e.what()).find("cycle"), std::string::npos) << e.what();
+    }
+}
+
+TEST(flatten_yaml, follow_diamond)
+{
+    // left.yaml and right.yaml follow common.yaml: not a cycle
+    YAML::Node node;
+    ASSERT_NO_THROW(node = YamlServer({SCHEMA_DIR}, ROOT_DIR + "/test/yaml/follow_diamond/main.yaml").getNode());
+
+    EXPECT_EQ(node["main_param"].as<int>(), 0);
+    EXPECT_EQ(node["left_param"].as<int>(), 1);
+    EXPECT_EQ(node["right_param"].as<int>(), 2);
+    EXPECT_EQ(node["common_param"].as<int>(), 3);
+}
+
+int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);
     //::testing::GTEST_FLAG(filter) = "TestTest.DummyTestExample"; // Test only this one

@@ -26,9 +26,11 @@ int main(int argc, char* argv[])
      *   NOTE 2: 'output_file' will be modified to avoid overriding existing files.
      */
 
-    // HELP
-    if (argc == 2 and (std::string(argv[1]) == "-h" or std::string(argv[1]) == "--help"))
+    // HELP (also if wrong number of arguments)
+    bool help = argc == 2 and (std::string(argv[1]) == "-h" or std::string(argv[1]) == "--help");
+    if (help or (argc != 3 and argc != 4))
     {
+        if (not help) cout << red << "ERROR: Wrong number of arguments." << reset << endl << endl;
         cout << "--------- yaml_template_generator HELP ---------- \nCall it with:" << endl;
         cout << "yaml_template_generator schema_name schema_folders output_file" << endl << endl;
         cout << "'schema_name':    Schema to be applied (just its name, without path or extension)" << endl;
@@ -41,10 +43,9 @@ int main(int argc, char* argv[])
         cout << "                  name based on schema_name (requires `$HOME` to be defined)." << endl << endl;
         cout << "NOTE 1: Paths can be absolute (starting by '/') or relative." << endl;
         cout << "NOTE 2: 'output_file' will be modified to avoid overriding existing files." << endl;
-        return 0;
+        return help ? 0 : 1;
     }
     // Call
-    if (argc == 3 or argc == 4)
     {
         filesystem::path current_path(filesystem::current_path());
 
@@ -54,7 +55,8 @@ int main(int argc, char* argv[])
         // schema folders
         std::string              schema_folders_input(argv[2]);
         std::vector<std::string> schema_folders;
-        if (schema_folders_input.front() == '[' and schema_folders_input.back() == ']')
+        if (schema_folders_input.size() > 1 and schema_folders_input.front() == '[' and
+            schema_folders_input.back() == ']')
         {
             // remove '[' and ']'
             schema_folders_input.erase(0, 1);
@@ -63,31 +65,42 @@ int main(int argc, char* argv[])
             size_t pos = 0;
             while (not schema_folders_input.empty())
             {
+                // remove spaces
+                while (not schema_folders_input.empty() and schema_folders_input.front() == ' ')
+                    schema_folders_input.erase(0, 1);
+                if (schema_folders_input.empty()) break;
+
                 pos = schema_folders_input.find(" ");
                 schema_folders.push_back(schema_folders_input.substr(0, pos));
 
                 // next folder
                 schema_folders_input.erase(0, pos);
-
-                // remove spaces
-                while (schema_folders_input.front() == ' ') schema_folders_input.erase(0, 1);
             }
         }
-        else
+        else if (not schema_folders_input.empty())
             schema_folders.push_back(schema_folders_input);
 
+        if (schema_folders.empty())
+        {
+            cout << red << "ERROR: No schema folders provided." << reset << endl;
+            return 1;
+        }
+
         // Correct paths to absolute
-        for (auto i = 0; i < schema_folders.size(); i++)
+        for (size_t i = 0; i < schema_folders.size(); i++)
         {
             // HOME char '~'
             if (schema_folders[i].front() == '~')
+            {
                 if (getenv("HOME") == NULL)
                 {
-                    cout << red << "ERROR: path contains '~' but environment variable HOME not defined." << reset;
+                    cout << red << "ERROR: path contains '~' but environment variable HOME not defined." << reset
+                         << endl;
                     return 1;
                 }
                 else
                     schema_folders[i] = std::string(getenv("HOME")) + schema_folders[i].substr(1);
+            }
 
             // relative path
             if (schema_folders[i].front() != '/') schema_folders[i] = current_path.string() + "/" + schema_folders[i];
@@ -101,7 +114,7 @@ int main(int argc, char* argv[])
             {
                 cout << red
                      << "ERROR: Environment variable HOME not defined (mandatory if 'output_file' not provided)."
-                     << reset;
+                     << reset << endl;
                 return 1;
             }
             output_file = std::string(getenv("HOME")) + "/" + schema + "_template.yaml";

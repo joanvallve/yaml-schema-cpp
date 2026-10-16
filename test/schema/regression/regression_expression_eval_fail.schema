@@ -1,0 +1,8 @@
+mode:
+  _mandatory: true
+  _type: string
+  _doc: mandatory string
+param:
+  _mandatory: $mode == 'auto'
+  _type: int
+  _doc: mandatory if mode is 'auto'

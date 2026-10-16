@@ -1,0 +1,9 @@
+derived_with_options:
+  _mandatory: true
+  _type: derived
+  _base: type_derived_base.schema
+  _options:
+    - type: type_derived_derived
+      param_base: 1.0
+      param_derived: [1]
+  _doc: derived type with options

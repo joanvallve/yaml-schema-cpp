@@ -71,6 +71,17 @@ sudo make install
 ```
 You can run the tests with `ctest -j4`.
 
+## Documentation
+
+If [doxygen](https://www.doxygen.nl) is installed (`sudo apt install doxygen`), the API documentation can be generated
+from the build folder with:
+
+```bash
+make doc
+```
+
+and then opened at `build/doc/html/index.html`. Configure with `cmake -DBUILD_DOC=ON ..` to generate it also with `make`.
+
 # Using `yaml_schema_cpp`
 
 ## The `.schema` file
@@ -146,6 +157,8 @@ The `_type` can be:
 
 If the type string ends with `[]`, the input field is specified to be a sequence.
 
+Note that null values (e.g. `key:` without value) are not accepted for string types. Use `''` for an empty string.
+
 ### `_mandatory`
 A **bool** value or expression (see below) specifying if the input field is required or just optional.
 
@@ -171,7 +184,7 @@ In both input and schema files, the key `follow` is interpreted as a copy-paste 
 We allow the use of [exprtk](http://www.partow.net/programming/exprtk/index.html) expressions in `_mandatory` field. 
 There are some rules for the expressions:
 1. It should start by a `$` symbol.
-2. All parameters involved in an expression have to be at the same level of the specified node.
+2. All parameters involved in an expression have to be at the same level of the specified node (they can be declared before or after it).
 3. All parameters involved in an expression have to be mandatory at all cases (i.e. true, not an expression) or have a default value defined.
 4. The exprtk syntax has to be followed (see [exprtk readme](https://www.partow.net/programming/exprtk/code/readme.txt) for more information).
 5. The result of the expression will be casted to `bool`. If the result is a numeric value, it will be converted to `true` except for 0 (`false`).
@@ -283,7 +296,7 @@ This library handles relative paths parameters. In case a string value starts by
 This is useful in case of using `follow` to a YAML in a different folder that contains a path parameter.
 
 ### Tree structure
-This library is intended to be used to validate a given YAML file with parameters. Then, loops are not suported in the input YAML file. It is assumed to have tree structure. Note that `follow` copies the content of the other file, so multiple `follow` instantes to the same file is supported.
+This library is intended to be used to validate a given YAML file with parameters. Then, loops are not suported in the input YAML file. It is assumed to have tree structure. Note that `follow` copies the content of the other file, so multiple `follow` instantes to the same file is supported. A `follow` cycle (a file that follows, directly or indirectly, itself) raises an error.
 
 # YAML template generator
 

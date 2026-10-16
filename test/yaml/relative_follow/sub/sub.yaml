@@ -1,0 +1,3 @@
+sub_file: ./sub.yaml
+sub_map:
+  sub_nested_file: ../main.yaml

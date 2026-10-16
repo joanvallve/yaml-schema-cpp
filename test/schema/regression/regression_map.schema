@@ -1,0 +1,6 @@
+sub_map:
+  param:
+    _mandatory: false
+    _type: int
+    _default: 1
+    _doc: some param

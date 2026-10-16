@@ -1,0 +1,10 @@
+# The expression of 'param_expr' depends on 'mode', which is declared AFTER it and has a default value
+param_expr:
+  _mandatory: $mode == 'manual'
+  _type: int
+  _doc: mandatory only if mode is 'manual'
+mode:
+  _mandatory: false
+  _type: string
+  _default: auto
+  _doc: mode with default value

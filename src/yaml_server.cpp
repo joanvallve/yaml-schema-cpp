@@ -21,6 +21,11 @@ YamlServer::YamlServer(const std::vector<std::string>& folders_schema, const std
     loadYaml(path_input);
 }
 
+YamlServer::YamlServer(const std::vector<std::string>& folders_schema, const char* path_input, bool override)
+    : YamlServer(folders_schema, std::string(path_input), override)
+{
+}
+
 void YamlServer::addFolderSchema(const std::vector<std::string>& folders_schema, bool before)
 {
     folders_schema_.insert(
@@ -55,6 +60,7 @@ void YamlServer::loadYaml(const std::string& path_input)
 
 void YamlServer::setYaml(const YAML::Node _node_input)
 {
+    path_input_.clear();
     node_input_ = Clone(_node_input);
 }
 

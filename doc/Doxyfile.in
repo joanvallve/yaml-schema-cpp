@@ -1,0 +1,35 @@
+# Doxygen configuration of yaml-schema-cpp (configured by CMake, see 'doc' target in CMakeLists.txt).
+# Only the tags different from the doxygen defaults are set.
+
+PROJECT_NAME           = "yaml-schema-cpp"
+PROJECT_NUMBER         = @PROJECT_VERSION@
+PROJECT_BRIEF          = "Specification and validation of YAML files via schemas"
+OUTPUT_DIRECTORY       = @PROJECT_BINARY_DIR@/doc
+STRIP_FROM_PATH        = @PROJECT_SOURCE_DIR@/include
+
+# Input: README (main page) and public headers (without the redistributed exprtk)
+INPUT                  = @PROJECT_SOURCE_DIR@/README.md \
+                         @PROJECT_SOURCE_DIR@/include/yaml-schema-cpp
+FILE_PATTERNS          = *.hpp \
+                         *.md
+RECURSIVE              = YES
+EXCLUDE                = @PROJECT_SOURCE_DIR@/include/yaml-schema-cpp/exprtk
+USE_MDFILE_AS_MAINPAGE = @PROJECT_SOURCE_DIR@/README.md
+
+# Extraction
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+
+# Preprocessing: document the Eigen parts
+ENABLE_PREPROCESSING   = YES
+PREDEFINED             = _EIGEN_FOUND=1
+
+# Warnings
+QUIET                  = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = YES
+
+# Output
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO

@@ -1,0 +1,17 @@
+# keys containing '/' (e.g. ROS topic names)
+"/odom":
+  _mandatory: false
+  _type: string
+  _default: odom_topic
+  _doc: key containing a slash, with default
+"a/b":
+  _mandatory: false
+  _type: int
+  _value: 3
+  _doc: key containing a slash, with value
+"/map/with/slash":
+  param:
+    _mandatory: false
+    _type: int
+    _default: 1
+    _doc: param inside a map whose key contains slashes
