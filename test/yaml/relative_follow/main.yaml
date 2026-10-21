@@ -1,0 +1,4 @@
+follow: sub/sub.yaml
+local_file: ./main.yaml
+sub_map:
+  main_nested_file: ./main.yaml

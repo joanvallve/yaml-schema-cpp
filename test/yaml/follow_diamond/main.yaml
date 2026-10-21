@@ -1,0 +1,3 @@
+# both left.yaml and right.yaml follow common.yaml (not a cycle)
+follow: [left.yaml, right.yaml]
+main_param: 0

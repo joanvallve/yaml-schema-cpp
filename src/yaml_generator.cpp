@@ -2,8 +2,10 @@
 
 #include "yaml-schema-cpp/yaml_generator.hpp"
 
+#include <algorithm>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include "yaml-schema-cpp/filesystem_wrapper.hpp"
 #include "yaml-schema-cpp/yaml_conversion.hpp"
@@ -14,14 +16,81 @@
 
 namespace yaml_schema_cpp
 {
-int N_SEQUENCE_OUTPUT = 2;
+// number of elements generated for sequences of unspecified size
+static const size_t N_SEQUENCE_OUTPUT = 2;
+
+namespace
+{
+// Emits a key as YAML (quoted if necessary)
+std::string emitKey(const YAML::Node& key)
+{
+    YAML::Emitter emitter;
+    emitter << key;
+    return emitter.c_str();
+}
+
+// Writes the template node as YAML text. The scalars are written as they are, since they already contain the value
+// (as YAML text) followed by a comment (see schemaToYaml()).
+void writeTemplate(std::ostream& os, const YAML::Node& node, const std::string& indent)
+{
+    if (node.IsMap())
+    {
+        for (auto child : node)
+        {
+            os << indent << emitKey(child.first) << ":";
+            if (child.second.IsScalar())
+                os << " " << child.second.Scalar() << "\n";
+            else
+            {
+                os << "\n";
+                writeTemplate(os, child.second, indent + "  ");
+            }
+        }
+    }
+    else if (node.IsSequence())
+    {
+        for (auto child : node)
+        {
+            if (child.IsScalar())
+                os << indent << "- " << child.Scalar() << "\n";
+            else
+            {
+                os << indent << "-\n";
+                writeTemplate(os, child, indent + "  ");
+            }
+        }
+    }
+    else if (node.IsScalar())
+        os << indent << node.Scalar() << "\n";
+}
+
+// Puts the string in double quotes, escaping '\' and '"'
+std::string doubleQuoted(const std::string& str)
+{
+    std::string quoted = "\"";
+    for (auto c : str)
+    {
+        if (c == '\\' or c == '"') quoted += '\\';
+        quoted += c;
+    }
+    return quoted + "\"";
+}
+
+// Replaces new lines by spaces (to be used in comments), removing trailing new lines
+std::string oneLine(std::string str)
+{
+    while (not str.empty() and (str.back() == '\n' or str.back() == '\r')) str.pop_back();
+    std::replace(str.begin(), str.end(), '\n', ' ');
+    std::replace(str.begin(), str.end(), '\r', ' ');
+    return str;
+}
+}  // namespace
 
 std::string generateTemplate(std::string                     filepath,
                              const std::string&              name_schema,
                              const std::vector<std::string>& folders_schema,
                              bool                            override)
 {
-    std::cout << "generateTemplate " << name_schema << std::endl;
     // Check extension
     if (filesystem::path(filepath).extension().empty())
     {
@@ -53,16 +122,12 @@ std::string generateTemplate(std::string                     filepath,
     }
 
     // Create Template Node
-    auto template_node = generateYaml(name_schema, folders_schema);
+    auto template_node = generateYaml(name_schema, folders_schema, override);
 
-    // Modify text
+    // Template text
     std::stringstream template_ss;
-    template_ss << template_node;
-    // remove " "
+    writeTemplate(template_ss, template_node, "");
     std::string template_string = template_ss.str();
-    template_string.erase(std::remove(template_string.begin(), template_string.end(), '"'), template_string.end());
-    // change ' ' by " "
-    std::replace(template_string.begin(), template_string.end(), '\'', '"');
 
     // Create file
     std::ofstream template_file;
@@ -80,8 +145,6 @@ std::string generateTemplate(std::string                     filepath,
 
 YAML::Node generateYaml(std::string name_schema, const std::vector<std::string>& folders_schema, bool override)
 {
-    std::cout << "generateYaml " << name_schema << std::endl;
-
     // Find schema file + check extension
     std::stringstream log;
     auto              path_schema = findSchema(name_schema, folders_schema, log);
@@ -120,8 +183,7 @@ YAML::Node generateYaml(std::string name_schema, const std::vector<std::string>&
     }
     catch (const std::exception& e)
     {
-        throw std::runtime_error("In loadSchema: The schema file " + path_schema +
-                                 " is not valid. Error: " + e.what());
+        throw std::runtime_error("generateYaml: The schema file " + path_schema + " is not valid. Error: " + e.what());
     }
 
     // Generate YAML from schema
@@ -137,7 +199,12 @@ void schemaToYaml(const YAML::Node&               node_schema,
                   const std::vector<std::string>& folders_schema,
                   bool                            override)
 {
-    std::cout << "schemaToYaml:\n" << node_schema << std::endl;
+    // scalar schema nodes are ignored (as in checkSchema())
+    if (node_schema.IsScalar())
+    {
+        node_output = YAML::Null;
+        return;
+    }
 
     // Specification (has _mandatory, _type and _doc)
     if (isSpecification(node_schema))
@@ -183,13 +250,14 @@ void schemaToYaml(const YAML::Node&               node_schema,
             else
                 value_str = getZeroString(node_schema[TYPE].as<std::string>());
 
-            // put ' ' envolving the value if type string
-            if (isStringType(node_schema[TYPE].as<std::string>())) value_str = "'" + value_str + "'";
+            // put " " envolving the value if type string
+            if (isStringType(node_schema[TYPE].as<std::string>())) value_str = doubleQuoted(value_str);
 
-            // FILL NODE
-            node_output = value_str + "  # " + mandatory_str + "DOC " + node_schema[DOC].as<std::string>() +
-                          " - TYPE " + node_schema[TYPE].as<std::string>() +
-                          (node_schema[OPTIONS] ? " - OPTIONS " + sequenceToString(node_schema[OPTIONS]) : "");
+            // FILL NODE: value (as YAML text) followed by a comment
+            node_output =
+                value_str + "  # " + mandatory_str + "DOC " + oneLine(node_schema[DOC].as<std::string>()) +
+                " - TYPE " + node_schema[TYPE].as<std::string>() +
+                (node_schema[OPTIONS] ? " - OPTIONS " + oneLine(sequenceToString(node_schema[OPTIONS])) : "");
         }
         // custom non trivial-type or Derived type
         else
@@ -201,7 +269,7 @@ void schemaToYaml(const YAML::Node&               node_schema,
                 if (lowest_type == "derived")
                 {
                     node_output["type"] =
-                        "'DerivedType'  # DOC String corresponding to the name of the object class (and its schema "
+                        "\"DerivedType\"  # DOC String corresponding to the name of the object class (and its schema "
                         "file). Should be a class derived from base class: " +
                         node_schema[BASE].as<std::string>();
                     node_output["follow"] = "some/path/to/derived/type/parameters.yaml";
@@ -224,7 +292,7 @@ void schemaToYaml(const YAML::Node&               node_schema,
                 if (seq_size == 0) seq_size = N_SEQUENCE_OUTPUT;
                 node_schema_i[TYPE] = getLowerElementType(node_schema[TYPE].as<std::string>());
 
-                for (auto i = 0; i < seq_size; i++)
+                for (size_t i = 0; i < seq_size; i++)
                 {
                     // if VALUE --> copy corresponding
                     if (node_schema[VALUE]) node_schema_i[VALUE] = node_schema[VALUE][i];

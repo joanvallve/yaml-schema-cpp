@@ -1,0 +1,8 @@
+name:
+  _mandatory: true
+  _type: string
+  _doc: mandatory string
+names:
+  _mandatory: false
+  _type: string[]
+  _doc: optional sequence of strings

@@ -133,13 +133,13 @@ void checkSchema(const YAML::Node&               node_schema,
         }
 
         // check value (optional)
-        if (node_schema[VALUE]) checkSchemaValue(node_schema, node_field, node_schema_parent, folders_schema);
+        if (node_schema[VALUE]) checkSchemaValue(node_schema, node_field, folders_schema);
 
         // check default (optional)
-        if (node_schema[DEFAULT]) checkSchemaDefault(node_schema, node_field, node_schema_parent, folders_schema);
+        if (node_schema[DEFAULT]) checkSchemaDefault(node_schema, node_field, folders_schema);
 
         // check options (optional)
-        if (node_schema[OPTIONS]) checkSchemaOptions(node_schema, node_field, node_schema_parent, folders_schema);
+        if (node_schema[OPTIONS]) checkSchemaOptions(node_schema, node_field, folders_schema);
     }
     // no specifications
     else
@@ -166,7 +166,6 @@ void checkSchema(const YAML::Node&               node_schema,
 
 void checkSchemaValue(const YAML::Node&               node_schema,
                       const std::string&              node_field,
-                      const YAML::Node&               node_schema_parent,
                       const std::vector<std::string>& folders_schema)
 {
     // Check VALUE follows the corresponding schema
@@ -190,7 +189,6 @@ void checkSchemaValue(const YAML::Node&               node_schema,
 
 void checkSchemaDefault(const YAML::Node&               node_schema,
                         const std::string&              node_field,
-                        const YAML::Node&               node_schema_parent,
                         const std::vector<std::string>& folders_schema)
 {
     // Check not mandatory
@@ -213,7 +211,6 @@ void checkSchemaDefault(const YAML::Node&               node_schema,
 
 void checkSchemaOptions(const YAML::Node&               node_schema,
                         const std::string&              node_field,
-                        const YAML::Node&               node_schema_parent,
                         const std::vector<std::string>& folders_schema)
 {
     // Check that it is a sequence
@@ -224,14 +221,14 @@ void checkSchemaOptions(const YAML::Node&               node_schema,
 
     // Check options against corresponding schema (if "derived" --> BASE)
     std::string type = getCheckType(node_schema);  // If derived type take BASE
-    for (auto n_i = 0; n_i < node_schema[OPTIONS].size(); n_i++)
+    for (size_t n_i = 0; n_i < node_schema[OPTIONS].size(); n_i++)
     {
         std::stringstream log;
         YAML::Node        node_schema_option_i = node_schema[OPTIONS][n_i];
         if (not applySchema(node_schema_option_i, type, folders_schema, log, ""))
         {
-            throw std::runtime_error("YAML schema: " + node_field + ", " + DEFAULT +
-                                     " did not pass the schema check with error: " + log.str());
+            throw std::runtime_error("YAML schema: " + node_field + ", " + OPTIONS + "[" + std::to_string(n_i) +
+                                     "] did not pass the schema check with error: " + log.str());
         }
     }
 
@@ -338,25 +335,28 @@ bool applySchema(YAML::Node&                     node_input,
     size_t size;
     if (isArrayType(type, size))
     {
-        bool is_valid = true;
         // If node not sequence complain
         if (not node_input.IsSequence())
         {
-            writeErrorToLog(log, acc_field, YAML::Node(YAML::NodeType::Undefined), " should be a sequence: " + type);
-            is_valid = false;
+            writeErrorToLog(
+                log, acc_field, YAML::Node(YAML::NodeType::Undefined), "Wrong type, should be a sequence: " + type);
+            return false;
         }
+
+        bool is_valid = true;
+
         // If size defined in type (!=0), complain if different
         if (size != 0 and node_input.size() != size)
         {
             writeErrorToLog(log,
                             acc_field,
                             YAML::Node(YAML::NodeType::Undefined),
-                            " wrong size, should be " + std::to_string(size));
+                            "Wrong size, should be " + std::to_string(size));
             is_valid = false;
         }
 
         // applySchema recursively for all nodes in sequence
-        for (auto i = 0; i < node_input.size(); i++)
+        for (size_t i = 0; i < node_input.size(); i++)
         {
             YAML::Node node_input_i = node_input[i];
             is_valid                = applySchema(node_input_i,
@@ -375,6 +375,15 @@ bool applySchema(YAML::Node&                     node_input,
         // If trivial type (no schema file)
         if (isTrivialType(type))
         {
+            // null is not a valid string (yaml-cpp would convert it to "null")
+            if (node_input.IsDefined() and node_input.IsNull() and isStringType(type))
+            {
+                writeErrorToLog(log,
+                                acc_field,
+                                YAML::Node(YAML::NodeType::Undefined),
+                                "Wrong type, should be " + type + " (found null value)");
+                return false;
+            }
             if (not tryNodeAs(node_input, type))
             {
                 writeErrorToLog(
@@ -402,87 +411,85 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                           const std::vector<std::string>& folders,
                           std::stringstream&              log,
                           const std::string&              acc_field,
-                          bool                            override)
+                          bool                            override,
+                          const YAML::Node&               node_schema_parent)
 {
+    // scalar schema nodes are ignored (as in checkSchema())
+    if (node_schema.IsScalar()) return true;
+
     bool is_valid = true;
 
     // Param schema (has mandatory and type)
     if (isSpecification(node_schema))
     {
-        // If exists, check VALUE, derived->BASE & OPTIONS
+        // If exists, check type, VALUE & OPTIONS
         if (node_input.IsDefined())
         {
-            // If VALUE defined in schema, complain if different
-            if (node_schema[VALUE] and
-                not compare(node_schema[VALUE], node_input, node_schema[TYPE].as<std::string>(), folders))
-            {
-                writeErrorToLog(log,
-                                acc_field,
-                                node_schema,
-                                " already defined in schema with a different value. Not allowed to be changed.");
-                is_valid = false;
-            }
-
-            // Derived type ( "derived" or "derived[]" or "derived[][]".. )
+            // check type:
+            bool type_valid;
+            // - derived type ( "derived" or "derived[]" or "derived[][]".. )
             if (isDerivedType(node_schema[TYPE].as<std::string>()))
-            {
-                is_valid = applySchemaDerived(
-                               node_input, node_input_parent, node_schema, folders, log, acc_field, override) and
-                           is_valid;
-            }
-            // Type specified (either trivial or custom)
+                type_valid =
+                    applySchemaDerived(node_input, node_input_parent, node_schema, folders, log, acc_field, override);
+            // - type specified (either trivial or custom), check with corresponding schema file or trivial type
             else
+                type_valid =
+                    applySchema(node_input, node_schema[TYPE].as<std::string>(), folders, log, acc_field, override);
+
+            is_valid = type_valid;
+
+            // check VALUE and OPTIONS (only if passed type validation)
+            if (type_valid)
             {
-                // check with corresponding schema file or trivial type
-                if (not applySchema(
-                        node_input, node_schema[TYPE].as<std::string>(), folders, log, acc_field, override))
+                // type to be compared with VALUE and OPTIONS (if derived type, BASE)
+                std::string check_type = getCheckType(node_schema);
+
+                // If VALUE defined in schema, complain if different
+                if (node_schema[VALUE] and not compare(node_schema[VALUE], node_input, check_type, folders))
                 {
+                    writeErrorToLog(log,
+                                    acc_field,
+                                    node_schema,
+                                    "Already defined in schema with a different value. Not allowed to be changed.");
                     is_valid = false;
                 }
-                // check if value is in OPTIONS (only if passed schema validation)
-                else if (node_schema[OPTIONS])
+
+                // check if value is in OPTIONS
+                if (node_schema[OPTIONS] and not isInOptions(node_input, node_schema[OPTIONS], check_type, folders))
                 {
-                    if (not isInOptions(
-                            node_input, node_schema[OPTIONS], node_schema[TYPE].as<std::string>(), folders))
-                    {
-                        writeErrorToLog(
-                            log, acc_field, node_schema, "Wrong value. Allowed values defined in OPTIONS.");
-                        is_valid = false;
-                    }
+                    writeErrorToLog(log, acc_field, node_schema, "Wrong value. Allowed values defined in OPTIONS.");
+                    is_valid = false;
                 }
             }
         }
-        // Does not exist -> check if MANDATORY (add DEFAULT) or add VALUE
+        // Does not exist -> add VALUE or check if MANDATORY (or add DEFAULT)
+        // NOTE: node_input was obtained via node_input_parent[key], assigning it adds the key to node_input_parent
         else
         {
             // Load VALUE in case defined in schema
             if (node_schema[VALUE])
             {
-                // add node with value (if parent is defined)
-                if (node_input_parent.IsDefined())
-                {
-                    auto field               = filesystem::path(acc_field).filename().string();
-                    node_input_parent[field] = Clone(node_schema[VALUE]);
-                }
+                node_input = Clone(node_schema[VALUE]);
             }
             // Check if it is mandatory
             else
             {
-                bool mandatory;
+                bool mandatory = false;
                 if (isExpression(node_schema[MANDATORY]))
                 {
                     try
                     {
-                        mandatory = evalExpression(node_schema[MANDATORY].as<std::string>(), node_input_parent);
+                        mandatory = evalExpression(
+                            node_schema[MANDATORY].as<std::string>(), node_input_parent, node_schema_parent);
                     }
                     catch (const std::exception& e)
                     {
-                        writeErrorToLog(log,
-                                        acc_field,
-                                        node_schema,
-                                        "Evaluating schema expression for 'mandatory' of field " + acc_field +
-                                            " failed with error: " + e.what() + "\n");
-                        is_valid = false;
+                        writeErrorToLog(
+                            log,
+                            acc_field,
+                            node_schema,
+                            "Evaluating schema expression for '" + MANDATORY + "' failed with error: " + e.what());
+                        return false;
                     }
                 }
                 else
@@ -494,19 +501,14 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                     writeErrorToLog(log,
                                     acc_field,
                                     node_schema,
-                                    "Missing mandatory field (" + MANDATORY +
-                                        "): " + node_schema[MANDATORY].as<std::string>() + ").");
+                                    "Missing mandatory field (" + MANDATORY + ": " +
+                                        node_schema[MANDATORY].as<std::string>() + ").");
                     is_valid = false;
                 }
-                // add node with default value (if parent is defined)
+                // add node with default value
                 else if (node_schema[DEFAULT])
                 {
-                    if (not node_input_parent.IsDefined())
-                    {
-                        throw std::runtime_error("node_input_parent not defined");
-                    }
-                    auto field               = filesystem::path(acc_field).filename().string();
-                    node_input_parent[field] = Clone(node_schema[DEFAULT]);
+                    node_input = Clone(node_schema[DEFAULT]);
                 }
             }
         }
@@ -514,28 +516,41 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
     // map without specification
     else
     {
-        // if doesn't exist, we create it. If it should have mandatory fields, it will crash later.
+        // if doesn't exist, we create it. If it should have mandatory fields, it will fail later.
         if (not node_input.IsDefined())
         {
-            node_input               = YAML::Node();
-            auto field               = filesystem::path(acc_field).filename().string();
-            node_input_parent[field] = node_input;
+            node_input = YAML::Node();
+        }
+        // if exists, it should be a map (null is accepted and converted to map)
+        else if (node_schema.IsMap() and not node_input.IsMap() and not node_input.IsNull())
+        {
+            writeErrorToLog(log, acc_field, YAML::Node(YAML::NodeType::Undefined), "Wrong type, should be a map.");
+            return false;
         }
 
-        // iterate all childs
-        for (auto node_schema_child : node_schema)
+        // iterate all childs in two passes: first the ones without expression in MANDATORY, so that their DEFAULT
+        // or VALUE are already added when evaluating the expressions of the rest (that may depend on them)
+        for (auto expression_pass : {false, true})
         {
-            YAML::Node node_input_child = node_input[node_schema_child.first.as<std::string>()];
+            for (auto node_schema_child : node_schema)
+            {
+                bool has_expression =
+                    isSpecification(node_schema_child.second) and isExpression(node_schema_child.second[MANDATORY]);
+                if (has_expression != expression_pass) continue;
 
-            is_valid = applySchemaRecursive(
-                           node_input_child,
-                           node_input,
-                           node_schema_child.second,
-                           folders,
-                           log,
-                           (acc_field.empty() ? "" : acc_field + "/") + node_schema_child.first.as<std::string>(),
-                           override) and
-                       is_valid;
+                YAML::Node node_input_child = node_input[node_schema_child.first.as<std::string>()];
+
+                is_valid = applySchemaRecursive(
+                               node_input_child,
+                               node_input,
+                               node_schema_child.second,
+                               folders,
+                               log,
+                               (acc_field.empty() ? "" : acc_field + "/") + node_schema_child.first.as<std::string>(),
+                               override,
+                               node_schema) and
+                           is_valid;
+            }
         }
     }
 
@@ -559,7 +574,7 @@ bool applySchemaDerived(YAML::Node&                     node_input,
         // If node not sequence complain
         if (not node_input.IsSequence())
         {
-            writeErrorToLog(log, acc_field, node_schema, "Should be a sequence");
+            writeErrorToLog(log, acc_field, node_schema, "Wrong type, should be a sequence.");
             return false;
         }
         // If size defined in type (!=0), complain if different
@@ -568,13 +583,13 @@ bool applySchemaDerived(YAML::Node&                     node_input,
             writeErrorToLog(log,
                             acc_field,
                             YAML::Node(YAML::NodeType::Undefined),
-                            " wrong size, should be " + std::to_string(size));
+                            "Wrong size, should be " + std::to_string(size));
             is_valid = false;
         }
         // applySchemaDerived recursively for all nodes in sequence
         YAML::Node node_schema_i = YAML::Clone(node_schema);
         node_schema_i[TYPE]      = getLowerElementType(node_schema[TYPE].as<std::string>());
-        for (auto i = 0; i < node_input.size(); i++)
+        for (size_t i = 0; i < node_input.size(); i++)
         {
             YAML::Node node_input_i = node_input[i];
             is_valid                = applySchemaDerived(node_input_i,
@@ -590,11 +605,18 @@ bool applySchemaDerived(YAML::Node&                     node_input,
     }
     else
     {
-        // check existence of key type
-        if (not node_input["type"])
+        // check it is a map containing the key 'type' of type string
+        if (not node_input.IsMap() or not node_input["type"])
         {
-            writeErrorToLog(
-                log, acc_field, node_schema, "Does not contain key 'type' which is mandatory for 'derived'.");
+            writeErrorToLog(log,
+                            acc_field,
+                            node_schema,
+                            "Should be a map containing the key 'type', which is mandatory for 'derived'.");
+            return false;
+        }
+        if (not tryNodeAs(node_input["type"], "string"))
+        {
+            writeErrorToLog(log, acc_field, node_schema, "The key 'type' should be a string.");
             return false;
         }
 
@@ -633,7 +655,8 @@ void addNodeSchema(YAML::Node&        node,
 {
     if (node[key])
     {
-        if (isSpecification(node[key]))
+        // existing specification or leaf (scalar or sequence) --> override (or throw)
+        if (isSpecification(node[key]) or node[key].IsScalar() or node[key].IsSequence())
         {
             if (override)
             {
@@ -644,6 +667,7 @@ void addNodeSchema(YAML::Node&        node,
                 throw std::runtime_error("Trying to add something into an already existing schema node");
             }
         }
+        // existing map (or null) --> add all children of value
         else
         {
             if (hasAnyReservedKey(node[key]))
@@ -655,7 +679,8 @@ void addNodeSchema(YAML::Node&        node,
             for (auto value_map_node : value)
             {
                 YAML::Node node_key = node[key];
-                addNodeSchema(node_key, value_map_node.first.as<std::string>(), value_map_node.second, override);
+                addNodeSchema(
+                    node_key, value_map_node.first.as<std::string>(), value_map_node.second, override, parent_path);
             }
         }
     }
@@ -665,20 +690,21 @@ void addNodeSchema(YAML::Node&        node,
     }
 
     // relative path input case
-    if (node[key].Type() == YAML::NodeType::Scalar)
+    if (not parent_path.empty() and node[key].Type() == YAML::NodeType::Scalar)
     {
         std::string value_str = node[key].as<std::string>();
-        if ((value_str.size() > 1 and value_str.substr(0, 2) == "./") or
-            (value_str.size() > 2 and value_str.substr(0, 3) == "../"))
+        if (isRelativePath(value_str))
         {
-            filesystem::path path_value = filesystem::path(parent_path) / filesystem::path(value.as<std::string>());
-            node[key]                   = path_value.string();
+            node[key] = (filesystem::path(parent_path) / filesystem::path(value_str)).string();
         }
     }
 }
 
 bool isSpecification(const YAML::Node& node_schema)
 {
+    // only maps can be specifications
+    if (not node_schema.IsDefined() or not node_schema.IsMap()) return false;
+
     for (auto required_key : REQUIRED_KEYS)
     {
         if (not node_schema[required_key])
@@ -691,6 +717,9 @@ bool isSpecification(const YAML::Node& node_schema)
 
 bool hasAnyReservedKey(const YAML::Node& node_schema)
 {
+    // only maps can have keys
+    if (not node_schema.IsDefined() or not node_schema.IsMap()) return false;
+
     for (auto reserved_key : RESERVED_KEYS)
     {
         if (node_schema[reserved_key])

@@ -242,6 +242,79 @@ TEST(compare, compare_nodes_auto_type)
     EXPECT_FALSE(compareNodesAutoType(node_input, node_comp));
 }
 
+TEST(compare, compare_nodes_auto_type_null)
+{
+    EXPECT_TRUE(compareNodesAutoType(YAML::Node(), YAML::Node()));
+    EXPECT_TRUE(compareNodesAutoType(YAML::Node(YAML::NodeType::Undefined), YAML::Node(YAML::NodeType::Undefined)));
+    EXPECT_TRUE(compareNodesAutoType(YAML::Load("{a: ~, b: [1, ~]}"), YAML::Load("{a: ~, b: [1, ~]}")));
+    EXPECT_FALSE(compareNodesAutoType(YAML::Load("{a: ~}"), YAML::Load("{a: 1}")));
+    EXPECT_FALSE(compareNodesAutoType(YAML::Node(), YAML::Node(YAML::NodeType::Undefined)));
+}
+
+TEST(compare, compare_non_trivial_expression_mandatory)
+{
+    // expression.schema contains parameters with expressions in _mandatory
+    YAML::Node node_input = YAML::LoadFile(ROOT_DIR + "/test/yaml/expression_input1.yaml");
+    YAML::Node node_comp  = YAML::Clone(node_input);
+
+    EXPECT_TRUE(compare(node_input, node_comp, "expression", {SCHEMA_DIR}));
+
+    node_comp["param_int"] = 1000;
+    EXPECT_FALSE(compare(node_input, node_comp, "expression", {SCHEMA_DIR}));
+
+    // scalar where a map is expected: not equal (and no exception)
+    EXPECT_FALSE(compare(node_input, YAML::Node("scalar"), "expression", {SCHEMA_DIR}));
+}
+
+TEST(compare, compare_non_trivial_no_output)
+{
+    // a schema not found should not print anything
+    testing::internal::CaptureStdout();
+    EXPECT_FALSE(compare(YAML::Node("a"), YAML::Node("a"), "non_existing_type", {SCHEMA_DIR}));
+    EXPECT_EQ(testing::internal::GetCapturedStdout(), "");
+}
+
+#if _EIGEN_FOUND == 1
+TEST(compare, compare_eigen_dynamic)
+{
+    YAML::Node vec3 = YAML::Load("[1, 2, 3]");
+    YAML::Node vec2 = YAML::Load("[1, 2]");
+    YAML::Node mat  = YAML::Load("[[2, 2], [1, 2, 3, 4]]");
+    YAML::Node mat2 = YAML::Load("[[2, 2], [1, 2, 3, 5]]");
+    YAML::Node mat3 = YAML::Load("[[1, 4], [1, 2, 3, 4]]");
+
+    for (auto type : std::vector<std::string>{"VectorXd", "Eigen::VectorXd"})
+    {
+        EXPECT_TRUE(compare(vec3, vec3, type, {}));
+        EXPECT_FALSE(compare(vec3, vec2, type, {}));  // different sizes
+        EXPECT_FALSE(compare(vec2, vec3, type, {}));  // different sizes
+        EXPECT_TRUE(compare(YAML::Load("[]"), YAML::Load("[]"), type, {}));
+        EXPECT_FALSE(compare(YAML::Load("[]"), vec2, type, {}));
+    }
+    for (auto type : std::vector<std::string>{"MatrixXd", "Eigen::MatrixXd"})
+    {
+        EXPECT_TRUE(compare(mat, mat, type, {}));
+        EXPECT_FALSE(compare(mat, mat2, type, {}));  // different values
+        EXPECT_FALSE(compare(mat, mat3, type, {}));  // different sizes
+    }
+}
+#endif
+
+TEST(TestYamlUtils, getAllSchemas_missing_folder)
+{
+    std::vector<std::string> schemas;
+    EXPECT_NO_THROW(schemas = getAllSchemas({ROOT_DIR + "/test/non_existing_folder", SCHEMA_DIR}));
+    EXPECT_FALSE(schemas.empty());
+}
+
+TEST(TestYamlUtils, isArrayType_malformed)
+{
+    EXPECT_THROW(isArrayType("int[x]"), std::runtime_error);
+    EXPECT_THROW(isArrayType("int[-1]"), std::runtime_error);
+    EXPECT_THROW(isArrayType("int][3"), std::runtime_error);
+    EXPECT_THROW(isArrayType("int[3a]"), std::runtime_error);
+}
+
 int main(int argc, char **argv)
 {
     testing::InitGoogleTest(&argc, argv);

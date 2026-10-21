@@ -1,0 +1,9 @@
+# 'switch_mode' is a string whose values may look like booleans or numbers ('on', 'off', '2')
+switch_mode:
+  _mandatory: true
+  _type: string
+  _doc: string parameter
+param_off:
+  _mandatory: $switch_mode == 'off'
+  _type: int
+  _doc: mandatory only if switch_mode is 'off'

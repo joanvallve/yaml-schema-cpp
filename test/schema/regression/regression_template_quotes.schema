@@ -1,0 +1,17 @@
+name:
+  _mandatory: true
+  _type: string
+  _doc: "the owner's name, e.g. \"John\""
+mode:
+  _mandatory: false
+  _type: string
+  _default: auto
+  _options: [auto, manual]
+  _doc: 'mode: auto or manual'
+count:
+  _mandatory: false
+  _type: int
+  _default: 3
+  _doc: |
+    a doc
+    on two lines

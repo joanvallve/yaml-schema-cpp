@@ -1,0 +1,7 @@
+# scalar nodes in schemas are ignored
+some_scalar: whatever
+param:
+  _mandatory: false
+  _type: int
+  _default: 1
+  _doc: some param

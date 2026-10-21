@@ -61,7 +61,9 @@ TEST(schema, wrong)
                                          "wrong_options",
                                          "wrong_options2",
                                          "wrong_value_options",
-                                         "wrong_value"};
+                                         "wrong_value",
+                                         "value_without_doc",
+                                         "follow_cycle"};
 
     for (auto w_schema : wrong_schemas)
     {

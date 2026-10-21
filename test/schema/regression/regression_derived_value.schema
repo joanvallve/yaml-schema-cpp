@@ -1,0 +1,9 @@
+final_derived:
+  _mandatory: false
+  _type: derived
+  _base: type_derived_base.schema
+  _value:
+    type: type_derived_derived
+    param_base: 2.4
+    param_derived: [1, 2]
+  _doc: derived type with value

@@ -1,3 +1,8 @@
+/**
+ * @file yaml_conversion.hpp
+ * @brief YAML conversions (YAML::convert) of Eigen types: Matrix, Quaternion and expressions (only if Eigen was
+ * found).
+ */
 #pragma once
 
 #include "yaml-schema-cpp/internal/config.h"
@@ -8,8 +13,8 @@
 #include <yaml-cpp/yaml.h>
 
 // Eigen
-#include <eigen3/Eigen/Dense>
-#include <eigen3/Eigen/Geometry>
+#include <Eigen/Dense>
+#include <Eigen/Geometry>
 
 // stl
 #include <iostream>
@@ -22,7 +27,9 @@ namespace YAML
 template <typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
 struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols> >
 {
-    /** \brief Encode a YAML Sequence from an Eigen::Matrix< >
+    /** \brief Encode a YAML Sequence (row-major) from an Eigen::Matrix< >
+     *  \param matrix matrix to be encoded
+     *  \return the YAML sequence
      */
     static Node encode(const Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>& matrix)
     {
@@ -52,6 +59,12 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
      *  ````
      *  [ [ rows, cols ], [v1, v2, v3, ...] ]
      *  ````
+     *
+     *  An empty sequence is accepted for matrices with at least one dynamic dimension (resized to 0).
+     *
+     *  \param node YAML node to be decoded
+     *  \param matrix OUTPUT decoded matrix
+     *  \return false if the node is not well formed or the sizes do not match (YAML::as<>() throws then)
      */
     static bool decode(const Node& node, Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols>& matrix)
     {
@@ -63,9 +76,10 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
         {
             if (_Rows != Eigen::Dynamic and _Cols != Eigen::Dynamic)
             {
-                std::cout << "Empty input sequence with not dynamic matrix" << std::endl;
                 return false;
             }
+            // dynamic dimensions resized to 0
+            matrix.resize(_Rows == Eigen::Dynamic ? 0 : _Rows, _Cols == Eigen::Dynamic ? 0 : _Cols);
         }
         // sizes given by YAML
         else if (node[0].Type() == NodeType::Sequence)
@@ -87,7 +101,6 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
                 {
                     if (_Cols != cols)
                     {
-                        std::cout << "Wrong number of cols" << std::endl;
                         return false;
                     }
                     matrix.resize(rows, Eigen::NoChange);
@@ -97,7 +110,6 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
                 {
                     if (_Rows != rows)
                     {
-                        std::cout << "Wrong number of rows" << std::endl;
                         return false;
                     }
                     matrix.resize(Eigen::NoChange, cols);
@@ -106,14 +118,12 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
                 {
                     if (_Rows != rows || _Cols != cols)
                     {
-                        std::cout << "Wrong size" << std::endl;
                         return false;
                     }
                 }
             }
             else
             {
-                std::cout << "Bad matrix specification" << std::endl;
                 return false;
             }
         }
@@ -123,8 +133,6 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
             // If full dynamic -> error
             if (_Rows == Eigen::Dynamic && _Cols == Eigen::Dynamic)
             {
-                std::cout << "Bad yaml format. A full dynamic matrix requires [ [rows, cols], [... values ...] ]"
-                          << std::endl;
                 return false;
             }
             values = node;
@@ -136,8 +144,6 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
             {
                 if (values.size() % _Cols != 0)
                 {
-                    std::cout << "Input size of dynamic row matrix is not a multiple of fixed column size"
-                              << std::endl;
                     return false;
                 }
 
@@ -150,8 +156,6 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
             {
                 if (values.size() % _Rows != 0)
                 {
-                    std::cout << "Input size of dynamic column matrix is not a multiple of fixed row size"
-                              << std::endl;
                     return false;
                 }
 
@@ -163,7 +167,6 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
         // final check for good size
         if (values.size() != (unsigned int)(matrix.rows() * matrix.cols()))
         {
-            std::cout << "Wrong input size" << std::endl;
             return false;
         }
         else  // Fill the matrix
@@ -187,6 +190,10 @@ struct convert<Eigen::Matrix<_Scalar, _Rows, _Cols, _Options, _MaxRows, _MaxCols
 template <typename _Scalar, int _Options>
 struct convert<Eigen::Quaternion<_Scalar, _Options> >
 {
+    /** \brief Encode a YAML Sequence [x, y, z, w] from an Eigen::Quaternion
+     *  \param quaternion quaternion to be encoded
+     *  \return the YAML sequence
+     */
     static Node encode(const Eigen::Quaternion<_Scalar, _Options>& quaternion)
     {
         Node node(NodeType::Sequence);
@@ -199,12 +206,17 @@ struct convert<Eigen::Quaternion<_Scalar, _Options> >
         return node;
     }
 
+    /** \brief Decode a YAML sequence [x, y, z, w] into an Eigen::Quaternion (not normalized)
+     *
+     *  \param node YAML node to be decoded
+     *  \param quaternion OUTPUT decoded quaternion
+     *  \return false if the node is not a sequence of 4 elements
+     */
     static bool decode(const Node& node, Eigen::Quaternion<_Scalar, _Options>& quaternion)
     {
         int nSize = node.size();  // Sequence check is implicit
         if (nSize != 4)
         {
-            std::cout << "Wrong quaternion input size!" << std::endl;
             return false;
         }
         else
@@ -226,6 +238,10 @@ struct convert<Eigen::Quaternion<_Scalar, _Options> >
 template <typename A1, typename A2>
 struct convert<Eigen::CwiseNullaryOp<A1, A2> >
 {
+    /** \brief Encode a YAML Sequence (row-major) from an Eigen::CwiseNullaryOp
+     *  \param matrix expression to be encoded
+     *  \return the YAML sequence
+     */
     static Node encode(const Eigen::CwiseNullaryOp<A1, A2>& matrix)
     {
         Node node;
@@ -249,6 +265,10 @@ struct convert<Eigen::CwiseNullaryOp<A1, A2> >
 template <typename A1, typename A2, typename A3>
 struct convert<Eigen::CwiseBinaryOp<A1, A2, A3> >
 {
+    /** \brief Encode a YAML Sequence (row-major) from an Eigen::CwiseBinaryOp
+     *  \param matrix expression to be encoded
+     *  \return the YAML sequence
+     */
     static Node encode(const Eigen::CwiseBinaryOp<A1, A2, A3>& matrix)
     {
         Node node;
@@ -272,6 +292,10 @@ struct convert<Eigen::CwiseBinaryOp<A1, A2, A3> >
 template <typename A1, typename A2>
 struct convert<Eigen::CwiseUnaryOp<A1, A2> >
 {
+    /** \brief Encode a YAML Sequence (row-major) from an Eigen::CwiseUnaryOp
+     *  \param matrix expression to be encoded
+     *  \return the YAML sequence
+     */
     static Node encode(const Eigen::CwiseUnaryOp<A1, A2>& matrix)
     {
         Node node;

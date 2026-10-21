@@ -1,0 +1,6 @@
+# follow_cycle.schema and follow_cycle2.schema follow each other
+follow: follow_cycle2
+param1:
+  _mandatory: true
+  _type: int
+  _doc: some doc

@@ -1,0 +1,7 @@
+# '_value' is a reserved key: it is not allowed in a node that is not a specification
+param:
+  _value: 3
+  sub:
+    _mandatory: false
+    _type: int
+    _doc: some doc

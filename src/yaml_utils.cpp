@@ -1,5 +1,6 @@
 #include "yaml-schema-cpp/yaml_utils.hpp"
 
+#include <algorithm>
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
@@ -8,9 +9,112 @@
 #include "yaml-schema-cpp/type_check.hpp"
 #include "yaml-schema-cpp/filesystem_wrapper.hpp"
 #include "yaml-schema-cpp/yaml_schema.hpp"
+#include "yaml-schema-cpp/expression.hpp"
+
+// Macros used by compareTrivial() to compare two nodes depending on the type string
+/*
+ * Used in compareTrivial(): if type is TypeName, returns if node1 and node2 are equal as TypeName (false if
+ * they cannot be converted).
+ */
+#define COMPARE_TYPE(TypeName)                                                                                        \
+    if (type == #TypeName)                                                                                            \
+    {                                                                                                                 \
+        try                                                                                                           \
+        {                                                                                                             \
+            return node1.as<TypeName>() == node2.as<TypeName>();                                                      \
+        }                                                                                                             \
+        catch (const std::exception& e)                                                                               \
+        {                                                                                                             \
+            return false;                                                                                             \
+        }                                                                                                             \
+    }
+
+#if _EIGEN_FOUND == 1
+/*
+ * Used in compareTrivial(): if type is "[Eigen::]Vector<size>d" or "[Eigen::]Matrix<size>d", returns if node1
+ * and node2 are equal (tolerance 1e-9) as that type (false if they cannot be converted).
+ */
+#define COMPARE_EIGEN(size)                                                                                           \
+    if (type == "Vector" #size "d" or type == "Eigen::Vector" #size "d")                                              \
+    {                                                                                                                 \
+        try                                                                                                           \
+        {                                                                                                             \
+            return (node1.as<Eigen::Matrix<double, size, 1> >() - node2.as<Eigen::Matrix<double, size, 1> >())        \
+                       .cwiseAbs()                                                                                    \
+                       .maxCoeff() < 1e-9;                                                                            \
+        }                                                                                                             \
+        catch (const std::exception& e)                                                                               \
+        {                                                                                                             \
+            return false;                                                                                             \
+        }                                                                                                             \
+    }                                                                                                                 \
+    if (type == "Matrix" #size "d" or type == "Eigen::Matrix" #size "d")                                              \
+    {                                                                                                                 \
+        try                                                                                                           \
+        {                                                                                                             \
+            return (node1.as<Eigen::Matrix<double, size, size> >() - node2.as<Eigen::Matrix<double, size, size> >())  \
+                       .cwiseAbs()                                                                                    \
+                       .maxCoeff() < 1e-9;                                                                            \
+        }                                                                                                             \
+        catch (const std::exception& e)                                                                               \
+        {                                                                                                             \
+            return false;                                                                                             \
+        }                                                                                                             \
+    }
+
+/*
+ * Used in compareTrivial(): if type is TypeName (dynamic size Eigen type), returns if node1 and node2 have the
+ * same size and are equal (tolerance 1e-9) as TypeName (false if they cannot be converted).
+ */
+#define COMPARE_EIGEN_DYNAMIC(TypeName)                                                                               \
+    if (type == #TypeName)                                                                                            \
+    {                                                                                                                 \
+        try                                                                                                           \
+        {                                                                                                             \
+            TypeName m1 = node1.as<TypeName>();                                                                       \
+            TypeName m2 = node2.as<TypeName>();                                                                       \
+            return m1.rows() == m2.rows() and m1.cols() == m2.cols() and                                              \
+                   (m1.size() == 0 or (m1 - m2).cwiseAbs().maxCoeff() < 1e-9);                                        \
+        }                                                                                                             \
+        catch (const std::exception& e)                                                                               \
+        {                                                                                                             \
+            return false;                                                                                             \
+        }                                                                                                             \
+    }
+#endif
 
 namespace yaml_schema_cpp
 {
+namespace
+{
+// Canonical paths of the files currently being followed (and flattened), to detect 'follow' cycles
+thread_local std::vector<std::string> follow_stack;
+
+// Adds a followed file to follow_stack during its lifetime. Throws if the file is already there ('follow' cycle).
+struct FollowGuard
+{
+    FollowGuard(const std::string& path_follow)
+    {
+        std::string canonical_path = filesystem::canonical(path_follow).string();
+
+        auto it = std::find(follow_stack.begin(), follow_stack.end(), canonical_path);
+        if (it != follow_stack.end())
+        {
+            std::string cycle;
+            for (; it != follow_stack.end(); it++) cycle += filesystem::path(*it).filename().string() + " -> ";
+            cycle += filesystem::path(canonical_path).filename().string();
+            throw std::runtime_error("In flattenNode: 'follow' cycle detected: " + cycle);
+        }
+        follow_stack.push_back(canonical_path);
+    }
+    ~FollowGuard()
+    {
+        follow_stack.pop_back();
+    }
+    FollowGuard(const FollowGuard&)            = delete;
+    FollowGuard& operator=(const FollowGuard&) = delete;
+};
+}  // namespace
 
 void flattenNode(YAML::Node&              node,
                  std::string              current_folder,
@@ -71,7 +175,13 @@ void flattenMap(YAML::Node&              node,
             // Case input yaml
             else
             {
-                addNodeYaml(node_aux, n.first.as<std::string>(), n.second, override, current_folder);
+                // Relative paths are resolved only for the scalars of this file (map and sequence children were
+                // already resolved by flattenNode() above)
+                addNodeYaml(node_aux,
+                            n.first.as<std::string>(),
+                            n.second,
+                            override,
+                            n.second.IsScalar() ? current_folder : "");
             }
         }
     }
@@ -105,19 +215,18 @@ void insertNodes(YAML::Node&              node,
         // is schema?
         bool following_is_schema = filesystem::path(path_follow_str).extension() == SCHEMA_EXTENSION;
 
-        // following file is schema --> findFileRecursive
+        // following file is schema --> findFileRecursive (throws if not found)
         if (following_is_schema)
         {
             path_follow = findFileRecursive(path_follow_str, schema_folders);
-            if (path_follow.empty())
-            {
-                throw std::runtime_error("In flattenNode: file '" + path_follow_str + "' not found");
-            }
         }
-        // following file is regular yaml --> relative path
-        else if (filesystem::path(path_follow_str).extension() == ".yaml")
+        // following file is regular yaml --> absolute path or relative path to current_folder
+        else if (filesystem::path(path_follow_str).extension() == YAML_EXTENSION)
         {
-            path_follow = current_folder + "/" + path_follow_str;
+            // NOTE: absolute paths checked explicitly (boost::filesystem appends absolute paths in operator/)
+            filesystem::path follow_path(path_follow_str);
+            path_follow =
+                (follow_path.is_absolute() ? follow_path : filesystem::path(current_folder) / follow_path).string();
         }
         // wrong extension
         else
@@ -130,6 +239,9 @@ void insertNodes(YAML::Node&              node,
         {
             throw std::runtime_error("In flattenNode: the file '" + path_follow + "' does not exists");
         }
+
+        // detect 'follow' cycles (path_follow is in follow_stack while it is loaded and flattened)
+        FollowGuard follow_guard(path_follow);
 
         // load "following" file
         YAML::Node node_child = YAML::LoadFile(path_follow);
@@ -146,25 +258,18 @@ void insertNodes(YAML::Node&              node,
         }
 
         // add all new children to original node
+        // NOTE: relative paths of node_child were already resolved by flattenNode() above
         for (auto nc : node_child)
         {
             // Case schema
             if (following_is_schema)
             {
-                addNodeSchema(node,
-                              nc.first.as<std::string>(),
-                              nc.second,
-                              override,
-                              filesystem::path(path_follow).parent_path().string());
+                addNodeSchema(node, nc.first.as<std::string>(), nc.second, override);
             }
             // Case input yaml
             else
             {
-                addNodeYaml(node,
-                            nc.first.as<std::string>(),
-                            nc.second,
-                            override,
-                            filesystem::path(path_follow).parent_path().string());
+                addNodeYaml(node, nc.first.as<std::string>(), nc.second, override);
             }
         }
     }
@@ -189,6 +294,7 @@ void addNodeYaml(YAML::Node&        node,
                 {
                     throw std::runtime_error("Trying to add an already existing scalar node.");
                 }
+                break;
             }
             case YAML::NodeType::Sequence: {
                 for (auto value_seq_node : value)
@@ -220,33 +326,39 @@ void addNodeYaml(YAML::Node&        node,
     }
 
     // relative path input case
-    if (node[key].Type() == YAML::NodeType::Scalar)
+    if (not parent_path.empty() and node[key].Type() == YAML::NodeType::Scalar)
     {
         std::string value_str = node[key].as<std::string>();
-        if ((value_str.size() > 1 and value_str.substr(0, 2) == "./") or
-            (value_str.size() > 2 and value_str.substr(0, 3) == "../"))
+        if (isRelativePath(value_str))
         {
-            filesystem::path path_value = filesystem::path(parent_path) / filesystem::path(value.as<std::string>());
-            node[key]                   = path_value.string();
+            node[key] = (filesystem::path(parent_path) / filesystem::path(value_str)).string();
         }
     }
+}
+
+bool isRelativePath(const std::string& value)
+{
+    return (value.size() > 1 and value.substr(0, 2) == "./") or (value.size() > 2 and value.substr(0, 3) == "../");
 }
 
 std::string findFileRecursive(const std::string& name_with_extension, const std::vector<std::string>& folders)
 {
     std::string folders_str = "";
-    std::string debug_str   = "";
     for (auto folder : folders)
     {
-        folders_str += folder + (filesystem::exists(folder) ? "" : "-NOT FOUND") +
-                       (filesystem::is_directory(folder) ? "" : " -NOT A DIRECTORY") + ", ";
-        if (filesystem::exists(folder) and filesystem::is_directory(folder))
+        if (not filesystem::exists(folder))
+            folders_str += folder + " -NOT FOUND, ";
+        else if (not filesystem::is_directory(folder))
+            folders_str += folder + " -NOT A DIRECTORY, ";
+        else
         {
+            folders_str += folder + ", ";
+            std::string last_entry;
             try
             {
                 for (auto const& entry : filesystem::recursive_directory_iterator(folder))
                 {
-                    debug_str += entry.path().string() + ", ";
+                    last_entry = entry.path().string();
                     if (filesystem::is_regular_file(entry) and entry.path().filename().string() == name_with_extension)
                     {
                         return entry.path().string();
@@ -255,7 +367,8 @@ std::string findFileRecursive(const std::string& name_with_extension, const std:
             }
             catch (const std::exception& e)
             {
-                throw std::runtime_error("error: '" + std::string(e.what()) + "' iterated entries: " + debug_str);
+                throw std::runtime_error("findFileRecursive: error iterating folder '" + folder + "' (last entry: '" +
+                                         last_entry + "'): " + e.what());
             }
         }
     }
@@ -296,9 +409,14 @@ std::vector<std::string> getAllSchemas(const std::vector<std::string>& root_fold
 {
     std::vector<std::string> schemas_found;
     for (auto root_folder : root_folders)
+    {
+        // skip folders that do not exist (as findFileRecursive() and validateAllSchemas() do)
+        if (not filesystem::exists(root_folder) or not filesystem::is_directory(root_folder)) continue;
+
         for (auto const& entry : filesystem::recursive_directory_iterator(root_folder))
             if (filesystem::is_regular_file(entry) and entry.path().extension() == SCHEMA_EXTENSION)
                 schemas_found.push_back(entry.path().filename().string());
+    }
 
     return schemas_found;
 }
@@ -354,7 +472,7 @@ std::list<YAML::Node> findNodesWithKey(const YAML::Node root_node, const std::st
 
     if (root_node.IsSequence())
     {
-        for (auto i = 0; i < root_node.size(); i++)
+        for (size_t i = 0; i < root_node.size(); i++)
         {
             auto nodes_with_key_i = findNodesWithKey(root_node[i], key);
             nodes_with_key.insert(nodes_with_key.end(), nodes_with_key_i.begin(), nodes_with_key_i.end());
@@ -381,7 +499,7 @@ std::string sequenceToString(const YAML::Node& node)
     if (not node.IsSequence()) throw std::runtime_error("sequenceToString is only for sequence nodes");
 
     std::string ret("[");
-    for (auto i = 0; i < node.size(); i++)
+    for (size_t i = 0; i < node.size(); i++)
     {
         if (i > 0) ret += ", ";
 
@@ -411,12 +529,21 @@ bool isArrayType(const std::string& type_str, size_t& size)
     // not sequence string ('[' not found)
     if (pos_open == std::string::npos) return false;
 
+    if (pos_close < pos_open)
+        throw std::runtime_error("isArrayType: type_str (" + type_str + ") contains ']' before '['.");
+
     // array
     // 0: size not specified
     if (pos_open + 1 == pos_close) size = 0;
     // Return specified size
     else
-        size = std::stoi(type_str.substr(pos_open + 1, pos_close - pos_open - 1));
+    {
+        std::string size_str = type_str.substr(pos_open + 1, pos_close - pos_open - 1);
+        if (size_str.find_first_not_of("0123456789") != std::string::npos)
+            throw std::runtime_error("isArrayType: type_str (" + type_str +
+                                     ") array size should be a positive integer or empty.");
+        size = std::stoul(size_str);
+    }
 
     return true;
 }
@@ -475,8 +602,15 @@ std::string getCheckType(const YAML::Node& node)
 
 bool compareNodesAutoType(const YAML::Node& node1, const YAML::Node& node2)
 {
+    // Both undefined --> equal
+    if (node1.IsDefined() != node2.IsDefined()) return false;
+    if (not node1.IsDefined()) return true;
+
+    // Both null --> equal
+    if (node1.IsNull() != node2.IsNull()) return false;
+    if (node1.IsNull()) return true;
+
     // Different types
-    if (node1.IsDefined() != node2.IsDefined() or node1.IsNull() != node2.IsNull()) return false;
     if (node1.IsScalar() != node2.IsScalar()) return false;
     if (node1.IsSequence() != node2.IsSequence()) return false;
     if (node1.IsMap() != node2.IsMap()) return false;
@@ -496,7 +630,7 @@ bool compareNodesAutoType(const YAML::Node& node1, const YAML::Node& node2)
     {
         if (node1.size() != node2.size()) return false;
 
-        for (auto i = 0; i < node1.size(); i++)
+        for (size_t i = 0; i < node1.size(); i++)
             if (not compareNodesAutoType(node1[i], node2[i])) return false;
 
         // all equal
@@ -541,7 +675,7 @@ bool compare(const YAML::Node&               node1,
         if (node1.size() != node2.size()) return false;
 
         // compare all elements
-        for (auto i = 0; i < node1.size(); i++)
+        for (size_t i = 0; i < node1.size(); i++)
         {
             if (not compare(node1[i], node2[i], getLowerElementType(type), folders_schema)) return false;
         }
@@ -575,8 +709,8 @@ bool compareTrivial(const YAML::Node& node1, const YAML::Node& node2, const std:
         COMPARE_TYPE(string)
     }
 #if _EIGEN_FOUND == 1
-    COMPARE_TYPE(Eigen::VectorXd)
-    COMPARE_TYPE(Eigen::MatrixXd)
+    COMPARE_EIGEN_DYNAMIC(Eigen::VectorXd)
+    COMPARE_EIGEN_DYNAMIC(Eigen::MatrixXd)
 
     COMPARE_EIGEN(1)
     COMPARE_EIGEN(2)
@@ -590,8 +724,8 @@ bool compareTrivial(const YAML::Node& node1, const YAML::Node& node2, const std:
     COMPARE_EIGEN(10)
     {
         using namespace Eigen;
-        COMPARE_TYPE(VectorXd)
-        COMPARE_TYPE(VectorXd)
+        COMPARE_EIGEN_DYNAMIC(VectorXd)
+        COMPARE_EIGEN_DYNAMIC(MatrixXd)
     }
 #endif
 
@@ -610,11 +744,17 @@ bool compareNonTrivialSchema(const YAML::Node&               node1,
         if (node1.IsDefined() != node2.IsDefined()) return false;
 
         // Compare if MANDATORY or if both node1 and node2 are defined
-        if (node_schema[MANDATORY].as<bool>() or (node1.IsDefined() and node2.IsDefined()))
+        // (expression MANDATORY cannot be evaluated here, considered as optional)
+        bool mandatory = not isExpression(node_schema[MANDATORY]) and node_schema[MANDATORY].as<bool>();
+        if (mandatory or (node1.IsDefined() and node2.IsDefined()))
             return compare(node1, node2, node_schema[TYPE].as<std::string>(), folders_schema);
     }
-    else
+    // scalar schema nodes are ignored
+    else if (node_schema.IsMap())
     {
+        // a scalar cannot be compared with a map schema
+        if ((node1.IsDefined() and node1.IsScalar()) or (node2.IsDefined() and node2.IsScalar())) return false;
+
         for (auto node_schema_child : node_schema)
         {
 
@@ -640,7 +780,8 @@ bool compareNonTrivial(const YAML::Node&               node1,
     if (not node1.IsDefined() or node1.IsNull() or not node2.IsDefined() or node2.IsNull()) return false;
 
     // Find schema file
-    auto path_schema = findSchema(type, folders_schema);
+    std::stringstream log_find_schema;
+    auto              path_schema = findSchema(type, folders_schema, log_find_schema);
     if (path_schema.empty()) return false;
 
     // Load schema yaml and flatten (include all nodes indicated with "follow")
@@ -668,7 +809,7 @@ std::string getZeroString(const std::string& type)
         if (size == 0) size = 3;  // arbitrary size if not specified
         auto        lower_type  = getLowerElementType(type);
         std::string zero_string = "[";
-        for (auto i = 0; i < size; i++)
+        for (size_t i = 0; i < size; i++)
         {
             zero_string += getZeroString(lower_type);
             if (i < size - 1) zero_string += ", ";
@@ -710,7 +851,7 @@ std::string getZeroString(const std::string& type)
         }
 #endif
     }
-    return "type uknown!";
+    return "type unknown!";
 }
 
 }  // namespace yaml_schema_cpp

@@ -166,6 +166,75 @@ TEST(TestExpression, applySchemaWrong)
     }
 }
 
+TEST(TestExpression, isExpressionEmpty)
+{
+    EXPECT_FALSE(isExpression(""));
+    EXPECT_FALSE(isExpression(YAML::Node("")));
+    EXPECT_FALSE(isExpression(YAML::Node()));
+    EXPECT_FALSE(isExpression(YAML::Load("[1, 2]")));
+
+    std::string empty_str;
+    EXPECT_NO_THROW(preProcessExpression(empty_str));
+    EXPECT_TRUE(empty_str.empty());
+}
+
+TEST(TestExpression, applySchemaExpressionBeforeDefault)
+{
+    // the expression of 'param_expr' depends on 'mode', declared after it with a default value ('auto')
+    YamlServer server({SCHEMA_DIR});
+
+    // mode not defined -> default 'auto' -> param_expr not mandatory
+    server.setYaml(YAML::Load("{}"));
+    bool succeed = server.applySchema("regression_expression_order");
+    if (not succeed) std::cout << server.getLog() << std::endl;
+    EXPECT_TRUE(succeed);
+    EXPECT_EQ(server.getNode()["mode"].as<std::string>(), "auto");
+
+    // mode 'manual' -> param_expr mandatory
+    server.setYaml(YAML::Load("{mode: manual}"));
+    EXPECT_FALSE(server.applySchema("regression_expression_order"));
+
+    server.setYaml(YAML::Load("{mode: manual, param_expr: 3}"));
+    EXPECT_TRUE(server.applySchema("regression_expression_order"));
+}
+
+TEST(TestExpression, applySchemaExpressionStringType)
+{
+    // 'switch_mode' is a string, although its values may look like booleans or numbers
+    YamlServer server({SCHEMA_DIR});
+
+    for (auto mode : std::vector<std::string>{"on", "yes", "2", "auto"})
+    {
+        server.setYaml(YAML::Load("{switch_mode: " + mode + "}"));
+        bool succeed = server.applySchema("regression_expression_string_type");
+        if (not succeed) std::cout << server.getLog() << std::endl;
+        EXPECT_TRUE(succeed) << "switch_mode: " << mode;
+    }
+
+    // 'off' -> param_off mandatory
+    server.setYaml(YAML::Load("{switch_mode: off}"));
+    EXPECT_FALSE(server.applySchema("regression_expression_string_type"));
+    EXPECT_NE(server.getLog().find("Missing mandatory field"), std::string::npos);
+
+    server.setYaml(YAML::Load("{switch_mode: off, param_off: 1}"));
+    EXPECT_TRUE(server.applySchema("regression_expression_string_type"));
+}
+
+TEST(TestExpression, applySchemaExpressionEvalFails)
+{
+    // 'mode' is missing, so the expression of 'param' cannot be evaluated
+    YamlServer server({SCHEMA_DIR});
+    server.setYaml(YAML::Load("{}"));
+
+    EXPECT_FALSE(server.applySchema("regression_expression_eval_fail"));
+    std::string log = server.getLog();
+    std::cout << log << std::endl;
+    EXPECT_NE(log.find("ERROR in 'mode': Missing mandatory field"), std::string::npos);
+    EXPECT_NE(log.find("ERROR in 'param': Evaluating schema expression"), std::string::npos);
+    EXPECT_EQ(log.find("ERROR in 'param': Missing mandatory field"), std::string::npos);
+    EXPECT_FALSE(server.getNode()["param"]);
+}
+
 int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);
