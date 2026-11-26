@@ -435,6 +435,11 @@ void writeErrorToLog(std::stringstream& log,
     log << "\n";
 }
 
+void writeWarningToLog(std::stringstream& log, const std::string& _acc_field, const std::string& _warning_message)
+{
+    log << "WARNING in '" << _acc_field << "': " << _warning_message << "\n\n";
+}
+
 void writeNodeSchemaToLog(std::stringstream& log,
                           const std::string& _acc_field,
                           const YAML::Node   _node_schema,
@@ -447,6 +452,8 @@ void writeNodeSchemaToLog(std::stringstream& log,
         if (_node_schema[VALUE]) log << _tabs << "VALUE: " << _node_schema[VALUE] << "\n";
         if (_node_schema[DEFAULT]) log << _tabs << "DEFAULT: " << _node_schema[DEFAULT] << "\n";
         log << _tabs << "TYPE: " << _node_schema[TYPE] << "\n";
+        if (_node_schema[MIN]) log << _tabs << "MIN: " << _node_schema[MIN] << "\n";
+        if (_node_schema[MAX]) log << _tabs << "MAX: " << _node_schema[MAX] << "\n";
         if (_node_schema[OPTIONS])
         {
             log << _tabs << "OPTIONS:\n";

@@ -1,0 +1,16 @@
+param_int: 3
+param_optinal: 2.0
+map1:
+  param_a: "a"
+typed:
+  name: "first"
+  value: 1.5
+typed_list:
+  - name: "second"
+    value: 2.5
+  - name: "third"
+    value: 3.5
+derived_field:
+  type: type_derived_derived
+  param_base: 2.4
+  param_derived: [1, 2, 3, 4]

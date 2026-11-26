@@ -1,0 +1,5 @@
+param:
+  _mandatory: true
+  _type: double
+  _max: "high"
+  _doc: "bound that is not a number"

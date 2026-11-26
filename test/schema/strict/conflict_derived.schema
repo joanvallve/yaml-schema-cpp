@@ -1,0 +1,4 @@
+sub:
+  _mandatory: true
+  _type: conflict_other
+  _doc: "typed conflict_other in the derived schema"

@@ -1,0 +1,21 @@
+param_int:
+  _mandatory: false
+  _type: int
+  _max: 9
+  _doc: "int, read with base detection (hex, octal)"
+param_long:
+  _mandatory: false
+  _type: long int
+  _max: 9007199254740992
+  _doc: "beyond double precision"
+param_unsigned_long:
+  _mandatory: false
+  _type: long unsigned int
+  _max: 18446744073709551614
+  _doc: "beyond double precision"
+param_double:
+  _mandatory: false
+  _type: double
+  _min: 0
+  _max: 1
+  _doc: "NaN is out of any range"

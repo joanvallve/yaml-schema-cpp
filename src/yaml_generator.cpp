@@ -257,7 +257,11 @@ void schemaToYaml(const YAML::Node&               node_schema,
             node_output =
                 value_str + "  # " + mandatory_str + "DOC " + oneLine(node_schema[DOC].as<std::string>()) +
                 " - TYPE " + node_schema[TYPE].as<std::string>() +
-                (node_schema[OPTIONS] ? " - OPTIONS " + oneLine(sequenceToString(node_schema[OPTIONS])) : "");
+                (node_schema[OPTIONS] ? " - OPTIONS " + oneLine(sequenceToString(node_schema[OPTIONS])) : "") +
+                (node_schema[MIN] or node_schema[MAX]
+                     ? " - RANGE [" + (node_schema[MIN] ? node_schema[MIN].Scalar() : "-inf") + ", " +
+                           (node_schema[MAX] ? node_schema[MAX].Scalar() : "inf") + "]"
+                     : "");
         }
         // custom non trivial-type or Derived type
         else

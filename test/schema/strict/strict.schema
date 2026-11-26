@@ -1,0 +1,27 @@
+param_int:
+  _mandatory: true
+  _type: int
+  _doc: "some parameter"
+param_optional:
+  _mandatory: false
+  _type: double
+  _default: 1.0
+  _doc: "optional parameter, added with its default if missing"
+map1:
+  param_a:
+    _mandatory: true
+    _type: string
+    _doc: "parameter in a map without specification"
+typed:
+  _mandatory: true
+  _type: strict_item
+  _doc: "map typed by another schema"
+typed_list:
+  _mandatory: true
+  _type: strict_item[]
+  _doc: "sequence of maps typed by another schema"
+derived_field:
+  _mandatory: false
+  _type: derived
+  _base: type_derived_base
+  _doc: "derived type, its keys are the union of the derived and the base schemas"

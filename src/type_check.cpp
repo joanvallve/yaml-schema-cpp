@@ -244,6 +244,11 @@ bool isBasicType(const std::string& type)
     return false;
 }
 
+bool isNumericType(const std::string& type)
+{
+    return isBasicType(type) and type != "bool" and type != "char";
+}
+
 bool isStringType(const std::string& type)
 {
     if (not isWellFormedType(type)) return false;

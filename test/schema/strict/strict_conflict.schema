@@ -1,0 +1,5 @@
+x:
+  _mandatory: true
+  _type: derived
+  _base: conflict_base
+  _doc: "derived type whose schema redefines a key of its base"

@@ -42,8 +42,12 @@ static const std::string DEFAULT = SCHEMA_PREFIX + "default";
 static const std::string VALUE = SCHEMA_PREFIX + "value";
 /// Specification key (required for "derived" types): base schema that the derived type should follow
 static const std::string BASE = SCHEMA_PREFIX + "base";
+/// Specification key (optional, numeric types only): inclusive lower bound of the value (element-wise for arrays)
+static const std::string MIN = SCHEMA_PREFIX + "min";
+/// Specification key (optional, numeric types only): inclusive upper bound of the value (element-wise for arrays)
+static const std::string MAX = SCHEMA_PREFIX + "max";
 /// Keys reserved for specifications (not allowed in nodes that are not specifications)
-static const std::list<std::string> RESERVED_KEYS{TYPE, MANDATORY, DOC, OPTIONS, DEFAULT, VALUE, BASE};
+static const std::list<std::string> RESERVED_KEYS{TYPE, MANDATORY, DOC, OPTIONS, DEFAULT, VALUE, BASE, MIN, MAX};
 /// Keys required for a node to be a specification
 static const std::list<std::string> REQUIRED_KEYS{TYPE, MANDATORY, DOC};
 
@@ -71,7 +75,8 @@ YAML::Node loadSchema(std::string                     name_schema,
  *  - TYPE, DOC and BASE (required if TYPE is "derived" or "derived[..]") are strings,
  *  - MANDATORY is a bool or a valid expression (see checkExpression()),
  *  - VALUE, DEFAULT and OPTIONS (if defined) are valid (see checkSchemaValue(), checkSchemaDefault() and
- *    checkSchemaOptions()).
+ *    checkSchemaOptions()),
+ *  - MIN and MAX (if defined) are valid (see checkSchemaRange()).
  *
  * Nodes that are not specifications should be maps without any of the RESERVED_KEYS. Scalar and null nodes are
  * skipped.
@@ -133,6 +138,37 @@ void checkSchemaOptions(const YAML::Node&               node_schema,
                         const std::vector<std::string>& folders_schema);
 
 /**
+ * @brief Check the MIN and MAX of a specification node.
+ *
+ * MIN and MAX are only allowed if the TYPE is numeric (see isNumericType()), or an array of a numeric type. Each one
+ * should be a value of that numeric type (not NaN), MIN should not be greater than MAX, and DEFAULT and VALUE (if
+ * defined) should be inside the range (see checkRange()).
+ *
+ * @param node_schema specification node
+ * @param node_field name of the field (used in error messages)
+ * @throws std::runtime_error if MIN or MAX are not valid
+ */
+void checkSchemaRange(const YAML::Node& node_schema, const std::string& node_field);
+
+/**
+ * @brief Check that a numeric input node is inside the range [MIN, MAX] of a specification node.
+ *
+ * MIN and MAX are inclusive and independent: a missing one does not bound the value. Values are compared in the
+ * numeric type of the specification (integers as 64-bit integers), and NaN is outside any range. If the input node
+ * is a sequence, all its elements are checked (recursively).
+ *
+ * @param node_input input node, already validated against the TYPE of node_schema
+ * @param node_schema specification node (MIN and MAX are optional)
+ * @param log OUTPUT stream where the errors are written
+ * @param acc_field accumulated path of the field (e.g. "map1/param2[0]"), used in error messages
+ * @return true if node_input (or all its elements) is inside the range
+ */
+bool checkRange(const YAML::Node&  node_input,
+                const YAML::Node&  node_schema,
+                std::stringstream& log,
+                const std::string& acc_field);
+
+/**
  * @brief Load, flatten and check all schema files found (recursively) in the given folders.
  *
  * The result of each schema is printed in std::cout: errors are always printed, the rest only if verbose.
@@ -162,6 +198,11 @@ bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool ver
  * @param log OUTPUT stream where the errors are written
  * @param acc_field accumulated path of the field (e.g. "map1/param2[0]"), used in error messages ("" at top level)
  * @param override if true, repeated specifications while flattening schemas are overridden, otherwise it is an error
+ * @param error_on_unknown_keys after the validation, every key of a map in node_input that is not in the
+ *        corresponding schema is reported: "Unknown key, not in schema '<name>'". If true (default) it is an error and
+ *        node_input is not valid; if false it is a warning in the log. Maps typed by another schema are checked
+ * against it, sequences element-wise, and "derived" types against the union of the derived schema, the BASE schema and
+ *        the key 'type'. Only the keys of node_input as given are checked, not those added from DEFAULT or VALUE.
  * @return true if node_input is valid
  */
 bool applySchema(YAML::Node&                     node_input,
@@ -169,14 +210,15 @@ bool applySchema(YAML::Node&                     node_input,
                  const std::vector<std::string>& folders,
                  std::stringstream&              log,
                  const std::string&              acc_field,
-                 bool                            override = true);
+                 bool                            override              = true,
+                 bool                            error_on_unknown_keys = true);
 
 /**
  * @brief Validate an input node against a schema node and complete it (recursively).
  *
  * If node_schema is a specification:
  *  - if node_input is defined, it is validated against TYPE (see applySchema() and applySchemaDerived()). If valid,
- *    it should be equal to VALUE and be one of the OPTIONS (if defined).
+ *    it should be equal to VALUE, be one of the OPTIONS and be inside [MIN, MAX] (if defined, see checkRange()).
  *  - otherwise: if VALUE is defined, node_input is set to VALUE. If not, an error is reported if MANDATORY (bool or
  *    expression evaluated with evalExpression()) is true, or node_input is set to DEFAULT (if defined).
  *

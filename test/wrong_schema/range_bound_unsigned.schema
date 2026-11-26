@@ -1,0 +1,5 @@
+param:
+  _mandatory: true
+  _type: unsigned int
+  _min: -1
+  _doc: "negative bound on an unsigned type"

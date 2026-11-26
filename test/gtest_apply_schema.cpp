@@ -104,7 +104,9 @@ TEST(schema, nontrivial_options_default_value)
 
     std::cout << "before: \n" << server.getNode() << std::endl;
 
-    ASSERT_TRUE(server.applySchema("nontrivial_options_default_value.schema"));
+    // map1/param2 is not in the schema: a warning, not an error
+    ASSERT_TRUE(server.applySchema("nontrivial_options_default_value.schema", false));
+    EXPECT_NE(server.getLog().find("WARNING in 'map1/param2': Unknown key"), std::string::npos);
 
     std::cout << "after: \n" << server.getNode() << std::endl;
 
@@ -120,7 +122,8 @@ TEST(schema, complex_case)
 
     server.addFolderSchema(SCHEMA_DIR + "/complex_case");
 
-    EXPECT_TRUE(server.applySchema("Problem.schema"));
+    // partial validation: the keys of the specific problem schema are unknown to Problem.schema
+    EXPECT_TRUE(server.applySchema("Problem.schema", false));
 
     std::cout << "after Problem.schema: \n" << server.getNode() << std::endl;
 

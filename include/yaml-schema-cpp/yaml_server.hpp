@@ -71,9 +71,11 @@ class YamlServer
      * node. Null values are not accepted for string fields. The log is reset and filled with the errors found.
      *
      * @param name_schema name of the schema, with or without extension (without path)
+     * @param error_on_unknown_keys if true, keys of the input node that are not in the schema are errors; if false,
+     *        they are warnings in the log (see yaml_schema_cpp::applySchema())
      * @return true if the input node is valid. Otherwise, the errors can be retrieved with getLog().
      */
-    bool applySchema(const std::string& name_schema);
+    bool applySchema(const std::string& name_schema, bool error_on_unknown_keys = true);
 
     /**
      * @brief Add folders where the schema files are searched (recursively).

@@ -99,6 +99,13 @@ bool isTrivialType(const std::string& type);
 bool isBasicType(const std::string& type);
 
 /**
+ * @brief check if a type is numeric: int, unsigned int, long int, long unsigned int, float or double
+ * @param type string defining the type
+ * @return true if numeric (false for array types and malformed type strings)
+ */
+bool isNumericType(const std::string& type);
+
+/**
  * @brief check if a type is string: string or std::string
  * @param type string defining the type
  * @return true if string (false for array types and malformed type strings)

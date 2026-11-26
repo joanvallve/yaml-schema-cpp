@@ -8,6 +8,18 @@
 namespace yaml_schema_cpp
 {
 
+namespace
+{
+// applySchema() without the unknown-key check: used by every internal validation, so the check runs once, from the
+// top-level call, on the input as written.
+bool applySchemaWithoutKeyCheck(YAML::Node&                     node_input,
+                                const std::string&              type,
+                                const std::vector<std::string>& folders,
+                                std::stringstream&              log,
+                                const std::string&              acc_field,
+                                bool                            override = true);
+}  // namespace
+
 YAML::Node loadSchema(std::string                     name_schema,
                       const std::vector<std::string>& folders_schema,
                       std::stringstream&              log,
@@ -140,6 +152,9 @@ void checkSchema(const YAML::Node&               node_schema,
 
         // check options (optional)
         if (node_schema[OPTIONS]) checkSchemaOptions(node_schema, node_field, folders_schema);
+
+        // check range (optional)
+        if (node_schema[MIN] or node_schema[MAX]) checkSchemaRange(node_schema, node_field);
     }
     // no specifications
     else
@@ -172,7 +187,7 @@ void checkSchemaValue(const YAML::Node&               node_schema,
     std::string       type = getCheckType(node_schema);  // If derived type take BASE
     std::stringstream log;
     YAML::Node        node_schema_value = node_schema[VALUE];
-    if (not applySchema(node_schema_value, type, folders_schema, log, ""))
+    if (not applySchemaWithoutKeyCheck(node_schema_value, type, folders_schema, log, ""))
     {
         throw std::runtime_error("YAML schema: " + node_field + ", " + VALUE +
                                  " did not pass the schema check with error: " + log.str());
@@ -202,7 +217,7 @@ void checkSchemaDefault(const YAML::Node&               node_schema,
     std::string       type = getCheckType(node_schema);  // If derived type take BASE
     std::stringstream log;
     YAML::Node        node_schema_default = node_schema[DEFAULT];
-    if (not applySchema(node_schema_default, type, folders_schema, log, ""))
+    if (not applySchemaWithoutKeyCheck(node_schema_default, type, folders_schema, log, ""))
     {
         throw std::runtime_error("YAML schema: " + node_field + ", " + DEFAULT +
                                  " did not pass the schema check with error: " + log.str());
@@ -225,7 +240,7 @@ void checkSchemaOptions(const YAML::Node&               node_schema,
     {
         std::stringstream log;
         YAML::Node        node_schema_option_i = node_schema[OPTIONS][n_i];
-        if (not applySchema(node_schema_option_i, type, folders_schema, log, ""))
+        if (not applySchemaWithoutKeyCheck(node_schema_option_i, type, folders_schema, log, ""))
         {
             throw std::runtime_error("YAML schema: " + node_field + ", " + OPTIONS + "[" + std::to_string(n_i) +
                                      "] did not pass the schema check with error: " + log.str());
@@ -250,6 +265,124 @@ void checkSchemaOptions(const YAML::Node&               node_schema,
                                      " value should be one of the specified in " + OPTIONS);
         }
     }
+}
+
+namespace
+{
+// Range comparisons are done in the declared type: yaml-cpp reads integers with base detection (hex, octal), which a
+// double conversion does not follow, and a double cannot hold every 64-bit integer.
+enum class RangeKind
+{
+    SIGNED,
+    UNSIGNED,
+    FLOATING
+};
+
+RangeKind getRangeKind(const std::string& type)
+{
+    if (type == "unsigned int" or type == "long unsigned int") return RangeKind::UNSIGNED;
+    if (type == "float" or type == "double") return RangeKind::FLOATING;
+    return RangeKind::SIGNED;
+}
+
+// true if value is outside [MIN, MAX] (NaN is outside any range)
+template <typename T>
+bool isOutOfRange(const YAML::Node& node_value, const YAML::Node& node_schema)
+{
+    T value = node_value.as<T>();
+    if (value != value) return true;
+    return (node_schema[MIN] and value < node_schema[MIN].as<T>()) or
+           (node_schema[MAX] and value > node_schema[MAX].as<T>());
+}
+
+bool isOutOfRange(const YAML::Node& node_value, const YAML::Node& node_schema, RangeKind kind)
+{
+    switch (kind)
+    {
+        case RangeKind::SIGNED:
+            return isOutOfRange<long long>(node_value, node_schema);
+        case RangeKind::UNSIGNED:
+            return isOutOfRange<unsigned long long>(node_value, node_schema);
+        case RangeKind::FLOATING:
+            return isOutOfRange<double>(node_value, node_schema);
+    }
+    return false;
+}
+}  // namespace
+
+void checkSchemaRange(const YAML::Node& node_schema, const std::string& node_field)
+{
+    // only numeric types (or arrays of them)
+    auto type = node_schema[TYPE].as<std::string>();
+    if (isDerivedType(type) or not isNumericType(getLowestElementType(type)))
+    {
+        throw std::runtime_error("YAML schema: " + node_field + ", " + MIN + " and " + MAX +
+                                 " are only allowed for numeric types, not " + type);
+    }
+
+    // bounds should be values of the element type (not NaN)
+    auto element_type = getLowestElementType(type);
+    for (auto bound : {MIN, MAX})
+    {
+        if (not node_schema[bound]) continue;
+        if (not node_schema[bound].IsScalar() or not tryNodeAs(node_schema[bound], element_type))
+        {
+            throw std::runtime_error("YAML schema: " + node_field + ", " + bound + " should be a " + element_type);
+        }
+        if (getRangeKind(element_type) == RangeKind::FLOATING and
+            node_schema[bound].as<double>() != node_schema[bound].as<double>())
+        {
+            throw std::runtime_error("YAML schema: " + node_field + ", " + bound + " should be a number, not NaN");
+        }
+    }
+
+    // MIN not greater than MAX
+    if (node_schema[MIN] and node_schema[MAX] and
+        isOutOfRange(node_schema[MIN], node_schema, getRangeKind(element_type)))
+    {
+        throw std::runtime_error("YAML schema: " + node_field + ", " + MIN + " is greater than " + MAX);
+    }
+
+    // DEFAULT and VALUE inside the range (their type was already checked)
+    for (auto key : {DEFAULT, VALUE})
+    {
+        std::stringstream log;
+        if (node_schema[key] and not checkRange(node_schema[key], node_schema, log, node_field))
+        {
+            throw std::runtime_error("YAML schema: " + node_field + ", " + key + " out of range: " + log.str());
+        }
+    }
+}
+
+bool checkRange(const YAML::Node&  node_input,
+                const YAML::Node&  node_schema,
+                std::stringstream& log,
+                const std::string& acc_field)
+{
+    // sequence: check all elements
+    if (node_input.IsSequence())
+    {
+        bool is_valid = true;
+        for (size_t i = 0; i < node_input.size(); i++)
+        {
+            is_valid =
+                checkRange(node_input[i], node_schema, log, acc_field + "[" + std::to_string(i) + "]") and is_valid;
+        }
+        return is_valid;
+    }
+
+    auto kind = getRangeKind(getLowestElementType(node_schema[TYPE].as<std::string>()));
+    if (isOutOfRange(node_input, node_schema, kind))
+    {
+        writeErrorToLog(log,
+                        acc_field,
+                        node_schema,
+                        "Value " + node_input.Scalar() + " out of range [" +
+                            (node_schema[MIN] ? node_schema[MIN].Scalar() : "-inf") + ", " +
+                            (node_schema[MAX] ? node_schema[MAX].Scalar() : "inf") + "]");
+        return false;
+    }
+    return true;
 }
 
 bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool verbose, bool override)
@@ -324,12 +457,168 @@ bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool ver
     return all_valid;
 }
 
+namespace
+{
+// Unknown-key check (see applySchema()'s error_on_unknown_keys). It walks the input as the user wrote it, before
+// applySchema() completes it, so keys added from DEFAULT or VALUE are not reported. Type errors are reported by the
+// validation, so nodes of the wrong kind and schemas that fail to load are skipped here.
+//
+// A key may be governed by several schema nodes at once: a "derived" type is validated against its own schema and its
+// BASE, which may both define the same key. The walk therefore carries every schema node that applies, and a key is
+// known if any of them lists it.
+struct SchemaRef
+{
+    YAML::Node  node;  // specification or map of schema nodes
+    std::string name;  // schema named in the error
+};
+
+// Writes each unknown key as an error (as_error) or a warning; returns true if there is none.
+bool checkUnknownKeys(const YAML::Node&               node_input,
+                      const std::vector<SchemaRef>&   refs,
+                      const std::vector<std::string>& folders,
+                      std::stringstream&              log,
+                      const std::string&              acc_field,
+                      bool                            override,
+                      bool                            as_error)
+{
+    auto report = [&](const std::string& field, const std::string& message) {
+        if (as_error)
+            writeErrorToLog(log, field, YAML::Node(YAML::NodeType::Undefined), message);
+        else
+            writeWarningToLog(log, field, message);
+    };
+
+    if (not node_input.IsDefined()) return true;
+
+    // resolve specifications into the schema maps (or element specifications) they stand for
+    std::vector<SchemaRef> maps, elements;
+    bool                   allow_type_key = false;
+    for (const auto& ref : refs)
+    {
+        // scalar schema nodes accept any content (as in applySchemaRecursive())
+        if (ref.node.IsScalar()) return true;
+
+        if (not isSpecification(ref.node))
+        {
+            maps.push_back(ref);
+            continue;
+        }
+
+        auto   type = ref.node[TYPE].as<std::string>();
+        size_t size;
+        if (isArrayType(type, size))
+        {
+            YAML::Node node_element = Clone(ref.node);
+            node_element[TYPE]      = getLowerElementType(type);
+            elements.push_back({node_element, ref.name});
+        }
+        else if (isDerivedType(type))
+        {
+            if (not node_input.IsMap() or not node_input["type"] or not tryNodeAs(node_input["type"], "string"))
+                continue;
+            std::stringstream log_load;
+            auto              name_derived = node_input["type"].as<std::string>();
+            auto              name_base    = ref.node[BASE].as<std::string>();
+            YAML::Node        node_derived = loadSchema(name_derived, folders, log_load, override);
+            YAML::Node        node_base    = loadSchema(name_base, folders, log_load, override);
+            if (node_derived.IsDefined()) maps.push_back({node_derived, name_derived});
+            if (node_base.IsDefined()) maps.push_back({node_base, name_derived});
+            allow_type_key = true;
+        }
+        else if (not isTrivialType(type))
+        {
+            std::stringstream log_load;
+            YAML::Node        node_schema = loadSchema(type, folders, log_load, override);
+            if (node_schema.IsDefined()) maps.push_back({node_schema, type});
+        }
+    }
+
+    bool is_valid = true;
+
+    // sequence: each element against the element specifications
+    if (node_input.IsSequence() and not elements.empty())
+    {
+        for (size_t i = 0; i < node_input.size(); i++)
+        {
+            is_valid = checkUnknownKeys(node_input[i],
+                                        elements,
+                                        folders,
+                                        log,
+                                        acc_field + "[" + std::to_string(i) + "]",
+                                        override,
+                                        as_error) and
+                       is_valid;
+        }
+        return is_valid;
+    }
+
+    // map: every key should be listed by one of the schema maps
+    if (not node_input.IsMap() or maps.empty()) return true;
+
+    for (auto node_input_child : node_input)
+    {
+        if (not node_input_child.first.IsScalar())
+        {
+            report(acc_field, "Unknown key, not a scalar (not in schema '" + maps.front().name + "')");
+            is_valid = false;
+            continue;
+        }
+
+        auto key       = node_input_child.first.Scalar();
+        auto acc_child = (acc_field.empty() ? "" : acc_field + "/") + key;
+        if (allow_type_key and key == "type") continue;
+
+        std::vector<SchemaRef> refs_child;
+        for (const auto& map : maps)
+        {
+            if (map.node[key]) refs_child.push_back({map.node[key], map.name});
+        }
+
+        if (refs_child.empty())
+        {
+            report(acc_child, "Unknown key, not in schema '" + maps.front().name + "'");
+            is_valid = false;
+            continue;
+        }
+
+        is_valid =
+            checkUnknownKeys(node_input_child.second, refs_child, folders, log, acc_child, override, as_error) and
+            is_valid;
+    }
+    return is_valid;
+}
+}  // namespace
+
 bool applySchema(YAML::Node&                     node_input,
                  const std::string&              type,
                  const std::vector<std::string>& folders,
                  std::stringstream&              log,
                  const std::string&              acc_field,
-                 bool                            override)
+                 bool                            override,
+                 bool                            error_on_unknown_keys)
+{
+    // check the input as written: the validation adds DEFAULT and VALUE keys, which are the schema's own
+    YAML::Node node_written = Clone(node_input);
+    bool       is_valid     = applySchemaWithoutKeyCheck(node_input, type, folders, log, acc_field, override);
+
+    YAML::Node node_type_spec;
+    node_type_spec[TYPE]      = type;
+    node_type_spec[MANDATORY] = true;
+    node_type_spec[DOC]       = "";
+    bool keys_known           = checkUnknownKeys(
+        node_written, {{node_type_spec, type}}, folders, log, acc_field, override, error_on_unknown_keys);
+
+    return is_valid and (keys_known or not error_on_unknown_keys);
+}
+
+namespace
+{
+bool applySchemaWithoutKeyCheck(YAML::Node&                     node_input,
+                                const std::string&              type,
+                                const std::vector<std::string>& folders,
+                                std::stringstream&              log,
+                                const std::string&              acc_field,
+                                bool                            override)
 {
     // Array type --> recursive call to applySchema
     size_t size;
@@ -359,12 +648,12 @@ bool applySchema(YAML::Node&                     node_input,
         for (size_t i = 0; i < node_input.size(); i++)
         {
             YAML::Node node_input_i = node_input[i];
-            is_valid                = applySchema(node_input_i,
-                                   getLowerElementType(type),
-                                   folders,
-                                   log,
-                                   acc_field + "[" + std::to_string(i) + "]",
-                                   override) and
+            is_valid                = applySchemaWithoutKeyCheck(node_input_i,
+                                                  getLowerElementType(type),
+                                                  folders,
+                                                  log,
+                                                  acc_field + "[" + std::to_string(i) + "]",
+                                                  override) and
                        is_valid;
         }
         return is_valid;
@@ -405,6 +694,8 @@ bool applySchema(YAML::Node&                     node_input,
     }
 }
 
+}  // namespace
+
 bool applySchemaRecursive(YAML::Node&                     node_input,
                           YAML::Node&                     node_input_parent,
                           const YAML::Node&               node_schema,
@@ -433,8 +724,8 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                     applySchemaDerived(node_input, node_input_parent, node_schema, folders, log, acc_field, override);
             // - type specified (either trivial or custom), check with corresponding schema file or trivial type
             else
-                type_valid =
-                    applySchema(node_input, node_schema[TYPE].as<std::string>(), folders, log, acc_field, override);
+                type_valid = applySchemaWithoutKeyCheck(
+                    node_input, node_schema[TYPE].as<std::string>(), folders, log, acc_field, override);
 
             is_valid = type_valid;
 
@@ -458,6 +749,12 @@ bool applySchemaRecursive(YAML::Node&                     node_input,
                 if (node_schema[OPTIONS] and not isInOptions(node_input, node_schema[OPTIONS], check_type, folders))
                 {
                     writeErrorToLog(log, acc_field, node_schema, "Wrong value. Allowed values defined in OPTIONS.");
+                    is_valid = false;
+                }
+
+                // check if value is inside [MIN, MAX]
+                if ((node_schema[MIN] or node_schema[MAX]) and not checkRange(node_input, node_schema, log, acc_field))
+                {
                     is_valid = false;
                 }
             }
@@ -621,11 +918,13 @@ bool applySchemaDerived(YAML::Node&                     node_input,
         }
 
         // Validate with derived schema file
-        is_valid = applySchema(node_input, node_input["type"].as<std::string>(), folders, log, acc_field, override) and
+        is_valid = applySchemaWithoutKeyCheck(
+                       node_input, node_input["type"].as<std::string>(), folders, log, acc_field, override) and
                    is_valid;
 
         // Validate with base schema file (after derived since it may complete the input node)
-        is_valid = applySchema(node_input, node_schema[BASE].as<std::string>(), folders, log, acc_field, override) and
+        is_valid = applySchemaWithoutKeyCheck(
+                       node_input, node_schema[BASE].as<std::string>(), folders, log, acc_field, override) and
                    is_valid;
 
         return is_valid;

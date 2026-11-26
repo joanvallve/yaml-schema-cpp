@@ -1,0 +1,4 @@
+sub:
+  _mandatory: true
+  _type: strict_item
+  _doc: "typed strict_item in the base"

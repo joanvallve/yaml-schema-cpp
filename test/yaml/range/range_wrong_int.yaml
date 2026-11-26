@@ -1,0 +1,4 @@
+param_int: 11
+param_unsigned: 100
+param_min: 0.5
+param_sequence: [-1, 0.25, 1]
