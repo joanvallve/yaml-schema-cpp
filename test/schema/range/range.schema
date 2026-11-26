@@ -1,0 +1,28 @@
+param_int:
+  _mandatory: true
+  _type: int
+  _min: 0
+  _max: 10
+  _doc: "bounded on both sides"
+param_unsigned:
+  _mandatory: true
+  _type: unsigned int
+  _max: 100
+  _doc: "upper bound only"
+param_min:
+  _mandatory: true
+  _type: double
+  _min: 0.5
+  _doc: "lower bound only"
+param_default:
+  _mandatory: false
+  _type: double
+  _default: 2.0
+  _max: 3.0
+  _doc: "optional, its default is inside the range"
+param_sequence:
+  _mandatory: true
+  _type: double[]
+  _min: -1
+  _max: 1
+  _doc: "bounded element-wise"

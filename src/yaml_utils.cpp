@@ -447,6 +447,8 @@ void writeNodeSchemaToLog(std::stringstream& log,
         if (_node_schema[VALUE]) log << _tabs << "VALUE: " << _node_schema[VALUE] << "\n";
         if (_node_schema[DEFAULT]) log << _tabs << "DEFAULT: " << _node_schema[DEFAULT] << "\n";
         log << _tabs << "TYPE: " << _node_schema[TYPE] << "\n";
+        if (_node_schema[MIN]) log << _tabs << "MIN: " << _node_schema[MIN] << "\n";
+        if (_node_schema[MAX]) log << _tabs << "MAX: " << _node_schema[MAX] << "\n";
         if (_node_schema[OPTIONS])
         {
             log << _tabs << "OPTIONS:\n";

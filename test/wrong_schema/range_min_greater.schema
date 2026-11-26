@@ -1,0 +1,6 @@
+param:
+  _mandatory: true
+  _type: double
+  _min: 2.0
+  _max: 1.0
+  _doc: "min greater than max"

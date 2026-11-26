@@ -12,6 +12,8 @@ In *yaml-schema-cpp*, the specification is stated in **schema** files. The schem
 - Fields can be mandatory or optional.
 - Default values can be specified for optional fields.
 - The values of can be limited to a set of options.
+- Numeric values can be limited to a range.
+- Keys not in the schema can be rejected.
 - Use of polymorfism in type checking.
 - Boolean expressions.
 
@@ -174,6 +176,23 @@ Specify the value in the schema file. It means not allowing the field to be defi
 ### `_options` (optional)
 A sequence of accepted values.
 
+### `_min` and `_max` (optional)
+Inclusive bounds for numeric types (`int`, `unsigned int`, `long int`, `long unsigned int`, `float`, `double`) and
+sequences of them, checked element-wise. They are independent, so a one-sided bound needs only one of them. A value
+outside fails with `Value <v> out of range [<min>, <max>]`; NaN is outside any range. Values are compared in the
+field's type, so hex and octal integers compare as the numbers they are read as. The schema is invalid if they are used
+with any other type, if a bound is not a value of the field's type (or is NaN), if `_min` is greater than `_max`, or if
+`_default` or `_value` is outside the range.
+
+```yaml
+duration:
+  _type: double
+  _mandatory: true
+  _min: 0.6
+  _max: 3.0
+  _doc: "Step duration, in s"
+```
+
 ### `_base` (required if `_type` is "derived")
 The base class that the input field type should inherit from. This checks the input against the base class schema.
 
@@ -235,6 +254,13 @@ YAML::Node input_node_2 = server.getNode();
 ```
 
 If the input yaml file is not validated, `YamlServer::applySchema()` returns false and the errors found are reported with `YamlServer::getLog()`.
+
+By default, keys of the input that the schema does not list are ignored, so a misspelled optional key goes unnoticed.
+`applySchema(name_schema, true)` rejects them instead, with `Unknown key, not in schema '<name>'`. Only the keys the
+input file itself contains are checked, not those added from `_default` or `_value`. Maps typed by
+another schema are checked against it, sequences element by element, and a "derived" type against both its own schema
+and its `_base`, plus the key `type`. The free function `yaml_schema_cpp::applySchema()` takes the same flag as its last
+argument.
 The log output will be something like this:
 
 ```

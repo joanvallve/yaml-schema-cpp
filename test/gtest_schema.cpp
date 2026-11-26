@@ -110,6 +110,8 @@ TEST(schema, validate_all_schemas)
                                     ROOT_DIR + "/test/schema/complex_case",
 #endif
                                     ROOT_DIR + "/test/schema/own_type",
+                                    ROOT_DIR + "/test/schema/range",
+                                    ROOT_DIR + "/test/schema/strict",
                                     ROOT_DIR + "/test/schema/type_derived"},
                                    true));
     EXPECT_FALSE(validateAllSchemas({ROOT_DIR + "/test/wrong_schema"}, true));

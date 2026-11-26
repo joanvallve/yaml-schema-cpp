@@ -1,0 +1,5 @@
+param:
+  _mandatory: true
+  _type: int
+  _max: 9.5
+  _doc: "bound that is not an int"

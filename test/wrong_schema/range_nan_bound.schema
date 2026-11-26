@@ -1,0 +1,5 @@
+param:
+  _mandatory: true
+  _type: double
+  _min: .nan
+  _doc: "NaN bound"

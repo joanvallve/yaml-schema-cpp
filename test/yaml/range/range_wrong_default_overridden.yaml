@@ -1,0 +1,5 @@
+param_int: 10        # bounds are inclusive
+param_unsigned: 100
+param_min: 0.5
+param_sequence: [-1, 0.25, 1]
+param_default: 3.5

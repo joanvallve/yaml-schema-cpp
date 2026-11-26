@@ -1,0 +1,6 @@
+param:
+  _mandatory: false
+  _type: int
+  _value: -1
+  _min: 0
+  _doc: "value outside the range"

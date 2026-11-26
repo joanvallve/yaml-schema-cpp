@@ -1,0 +1,5 @@
+param:
+  _mandatory: true
+  _type: string
+  _min: 0
+  _doc: "range on a non-numeric type"

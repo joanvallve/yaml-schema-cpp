@@ -1,0 +1,7 @@
+param:
+  _mandatory: false
+  _type: double[]
+  _default: [0.5, 1.5]
+  _min: 0
+  _max: 1
+  _doc: "default outside the range"

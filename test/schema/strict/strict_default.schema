@@ -1,0 +1,8 @@
+item:
+  _mandatory: false
+  _type: strict_item
+  _default:
+    name: "default"
+    value: 1.0
+    extra: 2
+  _doc: "default carrying a key its type does not list"
