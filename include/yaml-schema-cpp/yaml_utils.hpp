@@ -96,6 +96,14 @@ void writeErrorToLog(std::stringstream& log,
                      const std::string& _error_message);
 
 /**
+ * @brief Write a warning in the log: "WARNING in '<field>': <message>".
+ * @param log OUTPUT stream where the warning is written
+ * @param _acc_field accumulated path of the field (e.g. "map1/param2[0]")
+ * @param _warning_message warning message
+ */
+void writeWarningToLog(std::stringstream& log, const std::string& _acc_field, const std::string& _warning_message);
+
+/**
  * @brief Write (recursively) a schema node in the log in a readable way.
  * @param log OUTPUT stream where the schema node is written
  * @param _acc_field accumulated path of the field (e.g. "map1/param2")

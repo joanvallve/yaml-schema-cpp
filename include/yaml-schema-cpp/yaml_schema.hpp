@@ -198,11 +198,11 @@ bool validateAllSchemas(const std::vector<std::string>& folders_schema, bool ver
  * @param log OUTPUT stream where the errors are written
  * @param acc_field accumulated path of the field (e.g. "map1/param2[0]"), used in error messages ("" at top level)
  * @param override if true, repeated specifications while flattening schemas are overridden, otherwise it is an error
- * @param reject_unknown_keys if true, after the validation, any key of a map in node_input that is not in the
- *        corresponding schema is an error "Unknown key, not in schema '<name>'". Maps typed by another schema are
- *        checked against it, sequences element-wise, and "derived" types against the union of the derived schema,
- *        the BASE schema and the key 'type'. Only the keys of node_input as given are checked, not those added from
- *        DEFAULT or VALUE.
+ * @param error_on_unknown_keys after the validation, every key of a map in node_input that is not in the
+ *        corresponding schema is reported: "Unknown key, not in schema '<name>'". If true (default) it is an error and
+ *        node_input is not valid; if false it is a warning in the log. Maps typed by another schema are checked
+ * against it, sequences element-wise, and "derived" types against the union of the derived schema, the BASE schema and
+ *        the key 'type'. Only the keys of node_input as given are checked, not those added from DEFAULT or VALUE.
  * @return true if node_input is valid
  */
 bool applySchema(YAML::Node&                     node_input,
@@ -210,8 +210,8 @@ bool applySchema(YAML::Node&                     node_input,
                  const std::vector<std::string>& folders,
                  std::stringstream&              log,
                  const std::string&              acc_field,
-                 bool                            override            = true,
-                 bool                            reject_unknown_keys = false);
+                 bool                            override              = true,
+                 bool                            error_on_unknown_keys = true);
 
 /**
  * @brief Validate an input node against a schema node and complete it (recursively).

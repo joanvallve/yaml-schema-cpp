@@ -435,6 +435,11 @@ void writeErrorToLog(std::stringstream& log,
     log << "\n";
 }
 
+void writeWarningToLog(std::stringstream& log, const std::string& _acc_field, const std::string& _warning_message)
+{
+    log << "WARNING in '" << _acc_field << "': " << _warning_message << "\n\n";
+}
+
 void writeNodeSchemaToLog(std::stringstream& log,
                           const std::string& _acc_field,
                           const YAML::Node   _node_schema,

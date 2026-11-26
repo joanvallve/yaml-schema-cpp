@@ -64,7 +64,7 @@ void YamlServer::setYaml(const YAML::Node _node_input)
     node_input_ = Clone(_node_input);
 }
 
-bool YamlServer::applySchema(const std::string& name_schema, bool reject_unknown_keys)
+bool YamlServer::applySchema(const std::string& name_schema, bool error_on_unknown_keys)
 {
     log_.str("");
     log_.clear();
@@ -91,7 +91,7 @@ bool YamlServer::applySchema(const std::string& name_schema, bool reject_unknown
     log_ << std::string(max_size, '-') << std::endl << std::endl;
 
     return yaml_schema_cpp::applySchema(
-        node_input_, name_schema, folders_schema_, log_, "", override_, reject_unknown_keys);
+        node_input_, name_schema, folders_schema_, log_, "", override_, error_on_unknown_keys);
 }
 
 std::string YamlServer::getLog() const
